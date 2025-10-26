@@ -1,0 +1,9 @@
+{
+  "home": {
+    "title": "Etusivu",
+    "welcome": "Tervetuloa Beer Shopiin!"
+  },
+  "action": {
+    "add": "Lisää koriin"
+  }
+}
