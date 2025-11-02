@@ -1,16 +1,31 @@
 // next-intl.config.ts
-import { getRequestConfig } from 'next-intl/server';
+import { getRequestConfig } from "next-intl/server";
 
-const locales = ['en', 'et', 'ru', 'fi'] as const;
+// Список поддерживаемых локалей
+const locales = ["en", "et", "ru", "fi", "uk"] as const;
 type Locale = (typeof locales)[number];
 
-export default getRequestConfig(async ({ locale }) => {
-  const safeLocale: Locale = locales.includes(locale as Locale)
+// Тип контекста, который приходит в getRequestConfig
+type RequestContext = {
+  locale?: string;
+};
+
+export default getRequestConfig(async ({ locale }: RequestContext) => {
+  // Если locale не пришла (undefined) или она не из разрешённых,
+  // мы жёстко ставим 'en' как дефолт.
+  const fallback: Locale = "en";
+
+  const safeLocale: Locale = locale && locales.includes(locale as Locale)
     ? (locale as Locale)
-    : 'en';
+    : fallback;
 
-  // 👇 путь к JSON именно ./locales
-  const messages = (await import(`./locales/${safeLocale}.json`)).default;
+  // Динамически берём переводы
+  const messages = (
+    await import(`./locales/${safeLocale}.json`)
+  ).default;
 
-  return { locale: safeLocale, messages };
+  return {
+    locale: safeLocale,
+    messages,
+  };
 });
