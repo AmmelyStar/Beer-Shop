@@ -1,0 +1,18 @@
+{
+  "hero": {
+    "title": "Käsitööõlu, väikesed partiid, suur maitse",
+    "subtitle": "Avasta piiratud väljalasked sõltumatutelt pruulikodadelt.",
+    "cta": "Osta kohe"
+  },
+  "ShopCategory": {
+    "title": "Osta kategooria kaupa",
+    "browseAll": "Sirvi kõiki kategooriaid",
+    "cta": "Osta kohe",
+    "names": { "beer": "Õlu", "cider": "Siider", "snacks": "Suupisted" },
+    "alts": {
+      "beer": "Valik käsitööõllesid riiulil.",
+      "cider": "Valik pudelisiidreid.",
+      "snacks": "Maitsvad suupisted puidust alusel."
+    }
+  }
+}

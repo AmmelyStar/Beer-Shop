@@ -1,0 +1,18 @@
+{
+  "hero": {
+    "title": "Craft beer, small batches, big taste",
+    "subtitle": "Discover limited releases from independent breweries.",
+    "cta": "Shop now"
+  },
+  "ShopCategory": {
+    "title": "Shop by Category",
+    "browseAll": "Browse all categories",
+    "cta": "Shop now",
+    "names": { "beer": "Beer", "cider": "Cider", "snacks": "Snacks" },
+    "alts": {
+      "beer": "Assorted craft beers on a shelf.",
+      "cider": "Selection of bottled ciders.",
+      "snacks": "Tasty snacks next to a wooden tray."
+    }
+  }
+}

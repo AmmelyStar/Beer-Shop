@@ -1,0 +1,18 @@
+{
+  "hero": {
+    "title": "Pienpanimo-olutta – pieniä eriä, suuri maku",
+    "subtitle": "Löydä rajatut julkaisut itsenäisiltä panimoilta.",
+    "cta": "Osta nyt"
+  },
+  "ShopCategory": {
+    "title": "Osta kategorian mukaan",
+    "browseAll": "Selaa kaikkia kategorioita",
+    "cta": "Osta nyt",
+    "names": { "beer": "Olut", "cider": "Siideri", "snacks": "Naposteltavat" },
+    "alts": {
+      "beer": "Valikoima pienpanimo-oluita hyllyllä.",
+      "cider": "Valikoituja siidereitä pulloissa.",
+      "snacks": "Herkullisia naposteltavia puisella tarjottimella."
+    }
+  }
+}
