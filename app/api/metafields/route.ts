@@ -76,8 +76,10 @@ type MediaImageNode = {
   image: { url: string };
 };
 
+// ВАЖНО: фикс — __typename строгий (не просто string),
+// чтобы TypeScript мог корректно сузить тип по проверке __typename
 type OtherFileNode = {
-  __typename: string; // другие типы файлов, которые нам не нужны
+  __typename: "Video" | "ExternalVideo" | "Model3d";
   id: string;
   createdAt: string;
 };
@@ -99,6 +101,15 @@ type MetafieldsSetResult = {
     userErrors: Array<{ field: string[] | null; message: string }>;
   };
 };
+
+// ── Type guards ───────────────────────────────────────────────────
+function isGenericFile(node: FilesNode): node is GenericFileNode {
+  return node.__typename === "GenericFile";
+}
+
+function isMediaImage(node: FilesNode): node is MediaImageNode {
+  return node.__typename === "MediaImage";
+}
 
 // ── Утилиты ───────────────────────────────────────────────────────
 function parseCsv(raw: string): Array<Record<string, string>> {
@@ -140,8 +151,8 @@ function normalizeHeader(h: string): string {
 }
 
 function pickUrl(node: FilesNode): string | undefined {
-  if (node.__typename === "GenericFile") return node.url;
-  if (node.__typename === "MediaImage") return node.image.url;
+  if (isGenericFile(node)) return node.url;
+  if (isMediaImage(node)) return node.image.url;
   return undefined;
 }
 
@@ -158,15 +169,16 @@ export async function GET(req: Request) {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    // 1) Пытаемся найти beer.csv через filename-фильтр
+    // 1) Пытаемся найти beer.csv через filename-фильтр (если Shopify сматчит по имени)
     const byName = await shopifyAdminRequest<FilesQueryResult>(Q_FILES, {
       query: `filename:${JSON.stringify(FILE_NAME)}`,
       first: 5,
     });
 
-    let fileUrl = byName.files.edges.length ? pickUrl(byName.files.edges[0].node) : undefined;
+    let fileUrl =
+      byName.files.edges.length ? pickUrl(byName.files.edges[0].node) : undefined;
 
-    // 2) Если не нашли — ищем среди последних 100 файлов по хвосту URL
+    // 2) Если не нашли — ищем среди последних файлов по хвосту URL
     let candidates: string[] = [];
     if (!fileUrl) {
       const latest = await shopifyAdminRequest<FilesQueryResult>(Q_FILES, {
@@ -192,7 +204,9 @@ export async function GET(req: Request) {
     // 3) Скачиваем CSV
     const csvText = await fetch(fileUrl, { cache: "no-store" }).then((r) => r.text());
     const rowsRaw = parseCsv(csvText);
-    if (!rowsRaw.length) return NextResponse.json({ ok: true, updated: 0, skipped: 0, errors: [] });
+    if (!rowsRaw.length) {
+      return NextResponse.json({ ok: true, updated: 0, skipped: 0, errors: [] });
+    }
 
     // 4) Нормализуем заголовки
     const rows = rowsRaw.map((row) => {
