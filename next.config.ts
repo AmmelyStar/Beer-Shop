@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
-      // Shopify CDN (твой магазин)
+      // Shopify CDN
       {
         protocol: "https",
         hostname: "cdn.shopify.com",
@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "**.cdn.shopify.com",
       },
-      // то, что у тебя уже было - оставляем
+      // Дополнительные источники
       {
         protocol: "https",
         hostname: "images.unsplash.com",
@@ -22,10 +22,11 @@ const nextConfig: NextConfig = {
         hostname: "tailwindcss.com",
       },
     ],
+
+    // 🧠 Включаем это для dev, чтобы не залипал кеш картинок
+    unoptimized: process.env.NODE_ENV !== "production",
+  minimumCacheTTL: 0,
   },
-  // experimental: {
-  //   reactCompiler: true,
-  // },
 };
 
 export default nextConfig;
