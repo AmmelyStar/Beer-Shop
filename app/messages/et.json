@@ -1,18 +1,39 @@
 {
   "hero": {
     "title": "Käsitööõlu, väikesed partiid, suur maitse",
-    "subtitle": "Avasta piiratud väljalasked sõltumatutelt pruulikodadelt.",
-    "cta": "Osta kohe"
+    "subtitle": "Avasta iseseisvate pruulikodade piiratud väljalasked.",
+    "cta": "Osta nüüd"
   },
   "ShopCategory": {
     "title": "Osta kategooria kaupa",
     "browseAll": "Sirvi kõiki kategooriaid",
-    "cta": "Osta kohe",
+    "cta": "Osta nüüd",
     "names": { "beer": "Õlu", "cider": "Siider", "snacks": "Suupisted" },
     "alts": {
       "beer": "Valik käsitööõllesid riiulil.",
       "cider": "Valik pudelisiidreid.",
-      "snacks": "Maitsvad suupisted puidust alusel."
+      "snacks": "Maitsvad suupisted puidust aluse kõrval."
     }
+  },
+  "TrendingProducts": {
+    "title": "Trendikad tooted",
+    "stars": "5-st tärnist",
+    "reviews": "arvustust",
+    "add": "Lisa korvi"
+  },
+  "HeaderSearch": {
+    "label": "Otsi tooteid",
+    "placeholder": "Otsi tooteid…"
+  },
+  "ShoppingCart": {
+    "ariaLabel": "Shopping cart",
+    "emptyMessage": "Your cart is empty",
+    "checkoutButton": "Proceed to Checkout",
+    "itemsInCart": "items in cart, view bag"
+  },
+  "BannerSection": {
+    "title": "Töökoha kollektsioon",
+    "subtitle": "Uuenda oma töölauda esemetega, mis aitavad hoida korda ja selget meelt.",
+    "cta": "Vaata kollektsiooni"
   }
 }

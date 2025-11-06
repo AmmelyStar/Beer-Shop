@@ -2,6 +2,7 @@ import Hero from "@/app/components/Hero";
 import { getMessages, type Locale } from "./messages";
 import ShopCategory from "../components/ShopCategory";
 import TrendingProducts from "../components/TrendingProducts";
+import BannerSection from "../components/BannerSection";
 
 export default async function Home({
   params,
@@ -31,7 +32,20 @@ export default async function Home({
         alts={t.ShopCategory.alts}
         lang={lang}
       />
-      <TrendingProducts />
+      <TrendingProducts
+        title={t.TrendingProducts.title}
+        stars={t.TrendingProducts.stars}
+        reviews={t.TrendingProducts.reviews}
+        add={t.TrendingProducts.add}
+      />
+      <BannerSection
+        imageSrc="/category/golden-beer-bubbles-drop-wet-glass-generated-by-ai.jpg"
+        imageAlt={t.BannerSection.title}
+        title={t.BannerSection.title}
+        subtitle={t.BannerSection.subtitle}
+        ctaLabel={t.BannerSection.cta}
+        ctaHref={`/${lang}/shop`}
+      />
     </main>
   );
 }

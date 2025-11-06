@@ -1,18 +1,39 @@
 {
   "hero": {
     "title": "Pienpanimo-olutta – pieniä eriä, suuri maku",
-    "subtitle": "Löydä rajatut julkaisut itsenäisiltä panimoilta.",
+    "subtitle": "Löydä itsenäisten panimoiden rajatut erät.",
     "cta": "Osta nyt"
   },
   "ShopCategory": {
-    "title": "Osta kategorian mukaan",
+    "title": "Osta kategorioittain",
     "browseAll": "Selaa kaikkia kategorioita",
     "cta": "Osta nyt",
     "names": { "beer": "Olut", "cider": "Siideri", "snacks": "Naposteltavat" },
     "alts": {
       "beer": "Valikoima pienpanimo-oluita hyllyllä.",
-      "cider": "Valikoituja siidereitä pulloissa.",
-      "snacks": "Herkullisia naposteltavia puisella tarjottimella."
+      "cider": "Valikoima pullotettuja siidereitä.",
+      "snacks": "Herkullisia naposteltavia puisen tarjottimen vieressä."
     }
+  },
+  "TrendingProducts": {
+    "title": "Trendaavat tuotteet",
+    "stars": "5:stä tähdestä",
+    "reviews": "arvostelua",
+    "add": "Lisää ostoskoriin"
+  },
+  "HeaderSearch": {
+    "label": "Hae tuotteita",
+    "placeholder": "Hae tuotteita…"
+  },
+  "ShoppingCart": {
+    "ariaLabel": "Shopping cart",
+    "emptyMessage": "Your cart is empty",
+    "checkoutButton": "Proceed to Checkout",
+    "itemsInCart": "items in cart, view bag"
+  },
+  "BannerSection": {
+    "title": "Työpiste-kokoelma",
+    "subtitle": "Päivitä työpöytäsi esineillä, jotka pitävät sinut järjestyksessä ja ajatukset kirkkaina.",
+    "cta": "Näytä kokoelma"
   }
 }

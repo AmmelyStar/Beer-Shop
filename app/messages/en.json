@@ -14,5 +14,26 @@
       "cider": "Selection of bottled ciders.",
       "snacks": "Tasty snacks next to a wooden tray."
     }
+  },
+  "TrendingProducts": {
+    "title": "Trending Products",
+    "stars": "out of 5 stars",
+    "reviews": "reviews",
+    "add": "Add to cart"
+  },
+  "HeaderSearch": {
+    "label": "Search products",
+    "placeholder": "Search products…"
+  },
+  "ShoppingCart": {
+    "ariaLabel": "Shopping cart",
+    "emptyMessage": "Your cart is empty",
+    "checkoutButton": "Proceed to Checkout",
+    "itemsInCart": "items in cart, view bag"
+  },
+  "BannerSection": {
+    "title": "Workspace Collection",
+    "subtitle": "Upgrade your desk with objects that keep you organized and clear-minded.",
+    "cta": "View the collection"
   }
 }

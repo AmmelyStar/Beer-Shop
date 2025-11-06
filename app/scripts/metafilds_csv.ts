@@ -9,7 +9,7 @@ import fetch from "node-fetch";
 // ==== ENV ====
 const STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN!;
 const ADMIN_TOKEN = process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN!;
-const API_VERSION = process.env.SHOPIFY_ADMIN_API_VERSION || "2024-10";
+const API_VERSION = process.env.SHOPIFY_ADMIN_API_VERSION || "2024-07";
 
 if (!STORE_DOMAIN || !ADMIN_TOKEN) {
   console.error(

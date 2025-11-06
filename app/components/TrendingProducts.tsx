@@ -1,3 +1,56 @@
+// import Image from "next/image";
+// import Link from "next/link";
+// import { shopifyFetch } from "@/app/lib/shopify";
+// import { PRODUCTS2 } from "@/app/lib/queries";
+
+// const money = (a: string, c: string) =>
+//   new Intl.NumberFormat("en-EE", { style: "currency", currency: c }).format(
+//     Number(a)
+//   );
+
+// export default async function TrendingProducts() {
+//   const data = await shopifyFetch<{ products: { edges: { node: any }[] } }>(
+//     PRODUCTS2,
+//     { first: 2 }
+//   );
+//   const products = data.products.edges.map((e) => e.node);
+//   console.dir(products);
+//   return (
+//     <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+//       <h2 className="text-2xl tracking-tight text-white">Trending Products</h2>
+//       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-8">
+//         {products.map((p) => (
+//           <div key={p.id}>
+//             <div className="relative aspect-square overflow-hidden rounded-lg">
+//               {p.featuredImage ? (
+//                 <Image
+//                   src={p.featuredImage.url}
+//                   alt={p.featuredImage.altText || p.title}
+//                   fill
+//                   className="object-cover"
+//                 />
+//               ) : (
+//                 <div className="h-full w-full bg-gray-800/50" />
+//               )}
+//             </div>
+//             <div className="mt-4 flex items-start justify-between">
+//               <h3 className="text-white">
+//                 <Link href={`/products/${p.handle}`}>{p.title}</Link>
+//               </h3>
+//               <p className="text-white font-semibold">
+//                 {money(
+//                   p.priceRange.minVariantPrice.amount,
+//                   p.priceRange.minVariantPrice.currencyCode
+//                 )}
+//               </p>
+//             </div>
+//           </div>
+//         ))}
+//       </div>
+//     </section>
+//   );
+// }
+
 import Image from "next/image";
 import { StarIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";
@@ -60,13 +113,23 @@ const products = [
   },
 ];
 
-export default function TrendingProducts() {
+type TrendingProductsProps = {
+  title: string;
+  stars: string;
+  reviews: string;
+  add: string;
+};
+
+export default function TrendingProducts({
+  title,
+  stars,
+  reviews,
+  add,
+}: TrendingProductsProps) {
   return (
     <div>
       <div className="mx-auto max-w-2xl px-4 pt-8  pb-16 sm:px-6 lg:max-w-7xl lg:px-8">
-        <h2 className="text-2xl tracking-tight text-white">
-          Trending Products
-        </h2>
+        <h2 className="text-2xl tracking-tight text-white">{title}</h2>
 
         <div className="mt-8 grid grid-cols-1 gap-y-12 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8">
           {products.map((product) => (
@@ -99,7 +162,7 @@ export default function TrendingProducts() {
 
                 <div className="mt-3 flex flex-col ">
                   <span className="sr-only">
-                    {product.rating} out of 5 stars
+                    {product.rating} {stars}
                   </span>
                   <div className="flex ">
                     {[0, 1, 2, 3, 4].map((i) => (
@@ -116,7 +179,7 @@ export default function TrendingProducts() {
                     ))}
                   </div>
                   <p className="mt-1 text-sm text-gray-500">
-                    {product.reviewCount} reviews
+                    {product.reviewCount} {reviews}
                   </p>
                 </div>
               </div>
@@ -126,7 +189,8 @@ export default function TrendingProducts() {
                   href={product.href}
                   className="relative flex items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white hover:bg-white/20"
                 >
-                  Add to bag<span className="sr-only">, {product.name}</span>
+                  {add}
+                  <span className="sr-only">, {product.name}</span>
                 </Link>
               </div>
             </div>
