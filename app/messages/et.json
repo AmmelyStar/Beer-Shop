@@ -4,22 +4,71 @@
     "subtitle": "Avasta iseseisvate pruulikodade piiratud väljalasked.",
     "cta": "Osta nüüd"
   },
+  "TextBlockCategory": {
+    "title": "Avasta uusi maitseid",
+    "subtitle": "Klassika ja piiratud väljaanded, käsitöölemmikud, hooajalised uued tulijad ja haruldused — mugavad kureeritud valikud õlle- ja siidristiilide kaupa ning suupisted kõik ühes kohas."
+  },
   "ShopCategory": {
     "title": "Osta kategooria kaupa",
     "browseAll": "Sirvi kõiki kategooriaid",
-    "cta": "Osta nüüd",
-    "names": { "beer": "Õlu", "cider": "Siider", "snacks": "Suupisted" },
+
+    "names": { "beer": "Õlu", "cider": "Siider", "snacks": "Snäkid" },
     "alts": {
       "beer": "Valik käsitööõllesid riiulil.",
       "cider": "Valik pudelisiidreid.",
-      "snacks": "Maitsvad suupisted puidust aluse kõrval."
+      "snacks": "Maitsvad snäkid puidust aluse kõrval."
     }
   },
   "TrendingProducts": {
     "title": "Trendikad tooted",
     "stars": "5-st tärnist",
     "reviews": "arvustust",
-    "add": "Lisa korvi"
+    "add": "Lisa korvi",
+    "alcohol": "Alkoholi vaba"
+  },
+  "AllProducts": {
+    "title": "Kõik tooted",
+    "stars": "5-st tärnist",
+    "reviews": "arvustust",
+    "add": "Lisa korvi",
+    "alcohol": "Alkoholi vaba",
+    "noProducts": "Tooteid ei leitud",
+    "noProductsDescription": "Selles kategoorias pole veel tooteid. Vaata hiljem uuesti või sirvi teisi kategooriaid.",
+    "categories": {
+      "all": "Kõik tooted",
+      "beer": "Õlu",
+      "cider": "Siider",
+      "snacks": "Suupisted"
+    }
+  },
+  "OneProduct": {
+    "perUnit": "1 tk kohta",
+    "abv": "ABV",
+    "ibu": "IBU",
+    "fg": "FG",
+    "country": "Riik",
+    "brand": "Bränd",
+    "style": "Stiil",
+    "addToCart": "Lisa ostukorvi",
+    "reviews": "Arvustused",
+    "outOf5Stars": "5-st tärnist",
+    "viewAllReviews": "Vaata kõiki arvustusi",
+    "leaveAReview": "Jäta arvustus",
+    "description": "Kirjeldus",
+    "tastedBestWith": "Sobib hästi koos",
+    "allergens": "Allergeenid",
+    "ingredients": "Koostisosad"
+  },
+  "CustomerReviews": {
+    "title": "Kliendiarvustused",
+    "stars": "5-st tärnist",
+    "base1": "Põhineb ",
+    "base2": "arvustustel",
+    "starRew": "{stars}-tärni arvustused",
+    "CTATitle": "Jaga oma mõtteid",
+    "CTASubtitle": "Kui oled seda toodet kasutanud, jaga oma kogemust teiste ostjatega",
+    "button": "Kirjuta arvustus",
+    "recentReviews": "Hiljutised arvustused"
   },
   "HeaderSearch": {
     "label": "Otsi tooteid",
@@ -35,5 +84,27 @@
     "title": "Töökoha kollektsioon",
     "subtitle": "Uuenda oma töölauda esemetega, mis aitavad hoida korda ja selget meelt.",
     "cta": "Vaata kollektsiooni"
+  },
+  "LogoSection": {
+    "title": "Sinu lemmikbrändid — meie riiulitel",
+    "subtitle": "Oleme uhked, et teeme koostööd juhtivate sõltumatute õlletehaste ja suupistete tarnijatega, et pakkuda sulle parimat valikut käsitööõlut ja seotud tooteid."
+  },
+  "common": {
+    "home": "Avaleht",
+    "shop": "Pood",
+    "pageNotFound": "Lehte ei leitud",
+    "goHome": "Mine avalehele"
+  },
+  "Footer": {
+    "about": "Meist",
+    "terms": "Tingimused ja reeglid",
+    "delivery": "Tarneinfo",
+    "refunds": "Tagastused",
+    "contact": "Kontakt",
+    "cookiesPolicy": "Küpsiste poliitika",
+    "privacyPolicy": "Privaatsuspoliitika",
+    "followUs": "Jälgi meid",
+    "copyright": "© 2025 Craft Bear Shop. Kõik õigused kaitstud.",
+    "prodused": "Loodud Dvi poolt"
   }
 }

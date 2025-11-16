@@ -6,7 +6,7 @@ import RowLink from "./ui/RowLink";
 type Props = {
   title: string;
   browseAll: string;
-  cta: string;
+
   names: { beer: string; cider: string; snacks: string };
   alts: { beer: string; cider: string; snacks: string };
   lang: Locale;
@@ -15,7 +15,7 @@ type Props = {
 export default function ShopCategory({
   title,
   browseAll,
-  cta,
+
   names,
   alts,
   lang,

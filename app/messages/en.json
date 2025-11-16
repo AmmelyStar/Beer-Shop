@@ -1,13 +1,17 @@
 {
   "hero": {
-    "title": "Craft beer, small batches, big taste",
+    "title": "Craft beer big taste",
     "subtitle": "Discover limited releases from independent breweries.",
     "cta": "Shop now"
+  },
+  "TextBlockCategory": {
+    "title": "Discover new flavors",
+    "subtitle": "Classics and limited releases, craft favorites, seasonal drops and rarities — convenient curated picks by beer and cider styles, plus snacks, all in one place."
   },
   "ShopCategory": {
     "title": "Shop by Category",
     "browseAll": "Browse all categories",
-    "cta": "Shop now",
+
     "names": { "beer": "Beer", "cider": "Cider", "snacks": "Snacks" },
     "alts": {
       "beer": "Assorted craft beers on a shelf.",
@@ -19,8 +23,55 @@
     "title": "Trending Products",
     "stars": "out of 5 stars",
     "reviews": "reviews",
-    "add": "Add to cart"
+    "add": "Add to cart",
+    "alcohol": "Alcohol free"
   },
+  "AllProducts": {
+    "title": "All Products",
+    "stars": "out of 5 stars",
+    "reviews": "reviews",
+    "add": "Add to cart",
+    "alcohol": "Alcohol free",
+    "noProducts": "No products found",
+    "noProductsDescription": "There are no products in this category yet. Check back soon or browse other categories.",
+    "categories": {
+      "all": "All Products",
+      "beer": "Beer",
+      "cider": "Cider",
+      "snacks": "Snacks"
+    }
+  },
+  "OneProduct": {
+    "perUnit": "per 1 pc",
+    "abv": "ABV",
+    "ibu": "IBU",
+    "fg": "FG",
+    "country": "Country",
+    "brand": "Brand",
+    "style": "Style",
+    "addToCart": "Add to cart",
+    "reviews": "Reviews",
+    "outOf5Stars": "out of 5 stars",
+    "viewAllReviews": "View all reviews",
+    "leaveAReview": "Leave a review",
+    "description": "Description",
+    "tastedBestWith": "Tasted best with",
+    "allergens": "Allergens",
+    "ingredients": "Ingredients"
+  },
+
+  "CustomerReviews": {
+    "title": "Customer Reviews",
+    "stars": "out of 5 stars",
+    "base1": "Based on ",
+    "base2": "reviews",
+    "starRew": "star reviews",
+    "CTATitle": "Share your thoughts",
+    "CTASubtitle": "If you’ve used this product, share your thoughts with other customers",
+    "button": "Write a review",
+    "recentReviews": "Recent reviews"
+  },
+
   "HeaderSearch": {
     "label": "Search products",
     "placeholder": "Search products…"
@@ -35,5 +86,27 @@
     "title": "Workspace Collection",
     "subtitle": "Upgrade your desk with objects that keep you organized and clear-minded.",
     "cta": "View the collection"
+  },
+  "LogoSection": {
+    "title": "Your favorite brands — on our shelves",
+    "subtitle": "We’re proud to partner with leading independent breweries and snack suppliers to offer you the best selection of craft beer and related products."
+  },
+  "common": {
+    "home": "Home",
+    "shop": "Shop",
+    "pageNotFound": "Page not found",
+    "goHome": "Go to homepage"
+  },
+  "Footer": {
+    "about": " About Us",
+    "terms": " Terms & Conditions",
+    "delivery": " Delivery Information",
+    "refunds": " Refunds",
+    "contact": " Contact",
+    "cookiesPolicy": " Cookies policy",
+    "privacyPolicy": " Privacy policy",
+    "followUs": " Follow Us",
+    "copyright": " © 2025 Craft Bear Shop. All rights reserved.",
+    "prodused": "Produced by Dvi"
   }
 }

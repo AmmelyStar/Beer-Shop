@@ -4,22 +4,71 @@
     "subtitle": "Löydä itsenäisten panimoiden rajatut erät.",
     "cta": "Osta nyt"
   },
+  "TextBlockCategory": {
+    "title": "Löydä uusia makuja",
+    "subtitle": "Klassikot ja limited-julkaisut, craft-suosikit, kausiuutuudet ja harvinaisuudet — kätevät kuratoidut valikoimat olut- ja siiderityyleittäin sekä snacksit yhdessä paikassa."
+  },
   "ShopCategory": {
     "title": "Osta kategorioittain",
     "browseAll": "Selaa kaikkia kategorioita",
-    "cta": "Osta nyt",
-    "names": { "beer": "Olut", "cider": "Siideri", "snacks": "Naposteltavat" },
+
+    "names": { "beer": "Olut", "cider": "Siideri", "snacks": "snacksit" },
     "alts": {
       "beer": "Valikoima pienpanimo-oluita hyllyllä.",
       "cider": "Valikoima pullotettuja siidereitä.",
-      "snacks": "Herkullisia naposteltavia puisen tarjottimen vieressä."
+      "snacks": "Herkullisia snacksit puisen tarjottimen vieressä."
     }
   },
   "TrendingProducts": {
     "title": "Trendaavat tuotteet",
     "stars": "5:stä tähdestä",
     "reviews": "arvostelua",
-    "add": "Lisää ostoskoriin"
+    "add": "Lisää ostoskoriin",
+    "alcohol": "Alkoholi vaba"
+  },
+  "AllProducts": {
+    "title": "Kaikki tuotteet",
+    "stars": "5:stä tähdestä",
+    "reviews": "arvostelua",
+    "add": "Lisää ostoskoriin",
+    "alcohol": "Alkoholi vaba",
+    "noProducts": "Tuotteita ei löytynyt",
+    "noProductsDescription": "Tässä kategoriassa ei vielä ole tuotteita. Tule myöhemmin takaisin tai katso muita kategorioita.",
+    "categories": {
+      "all": "Kaikki tuotteet",
+      "beer": "Olut",
+      "cider": "Siideri",
+      "snacks": "Välipalat"
+    }
+  },
+  "OneProduct": {
+    "perUnit": "1 kpl",
+    "abv": "ABV",
+    "ibu": "IBU",
+    "fg": "FG",
+    "country": "Maa",
+    "brand": "Merkki",
+    "style": "Tyyli",
+    "addToCart": "Lisää ostoskoriin",
+    "reviews": "Arvostelut",
+    "outOf5Stars": "viidestä tähdestä",
+    "viewAllReviews": "Näytä kaikki arvostelut",
+    "leaveAReview": "Jätä arvostelu",
+    "description": "Kuvaus",
+    "tastedBestWith": "Parhaiten nautittuna",
+    "allergens": "Allergeenit",
+    "ingredients": "Ainesosat"
+  },
+  "CustomerReviews": {
+    "title": "Asiakasarviot",
+    "stars": "viidestä tähdestä",
+    "base1": "Perustuu ",
+    "base2": "arvioihin",
+    "starRew": "{stars} tähden arviot",
+    "CTATitle": "Jaa mielipiteesi",
+    "CTASubtitle": "Jos olet käyttänyt tätä tuotetta, jaa kokemuksesi muiden asiakkaiden kanssa",
+    "button": "Kirjoita arvostelu",
+    "recentReviews": "Viimeisimmät arviot"
   },
   "HeaderSearch": {
     "label": "Hae tuotteita",
@@ -35,5 +84,27 @@
     "title": "Työpiste-kokoelma",
     "subtitle": "Päivitä työpöytäsi esineillä, jotka pitävät sinut järjestyksessä ja ajatukset kirkkaina.",
     "cta": "Näytä kokoelma"
+  },
+  "LogoSection": {
+    "title": "Suosikkibrändisi — hyllyillämme",
+    "subtitle": "Olemme ylpeitä tehdessämme yhteistyötä johtavien itsenäisten panimoiden ja välipalatoimittajien kanssa tarjotaksemme parhaan valikoiman käsityöoluita ja oheistuotteita."
+  },
+  "common": {
+    "home": "Etusivu",
+    "shop": "Kauppa",
+    "pageNotFound": "Sivua ei löytynyt",
+    "goHome": "Palaa etusivulle"
+  },
+  "Footer": {
+    "about": "Tietoa meistä",
+    "terms": "Käyttöehdot",
+    "delivery": "Toimitustiedot",
+    "refunds": "Palautukset",
+    "contact": "Yhteystiedot",
+    "cookiesPolicy": "Evästekäytäntö",
+    "privacyPolicy": "Tietosuojakäytäntö",
+    "followUs": "Seuraa meitä",
+    "copyright": "© 2025 Craft Bear Shop. Kaikki oikeudet pidätetään.",
+    "prodused": "Tuottanut Dvi"
   }
 }
