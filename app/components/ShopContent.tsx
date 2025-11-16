@@ -4,11 +4,11 @@
 import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Tabs from "./ui/Tabs";
-import AllProducts from "./AllProducts";
+import AllProducts, { LeafCategory } from "./AllProducts";
 import type { FlattenedProduct } from "@/app/data/mappers";
 import type { Locale } from "@/app/[lang]/messages";
 
-type CategoryKey = "all" | "beer" | "cider" | "snacks";
+type CategoryKey = "all" | LeafCategory;
 
 interface ShopContentProps {
   products: FlattenedProduct[];
@@ -25,7 +25,14 @@ interface ShopContentProps {
   lang: Locale;
 }
 
-const CATEGORIES: CategoryKey[] = ["all", "beer", "cider", "snacks"];
+const CATEGORIES: CategoryKey[] = [
+  "all",
+  "beer",
+  "cider",
+  "snacks",
+  "gifts-sets",
+  "alcohol-free",
+];
 
 export default function ShopContent({
   products,
@@ -36,7 +43,6 @@ export default function ShopContent({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // читаем таб из URL
   const tabFromUrl = (searchParams.get("category") ?? "all") as string;
   const initialTab: CategoryKey = CATEGORIES.includes(tabFromUrl as CategoryKey)
     ? (tabFromUrl as CategoryKey)
@@ -44,11 +50,9 @@ export default function ShopContent({
 
   const [activeTab, setActiveTab] = useState<CategoryKey>(initialTab);
 
-  // обёртка, чтобы менять и состояние, и URL
   const handleTabChange = (tab: CategoryKey) => {
     setActiveTab(tab);
 
-    // searchParams — ReadonlyURLSearchParams, поэтому создаём новый
     const params = new URLSearchParams(searchParams.toString());
 
     if (tab === "all") {
@@ -69,18 +73,16 @@ export default function ShopContent({
   const categoryTitle =
     translations.categories[activeTab] ?? translations.categories.all;
 
-  // категория для карточек (без "all")
-  const currentCategory =
-    activeTab !== "all"
-      ? (activeTab as "beer" | "cider" | "snacks")
-      : undefined;
+  const currentCategory: LeafCategory | undefined =
+    activeTab !== "all" ? activeTab : undefined;
 
   return (
     <>
-      <Tabs
+      <Tabs<CategoryKey>
         activeTab={activeTab}
-        onTabChange={(tab) => handleTabChange(tab as CategoryKey)}
+        onTabChange={handleTabChange}
         labels={translations.categories}
+        keys={CATEGORIES}
       />
 
       {filteredProducts.length === 0 ? (

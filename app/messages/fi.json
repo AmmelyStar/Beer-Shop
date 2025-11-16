@@ -11,13 +11,20 @@
   "ShopCategory": {
     "title": "Osta kategorioittain",
     "browseAll": "Selaa kaikkia kategorioita",
-
-    "names": { "beer": "Olut", "cider": "Siideri", "snacks": "snacksit" },
-    "alts": {
-      "beer": "Valikoima pienpanimo-oluita hyllyllä.",
-      "cider": "Valikoima pullotettuja siidereitä.",
-      "snacks": "Herkullisia snacksit puisen tarjottimen vieressä."
-    }
+"names": {
+    "beer": "Olut",
+    "cider": "Siideri",
+    "snacks": "Snacksit",
+    "gifts": "Lahjat ja setit",
+    "nonAlcoholic": "Alkoholiton"
+  },
+  "alts": {
+    "beer": "Valikoima käsityöoluita hyllyllä.",
+    "cider": "Pullotettujen siidereiden valikoima.",
+    "snacks": "Herkullisia snacks-välipaloja puisella tarjottimella.",
+    "gifts": "Lahjaboksit ja juomasetit.",
+    "nonAlcoholic": "Valikoima alkoholittomia juomia."
+  }
   },
   "TrendingProducts": {
     "title": "Trendaavat tuotteet",
@@ -38,7 +45,9 @@
       "all": "Kaikki tuotteet",
       "beer": "Olut",
       "cider": "Siideri",
-      "snacks": "Välipalat"
+      "snacks": "Välipalat",
+      "gifts-sets": "Lahjasetit",
+"alcohol-free": "Alkoholiton"
     }
   },
   "OneProduct": {

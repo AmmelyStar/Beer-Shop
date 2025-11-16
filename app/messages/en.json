@@ -12,12 +12,20 @@
     "title": "Shop by Category",
     "browseAll": "Browse all categories",
 
-    "names": { "beer": "Beer", "cider": "Cider", "snacks": "Snacks" },
-    "alts": {
-      "beer": "Assorted craft beers on a shelf.",
-      "cider": "Selection of bottled ciders.",
-      "snacks": "Tasty snacks next to a wooden tray."
-    }
+    "names": {
+    "beer": "Beer",
+    "cider": "Cider",
+    "snacks": "Snacks",
+    "gifts": "Gifts & Sets",
+    "nonAlcoholic": "Non-alcoholic"
+  },
+  "alts": {
+    "beer": "Assorted craft beers on a shelf.",
+    "cider": "Selection of bottled ciders.",
+    "snacks": "Tasty snacks next to a wooden tray.",
+    "gifts": "Gift boxes and mixed beer sets.",
+    "nonAlcoholic": "Selection of non-alcoholic drinks."
+  }
   },
   "TrendingProducts": {
     "title": "Trending Products",
@@ -38,7 +46,9 @@
       "all": "All Products",
       "beer": "Beer",
       "cider": "Cider",
-      "snacks": "Snacks"
+      "snacks": "Snacks",
+        "gifts-sets": "Gifts & Sets",
+  "alcohol-free": "Non-alcoholic"
     }
   },
   "OneProduct": {

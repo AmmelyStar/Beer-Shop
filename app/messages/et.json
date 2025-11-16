@@ -12,12 +12,20 @@
     "title": "Osta kategooria kaupa",
     "browseAll": "Sirvi kõiki kategooriaid",
 
-    "names": { "beer": "Õlu", "cider": "Siider", "snacks": "Snäkid" },
-    "alts": {
-      "beer": "Valik käsitööõllesid riiulil.",
-      "cider": "Valik pudelisiidreid.",
-      "snacks": "Maitsvad snäkid puidust aluse kõrval."
-    }
+    "names": {
+    "beer": "Õlu",
+    "cider": "Siider",
+    "snacks": "Snäkid",
+    "gifts": "Kingitused ja komplektid",
+    "nonAlcoholic": "Alkohoolivaba"
+  },
+  "alts": {
+    "beer": "Valik käsitööõllesid riiulil.",
+    "cider": "Valik pudelisiidreid.",
+    "snacks": "Maitsvad snäkid puidust alusel.",
+    "gifts": "Kingikarbid ja joogikomplektid.",
+    "nonAlcoholic": "Valik alkoholivabu jooke."
+  }
   },
   "TrendingProducts": {
     "title": "Trendikad tooted",
@@ -38,7 +46,9 @@
       "all": "Kõik tooted",
       "beer": "Õlu",
       "cider": "Siider",
-      "snacks": "Suupisted"
+      "snacks": "Suupisted",
+      "gifts-sets": "Kingituskomplektid",
+"alcohol-free": "Alkohoolivaba"
     }
   },
   "OneProduct": {

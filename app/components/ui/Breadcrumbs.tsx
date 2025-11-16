@@ -4,20 +4,46 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
 type Lang = "en" | "uk" | "ru" | "et" | "fi";
-type CategoryKey = "all" | "beer" | "cider" | "snacks";
 
-const CATEGORY_KEYS: CategoryKey[] = ["all", "beer", "cider", "snacks"];
+// реальные ключи категорий = Shopify handles
+type CategoryKey =
+  | "all"
+  | "beer"
+  | "cider"
+  | "snacks"
+  | "gifts-sets"
+  | "alcohol-free";
 
+const CATEGORY_KEYS: CategoryKey[] = [
+  "all",
+  "beer",
+  "cider",
+  "snacks",
+  "gifts-sets",
+  "alcohol-free",
+];
+
+// Маппинг productType → категория
+// на случай, если productCategory приходит как текст, а не handle
 const PRODUCT_TYPE_TO_CATEGORY: Record<string, CategoryKey> = {
   beer: "beer",
   Beer: "beer",
   BEER: "beer",
+
   cider: "cider",
   Cider: "cider",
   CIDER: "cider",
+
   snacks: "snacks",
   Snacks: "snacks",
-  SNACKS: "snacks",
+
+  "Gifts & Sets": "gifts-sets",
+  gifts: "gifts-sets",
+
+  "Alcohol-free": "alcohol-free",
+  "alcohol-free": "alcohol-free",
+  "Non-alcoholic": "alcohol-free",
+  "NON-ALCOHOLIC": "alcohol-free",
 };
 
 export type BreadcrumbLabels = {
@@ -51,14 +77,16 @@ export default function Breadcrumbs({
   const parts = pathname.split("/").filter(Boolean);
   const afterLang = parts.slice(1);
 
-  // Если мы на странице магазина
+  // ---------- SHOP PAGE ----------
   if (afterLang[0] === "shop") {
     items.push({ href: `/${lang}/shop`, label: labels.shop });
 
     const raw = (searchParams.get("category") ?? "all") as string;
-    const category = CATEGORY_KEYS.includes(raw as CategoryKey)
-      ? (raw as CategoryKey)
-      : "all";
+
+    const category: CategoryKey =
+      CATEGORY_KEYS.includes(raw as CategoryKey)
+        ? (raw as CategoryKey)
+        : "all";
 
     if (category !== "all") {
       items.push({
@@ -68,16 +96,25 @@ export default function Breadcrumbs({
     }
   }
 
-  // Если мы на странице товара
+  // ---------- PRODUCT PAGE ----------
   if (afterLang[0] === "product") {
     items.push({ href: `/${lang}/shop`, label: labels.shop });
 
     if (productCategory) {
-      const category =
-        PRODUCT_TYPE_TO_CATEGORY[productCategory] ||
-        (CATEGORY_KEYS.includes(productCategory.toLowerCase() as CategoryKey)
-          ? (productCategory.toLowerCase() as CategoryKey)
-          : null);
+      let category: CategoryKey | null = null;
+
+      // 1. пробуем найти по product type
+      if (PRODUCT_TYPE_TO_CATEGORY[productCategory]) {
+        category = PRODUCT_TYPE_TO_CATEGORY[productCategory];
+      }
+
+      // 2. пробуем интерпретировать productCategory как handle
+      if (!category) {
+        const lower = productCategory.toLowerCase();
+        if (CATEGORY_KEYS.includes(lower as CategoryKey)) {
+          category = lower as CategoryKey;
+        }
+      }
 
       if (category && category !== "all") {
         items.push({
@@ -88,6 +125,7 @@ export default function Breadcrumbs({
     }
   }
 
+  // ---------- CURRENT PAGE ----------
   if (currentLabel) {
     items.push({ href: "#", label: currentLabel });
   }

@@ -8,7 +8,10 @@ import type { Locale } from "@/app/[lang]/messages";
 const classNames = (...xs: Array<string | false | null | undefined>) =>
   xs.filter(Boolean).join(" ");
 
-type CategoryKey = "beer" | "cider" | "snacks";
+
+type CategoryKey = "beer" | "cider" | "snacks" | "gifts-sets" | "alcohol-free";
+export type LeafCategory = CategoryKey;
+
 
 type AllProductsProps = {
   title: string;
