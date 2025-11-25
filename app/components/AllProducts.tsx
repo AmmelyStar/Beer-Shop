@@ -8,22 +8,19 @@ import type { Locale } from "@/app/[lang]/messages";
 const classNames = (...xs: Array<string | false | null | undefined>) =>
   xs.filter(Boolean).join(" ");
 
-
 type CategoryKey = "beer" | "cider" | "snacks" | "gifts-sets" | "alcohol-free";
 export type LeafCategory = CategoryKey;
 
-
 type AllProductsProps = {
   title: string;
-  stars: string; // локализация "out of 5 stars"
-  reviews: string; // локализация "reviews"
-  add: string; // кнопка "Add"
-  alcohol: string; // бейдж "безалкогольное"
-  rating?: string; // опционально, если понадобится
-
+  stars: string;
+  reviews: string;
+  add: string;
+  alcohol: string;
+  rating?: string;
   lang: Locale;
   products: FlattenedProduct[];
-  category?: CategoryKey; // ← активная категория для построения ссылок
+  category?: CategoryKey;
 };
 
 export default function AllProducts({
@@ -45,8 +42,7 @@ export default function AllProducts({
           const img = p.featuredImage;
           const price = p.priceRange?.minVariantPrice;
 
-          // ABV (крепость) и объём
-          const abvRaw = p.specs?.abv; // "4.7" | "0" | undefined
+          const abvRaw = p.specs?.abv;
           const abvNum =
             abvRaw !== undefined && abvRaw !== "" ? Number(abvRaw) : null;
           const hasAbv = abvNum !== null && !Number.isNaN(abvNum);
@@ -55,14 +51,21 @@ export default function AllProducts({
           let packText: string | null = null;
           if (p.specs?.pack_size_l) packText = `${p.specs.pack_size_l} L`;
 
+          const country = p.specs?.country;
+          const packType = p.specs?.pack_type;
+          const bottleInBoxes = p.specs?.bottle_in_boxes;
+
           const metaParts: string[] = [];
           if (hasAbv) metaParts.push(`${abvNum} %`);
           if (packText) metaParts.push(packText);
+          if (country) metaParts.push(country);
+          if (packType) metaParts.push(packType);
+          if (bottleInBoxes) metaParts.push(`${bottleInBoxes} pcs/box`);
+
           const meta = metaParts.join(" • ");
 
           const productRating = p.rating ?? 0;
 
-          // ссылка на товар с сохранением текущей категории
           const href = `/${lang}/product/${p.handle}${
             category ? `?category=${category}` : ""
           }`;

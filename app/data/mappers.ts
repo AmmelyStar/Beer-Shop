@@ -19,6 +19,8 @@ export type FlattenedProduct = Omit<
     shelf_life_days: string;
     ibu: string;
     fg: string;
+    tasted_best_with: string;
+    bottle_in_boxes: string;
   }>;
   shopify?: Partial<{
     "beer-style": string;
@@ -30,6 +32,7 @@ export type FlattenedProduct = Omit<
 };
 
 function extractMetafieldValue(mf: Metafield): string | null {
+  // list of references (metaobjects)
   if (
     mf.type.includes("list.") &&
     mf.type.includes("reference") &&
@@ -48,6 +51,7 @@ function extractMetafieldValue(mf: Metafield): string | null {
     return names.length > 0 ? names.join(", ") : null;
   }
 
+  // single reference
   if (
     mf.type.includes("reference") &&
     !mf.type.includes("list.") &&
@@ -61,6 +65,7 @@ function extractMetafieldValue(mf: Metafield): string | null {
     return null;
   }
 
+  // обычный value
   return mf.value;
 }
 
@@ -84,16 +89,25 @@ export function flattenMetafields(p: ProductNode): FlattenedProduct {
     ProductNode,
     "metafields" | "collections" | "translations"
   >;
+
   const base: ProductBase = {
     ...(p as ProductBase),
   };
 
   const marketing = grouped["marketing"] || {};
 
+  const combinedSpecs = {
+    ...(grouped["specs"] ?? {}),
+    ...(grouped["custom"] ?? {}),  // <-- наши custom.* из CSV
+    ...(grouped["product"] ?? {}),
+  };
+
   return {
     ...base,
     collections,
-    specs: grouped["specs"] as FlattenedProduct["specs"],
+    specs: Object.keys(combinedSpecs).length
+      ? (combinedSpecs as FlattenedProduct["specs"])
+      : undefined,
     shopify: grouped["shopify"] as FlattenedProduct["shopify"],
     // Shopify хранит boolean как строку "true"/"false"/"1"
     trending: marketing["trending"] === "true" || marketing["trending"] === "1",
@@ -130,8 +144,11 @@ export function getProductSpecs(product: FlattenedProduct): Array<{
       country: "Country",
       brand: "Brand",
       allergens: "Allergens",
-      pairing: "Pairing",
+      tasted_best_with: "Tasted best with",
       ingredients: "Ingredients",
+      bottle_in_boxes: "Bottles in box",
+      shelf_life_days: "Shelf life (days)",
+      pack_type: "Pack type",
     };
 
     for (const [key, label] of Object.entries(specsMap)) {

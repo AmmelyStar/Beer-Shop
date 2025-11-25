@@ -1,6 +1,6 @@
 // app/api/metafields/route.ts
 import { NextResponse } from "next/server";
-import { shopifyAdminRequest } from "../../lib/shopify";
+import { shopifyAdminRequest } from "../../lib/shopify/shopify";
 
 // Ищем именно beer.csv
 const FILE_NAME = "beer.csv";

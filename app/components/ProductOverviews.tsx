@@ -47,6 +47,8 @@ export default function ProductOverviews({
   ingredients,
 }: ProductOverviewsProps) {
   const price = product.priceRange.minVariantPrice.amount;
+
+  // specs из метаполей
   const packSize = product.specs?.pack_size_l;
   const productAbv = product.specs?.abv;
   const productIbu = product.specs?.ibu;
@@ -56,8 +58,11 @@ export default function ProductOverviews({
   const productStyle = product.shopify?.["beer-style"];
   const productAllergens = product.specs?.allergens;
   const productIngredients = product.specs?.ingredients;
-  const productPairing = product.specs?.pairing;
-  console.log(productStyle);
+  const productTastedBestWith = product.specs?.tasted_best_with;
+  const productBottleInBoxes = product.specs?.bottle_in_boxes;
+  const productPackType = product.specs?.pack_type;
+  const productShelfLifeDays = product.specs?.shelf_life_days;
+
   const images =
     product.images?.edges.map((edge, index) => ({
       id: index + 1,
@@ -69,24 +74,25 @@ export default function ProductOverviews({
   const rating = product.rating ?? 0;
   const reviewCount = product.reviewCount ?? 0;
 
-  // ✅ Парсим pairing (предполагаем что это строка через запятую или список)
-  const pairingList = productPairing
-    ? productPairing
+  // ✅ парсим tasted_best_with из метаполя (custom/specs).tasted_best_with
+  const tastedBestWithList = productTastedBestWith
+    ? productTastedBestWith
         .split(",")
         .map((item) => item.trim())
         .filter(Boolean)
     : [];
 
-  // console.log(product);
+  // маленький лог, чтобы ты могла посмотреть, что реально приходит
+  // (если надо, потом просто удали)
+  console.log("Product specs on PDP:", product.handle, product.specs);
 
   return (
     <div>
       <div className="pb-16 pt-6 sm:pb-24">
         <div className="mx-auto mt-8 max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
           <div className="lg:grid lg:auto-rows-min lg:grid-cols-12 lg:gap-x-8">
-            {/* title and price */}
+            {/* RIGHT SIDE: TITLE + PRICE + SPECS + REVIEWS */}
             <div className="lg:col-span-5 lg:col-start-8">
-              {/* ... весь предыдущий код без изменений ... */}
               <div className="flex justify-between items-baseline gap-10">
                 <h1 className="text-3xl tracking-tight font-semibold text-yellow-400 max-w-md">
                   {product.title}
@@ -107,7 +113,7 @@ export default function ProductOverviews({
                 </div>
               </div>
 
-              {/* Product country and abv ibu fg */}
+              {/* ABV / IBU / FG */}
               <div className="mt-10 w-full flex gap-5 justify-start items-center">
                 {productAbv && (
                   <>
@@ -149,8 +155,9 @@ export default function ProductOverviews({
                 )}
               </div>
 
+              {/* Country */}
               {productCountry && (
-                <div className="w-full flex items-baseline gap-2">
+                <div className="w-full flex items-baseline gap-2 mt-2">
                   <span className="text-lg text-white font-semibold whitespace-nowrap">
                     {country}:
                   </span>
@@ -160,8 +167,9 @@ export default function ProductOverviews({
                 </div>
               )}
 
+              {/* Brand */}
               {productBrand && (
-                <div className="w-full flex items-baseline gap-2">
+                <div className="w-full flex items-baseline gap-2 mt-2">
                   <span className="text-lg text-white font-semibold whitespace-nowrap">
                     {brand}:
                   </span>
@@ -171,6 +179,45 @@ export default function ProductOverviews({
                 </div>
               )}
 
+              {/* Доп. инфа из CSV: тип упаковки, сколько бутылок, срок годности */}
+              {(productPackType || productBottleInBoxes || productShelfLifeDays) && (
+                <div className="mt-4 space-y-1">
+                  {productPackType && (
+                    <div className="w-full flex items-baseline gap-2">
+                      <span className="text-sm text-white font-semibold whitespace-nowrap">
+                        Pack type:
+                      </span>
+                      <span className="text-sm text-gray-300">
+                        {productPackType}
+                      </span>
+                    </div>
+                  )}
+
+                  {productBottleInBoxes && (
+                    <div className="w-full flex items-baseline gap-2">
+                      <span className="text-sm text-white font-semibold whitespace-nowrap">
+                        Bottles in box:
+                      </span>
+                      <span className="text-sm text-gray-300">
+                        {productBottleInBoxes}
+                      </span>
+                    </div>
+                  )}
+
+                  {productShelfLifeDays && (
+                    <div className="w-full flex items-baseline gap-2">
+                      <span className="text-sm text-white font-semibold whitespace-nowrap">
+                        Shelf life:
+                      </span>
+                      <span className="text-sm text-gray-300">
+                        {productShelfLifeDays} days
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Style */}
               {productStyle && (
                 <div className="w-full flex items-baseline gap-2 mt-10">
                   <span className="text-lg text-white font-semibold whitespace-nowrap">
@@ -214,7 +261,7 @@ export default function ProductOverviews({
               </div>
             </div>
 
-            {/* Image gallery */}
+            {/* LEFT SIDE: IMAGES */}
             <div className="mt-8 lg:col-span-7 lg:col-start-1 lg:row-span-3 lg:row-start-1 lg:-mt-6">
               <div className="group grid grid-cols-1 lg:grid-cols-2 lg:gap-8 p-6">
                 {images.length > 0 ? (
@@ -246,7 +293,7 @@ export default function ProductOverviews({
               </div>
             </div>
 
-            {/* button and right side under*/}
+            {/* BELOW: BUTTON + DESCRIPTION + META INFO */}
             <div className="mt-16 lg:col-span-5">
               <form>
                 <button
@@ -273,8 +320,8 @@ export default function ProductOverviews({
                 </div>
               )}
 
-              {/* ✅ Tasted best with - раскомментируйте и используйте pairing */}
-              {pairingList.length > 0 && (
+              {/* ✅ Tasted best with — из tasted_best_with */}
+              {tastedBestWithList.length > 0 && (
                 <div className="mt-8 border-t border-gray-200 pt-8">
                   <h2 className="mx-auto mt-6 max-w-lg text-pretty text-lg text-white font-semibold">
                     {tastedBestWith}
@@ -284,8 +331,8 @@ export default function ProductOverviews({
                       role="list"
                       className="list-disc space-y-1 pl-5 text-sm text-gray-300 marker:text-gray-300"
                     >
-                      {pairingList.map((item, index) => (
-                        <li key={index} className="pl-2 text-base ">
+                      {tastedBestWithList.map((item, index) => (
+                        <li key={index} className="pl-2 text-base">
                           {item}
                         </li>
                       ))}
