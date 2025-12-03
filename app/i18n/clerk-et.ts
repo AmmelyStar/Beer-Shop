@@ -1,3 +1,4 @@
+// app\i18n\clerk - et.ts
 import { enUS } from "@clerk/localizations";
 
 export const etEE = {

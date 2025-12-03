@@ -115,7 +115,81 @@
     "cookiesPolicy": "Политика файлов cookie",
     "privacyPolicy": "Политика конфиденциальности",
     "followUs": "Подписывайтесь на нас",
-    "copyright": "© 2025 Craft Bear Shop. Все права защищены.",
+    "copyright": "© 2025 Beer Shop. Все права защищены.",
     "prodused": "Создано Dvi"
+  },
+
+
+   "CookieBanner": {
+    "text": "Мы используем файлы cookie, чтобы улучшить работу сайта, анализировать трафик и персонализировать контент. Вы можете принять или отклонить необязательные cookie.",
+    "accept": "Принять все",
+    "reject": "Отклонить все",
+    "policyLink": "Политика cookie"
+  },
+  "AccountPage": {
+    "title": "Мой аккаунт",
+    "profileInformation": "Информация профиля",
+    "email": "Email",
+    "name": "Имя",
+    "accountCreated": "Аккаунт создан",
+    "recentOrders": "Недавние заказы",
+    "recentOrdersDescription": "Ваши заказы появятся здесь после первой покупки.",
+    "viewAllOrders": "Посмотреть все заказы",
+    "signingOut": "Выход из аккаунта...",
+    "signOut": "Выйти"
+  },
+  "auth": {
+    "signIn": "Войти",
+    "signUp": "Зарегистрироваться",
+    "welcomeBack": "С возвращением! Войдите, чтобы продолжить",
+    "createAccount": "Создайте аккаунт, чтобы начать покупки",
+    "email": "Email",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердите пароль",
+
+    "passwordStrength": "Надёжность пароля",
+    "passwordHint": "(минимум 8 символов, буквы и цифры)",
+    "passwordStrengthWeak": "Слабый",
+    "passwordStrengthMedium": "Средний",
+    "passwordStrengthStrong": "Сильный",
+
+    "showPasswordAria": "Показать пароль",
+    "hidePasswordAria": "Скрыть пароль",
+
+    "forgotPassword": "Забыли пароль?",
+    "submitSignIn": "Войти",
+    "submitSignUp": "Создать аккаунт",
+
+    "passwordsDontMatch": "Пароли не совпадают.",
+    "enterEmailFirst": "Сначала введите email.",
+    "resetSent": "Если такой email существует, мы отправили инструкции по восстановлению пароля.",
+    "weakPassword": "Пароль должен быть не короче 8 символов и содержать буквы и цифры.",
+
+    "accountCreated": "Аккаунт успешно создан!",
+    "signInFlowIncomplete": "Завершите вход в аккаунт.",
+    "signUpFlowIncomplete": "Завершите регистрацию.",
+    "somethingWentWrong": "Что-то пошло не так. Попробуйте ещё раз.",
+
+    "forgotPasswordDescription": "Введите свой email, чтобы получить код для сброса пароля.",
+    "resetPasswordDescription": "Введите код из письма и новый пароль.",
+    "sendResetCodeButton": "Отправить код",
+    "resetPasswordButton": "Сбросить пароль"
+  },
+  "ShoppingCardOverviews": {
+    "shoppingCart": "Корзина",
+    "description": "Товары в вашей корзине",
+    "orderSummary": "Сводка заказа",
+    "subtotal": "Промежуточный итог",
+    "shippingEstimate": "Оценка доставки",
+    "shippingEstimateInfo": "Узнайте больше о том, как рассчитывается доставка",
+    "taxEstimate": "Оценка налогов",
+    "taxEstimateInfo": "Узнайте больше о том, как рассчитываются налоги",
+    "total": "Итого",
+    "checkout": "Оформить заказ",
+    "empty": "Ваша корзина пуста",
+    "emptyDescription": "Добавьте товары, чтобы начать!",
+    "CTAAdd": "Все товары"
   }
+
+
 }

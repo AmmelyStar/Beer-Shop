@@ -1,7 +1,8 @@
 // proxy.ts (ROOT)
 
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 import Negotiator from "negotiator";
 import { match as matchLocale } from "@formatjs/intl-localematcher";
 
@@ -16,23 +17,24 @@ function getLocale(request: NextRequest) {
   return matchLocale(languages, locales, defaultLocale);
 }
 
-export function proxy(request: NextRequest) {
+// ВАЖНО: теперь proxy = clerkMiddleware(...) 
+export const proxy = clerkMiddleware((auth, request: NextRequest) => {
   const { pathname } = request.nextUrl;
 
   // Уже есть префикс локали?
   const hasLocale = locales.some(
     (l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`)
   );
-  if (hasLocale) return;
+  if (hasLocale) return; // ничего не делаем, продолжаем обработку
 
   // Редиректим / и любые пути без локали -> /{locale}/...
   const locale = getLocale(request);
   const url = request.nextUrl.clone();
   url.pathname = `/${locale}${pathname}`;
   return NextResponse.redirect(url);
-}
+});
 
-// ОБЯЗАТЕЛЬНО: матчим корень и все пути, кроме статики
+// matcher остаётся твоим, можно немного расширить при желании
 export const config = {
   matcher: ["/", "/((?!_next|.*\\..*).*)"],
 };

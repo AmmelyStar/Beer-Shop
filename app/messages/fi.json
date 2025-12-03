@@ -113,7 +113,78 @@
     "cookiesPolicy": "Evästekäytäntö",
     "privacyPolicy": "Tietosuojakäytäntö",
     "followUs": "Seuraa meitä",
-    "copyright": "© 2025 Craft Bear Shop. Kaikki oikeudet pidätetään.",
+    "copyright": "© 2025 Beer Shop. Kaikki oikeudet pidätetään.",
     "prodused": "Tuottanut Dvi"
+  },
+
+   "CookieBanner": {
+    "text": "Käytämme evästeitä parantaaksemme käyttökokemusta, analysoidaksemme liikennettä ja personoidaksemme sisältöä. Voit hyväksyä tai hylätä ei-välttämättömät evästeet.",
+    "accept": "Hyväksy kaikki",
+    "reject": "Hylkää kaikki",
+    "policyLink": "Evästekäytäntö"
+  },
+  "AccountPage": {
+    "title": "Oma tili",
+    "profileInformation": "Profiilin tiedot",
+    "email": "Sähköpostiosoite",
+    "name": "Nimi",
+    "accountCreated": "Tili luotu",
+    "recentOrders": "Viimeisimmät tilaukset",
+    "recentOrdersDescription": "Tilauksesi näkyvät täällä, kun olet tehnyt ensimmäisen ostoksen.",
+    "viewAllOrders": "Näytä kaikki tilaukset",
+    "signingOut": "Kirjaudutaan ulos...",
+    "signOut": "Kirjaudu ulos"
+  },
+  "auth": {
+    "signIn": "Kirjaudu sisään",
+    "signUp": "Luo tili",
+    "welcomeBack": "Tervetuloa takaisin! Kirjaudu sisään jatkaaksesi",
+    "createAccount": "Luo tili aloittaaksesi ostosten teon",
+    "email": "Sähköpostiosoite",
+    "password": "Salasana",
+    "confirmPassword": "Vahvista salasana",
+
+    "passwordStrength": "Salasanan vahvuus",
+    "passwordHint": "(vähintään 8 merkkiä, kirjaimia ja numeroita)",
+    "passwordStrengthWeak": "Heikko",
+    "passwordStrengthMedium": "Keskitaso",
+    "passwordStrengthStrong": "Vahva",
+
+    "showPasswordAria": "Näytä salasana",
+    "hidePasswordAria": "Piilota salasana",
+
+    "forgotPassword": "Unohditko salasanan?",
+    "submitSignIn": "Kirjaudu sisään",
+    "submitSignUp": "Luo tili",
+
+    "passwordsDontMatch": "Salasanat eivät täsmää.",
+    "enterEmailFirst": "Anna ensin sähköpostiosoitteesi.",
+    "resetSent": "Jos tällainen sähköpostiosoite on olemassa, lähetimme ohjeet salasanan palauttamiseksi.",
+    "weakPassword": "Salasanassa on oltava vähintään 8 merkkiä ja sen tulee sisältää sekä kirjaimia että numeroita.",
+
+    "accountCreated": "Tili on luotu onnistuneesti!",
+    "signInFlowIncomplete": "Viimeistele kirjautumisprosessi.",
+    "signUpFlowIncomplete": "Viimeistele rekisteröitymisprosessi.",
+    "somethingWentWrong": "Jotain meni vikaan. Yritä uudelleen.",
+
+    "forgotPasswordDescription": "Anna sähköpostiosoitteesi saadaksesi palautuskoodin.",
+    "resetPasswordDescription": "Syötä sähköpostiin tullut koodi ja uusi salasana.",
+    "sendResetCodeButton": "Lähetä koodi",
+    "resetPasswordButton": "Vaihda salasana"
+  },
+  "ShoppingCardOverviews": {
+    "shoppingCart": "Ostoskori",
+    "description": "Tuotteet ostoskorissasi",
+    "orderSummary": "Tilausyhteenveto",
+    "subtotal": "Välisumma",
+    "shippingEstimate": "Toimitusarvio",
+    "shippingEstimateInfo": "Lue lisää, miten toimituskulut lasketaan",
+    "taxEstimate": "Veroarvio",
+    "taxEstimateInfo": "Lue lisää, miten verot lasketaan",
+    "total": "Yhteensä",
+    "checkout": "Siirry kassalle",
+    "empty": "Ostoskorisi on tyhjä",
+    "emptyDescription": "Lisää tuotteita aloittaaksesi!",
+    "CTAAdd": "Kaikki tuotteet"
   }
 }

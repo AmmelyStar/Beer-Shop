@@ -114,7 +114,78 @@
     "cookiesPolicy": "Політика файлів cookie",
     "privacyPolicy": "Політика конфіденційності",
     "followUs": "Слідкуйте за нами",
-    "copyright": "© 2025 Craft Bear Shop. Усі права захищено.",
+    "copyright": "© 2025 Beer Shop. Усі права захищено.",
     "prodused": "Створено Dvi"
+  },
+
+   "CookieBanner": {
+    "text": "Ми використовуємо файли cookie, щоб покращити роботу сайту, аналізувати трафік та персоналізувати контент. Ви можете прийняти або відхилити необов’язкові cookie.",
+    "accept": "Прийняти всі",
+    "reject": "Відхилити всі",
+    "policyLink": "Політика cookie"
+  },
+  "AccountPage": {
+    "title": "Мій обліковий запис",
+    "profileInformation": "Інформація профілю",
+    "email": "Електронна пошта",
+    "name": "Ім’я",
+    "accountCreated": "Обліковий запис створено",
+    "recentOrders": "Останні замовлення",
+    "recentOrdersDescription": "Ваші замовлення з’являться тут після першої покупки.",
+    "viewAllOrders": "Переглянути всі замовлення",
+    "signingOut": "Вихід з облікового запису...",
+    "signOut": "Вийти"
+  },
+  "auth": {
+    "signIn": "Увійти",
+    "signUp": "Зареєструватися",
+    "welcomeBack": "З поверненням! Увійдіть, щоб продовжити",
+    "createAccount": "Створіть обліковий запис, щоб розпочати покупки",
+    "email": "Електронна пошта",
+    "password": "Пароль",
+    "confirmPassword": "Підтвердіть пароль",
+
+    "passwordStrength": "Надійність пароля",
+    "passwordHint": "(мінімум 8 символів, літери та цифри)",
+    "passwordStrengthWeak": "Слабкий",
+    "passwordStrengthMedium": "Середній",
+    "passwordStrengthStrong": "Сильний",
+
+    "showPasswordAria": "Показати пароль",
+    "hidePasswordAria": "Сховати пароль",
+
+    "forgotPassword": "Забули пароль?",
+    "submitSignIn": "Увійти",
+    "submitSignUp": "Створити обліковий запис",
+
+    "passwordsDontMatch": "Паролі не збігаються.",
+    "enterEmailFirst": "Спочатку введіть електронну пошту.",
+    "resetSent": "Якщо така електронна пошта існує, ми надіслали інструкції з відновлення пароля.",
+    "weakPassword": "Пароль має містити щонайменше 8 символів і включати літери та цифри.",
+
+    "accountCreated": "Обліковий запис успішно створено!",
+    "signInFlowIncomplete": "Завершіть вхід в обліковий запис.",
+    "signUpFlowIncomplete": "Завершіть реєстрацію.",
+    "somethingWentWrong": "Щось пішло не так. Спробуйте ще раз.",
+
+    "forgotPasswordDescription": "Введіть свою електронну пошту, щоб отримати код для скидання пароля.",
+    "resetPasswordDescription": "Введіть код з листа та новий пароль.",
+    "sendResetCodeButton": "Надіслати код",
+    "resetPasswordButton": "Скинути пароль"
+  },
+  "ShoppingCardOverviews": {
+    "shoppingCart": "Кошик",
+    "description": "Товари у вашому кошику",
+    "orderSummary": "Підсумок замовлення",
+    "subtotal": "Проміжний підсумок",
+    "shippingEstimate": "Орієнтовна доставка",
+    "shippingEstimateInfo": "Дізнайтесь більше про те, як розраховується доставка",
+    "taxEstimate": "Орієнтовний податок",
+    "taxEstimateInfo": "Дізнайтесь більше про те, як розраховуються податки",
+    "total": "Разом",
+    "checkout": "Оформити замовлення",
+    "empty": "Ваш кошик порожній",
+    "emptyDescription": "Додайте товари, щоб розпочати!",
+    "CTAAdd": "Усі товари"
   }
 }

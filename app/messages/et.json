@@ -114,7 +114,78 @@
     "cookiesPolicy": "Küpsiste poliitika",
     "privacyPolicy": "Privaatsuspoliitika",
     "followUs": "Jälgi meid",
-    "copyright": "© 2025 Craft Bear Shop. Kõik õigused kaitstud.",
+    "copyright": "© 2025 Beer Shop. Kõik õigused kaitstud.",
     "prodused": "Loodud Dvi poolt"
+  },
+  "CookieBanner": {
+    "text": "Kasutame küpsiseid, et parandada lehe kasutuskogemust, analüüsida liiklust ja isikupärastada sisu. Võid nõustuda mitteoluliste küpsistega või need tagasi lükata.",
+    "accept": "Nõustu kõigiga",
+    "reject": "Lükka kõik tagasi",
+    "policyLink": "Küpsisepoliitika"
+  },
+  "AccountPage": {
+    "title": "Minu konto",
+    "profileInformation": "Profiili info",
+    "email": "E-posti aadress",
+    "name": "Nimi",
+    "accountCreated": "Konto loodud",
+    "recentOrders": "Hiljutised tellimused",
+    "recentOrdersDescription": "Sinu tellimused ilmuvad siia pärast esimest ostu.",
+    "viewAllOrders": "Vaata kõiki tellimusi",
+    "signingOut": "Logitakse välja...",
+    "signOut": "Logi välja"
+  },
+  "auth": {
+    "signIn": "Logi sisse",
+    "signUp": "Loo konto",
+    "welcomeBack": "Tere tulemast tagasi! Palun logi sisse, et jätkata",
+    "createAccount": "Loo konto, et alustada ostlemist",
+    "email": "E-posti aadress",
+    "password": "Parool",
+    "confirmPassword": "Kinnita parool",
+
+    "passwordStrength": "Parooli tugevus",
+    "passwordHint": "(vähemalt 8 märki, tähed ja numbrid)",
+    "passwordStrengthWeak": "Nõrk",
+    "passwordStrengthMedium": "Keskmine",
+    "passwordStrengthStrong": "Tugev",
+
+    "showPasswordAria": "Näita parooli",
+    "hidePasswordAria": "Peida parool",
+
+    "forgotPassword": "Unustasid parooli?",
+    "submitSignIn": "Logi sisse",
+    "submitSignUp": "Loo konto",
+
+    "passwordsDontMatch": "Paroolid ei ühti.",
+    "enterEmailFirst": "Sisesta esmalt oma e-posti aadress.",
+    "resetSent": "Kui selline e-posti aadress on olemas, saatsime juhised parooli lähtestamiseks.",
+    "weakPassword": "Parool peab olema vähemalt 8 märki pikk ja sisaldama nii tähti kui numbreid.",
+
+    "accountCreated": "Konto on edukalt loodud!",
+    "signInFlowIncomplete": "Palun lõpeta sisselogimisprotsess.",
+    "signUpFlowIncomplete": "Palun lõpeta registreerimisprotsess.",
+    "somethingWentWrong": "Midagi läks valesti. Palun proovi uuesti.",
+
+    "forgotPasswordDescription": "Sisesta oma e-posti aadress, et saada lähtestuskood.",
+    "resetPasswordDescription": "Sisesta e-kirjast saadud kood ja uus parool.",
+    "sendResetCodeButton": "Saada kood",
+    "resetPasswordButton": "Lähtesta parool"
+  },
+
+  "ShoppingCardOverviews": {
+    "shoppingCart": "Ostukorv",
+    "description": "Tooted sinu ostukorvis",
+    "orderSummary": "Tellimuse kokkuvõte",
+    "subtotal": "Vahesumma",
+    "shippingEstimate": "Tarne hinnang",
+    "shippingEstimateInfo": "Lisateave selle kohta, kuidas tarne arvutatakse",
+    "taxEstimate": "Maksu hinnang",
+    "taxEstimateInfo": "Lisateave selle kohta, kuidas maksud arvutatakse",
+    "total": "Kokku",
+    "checkout": "Mine kassasse",
+    "empty": "Sinu ostukorv on tühi",
+    "emptyDescription": "Lisa tooteid, et alustada!",
+    "CTAAdd": "Kõik tooted"
   }
 }

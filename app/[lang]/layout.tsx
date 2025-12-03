@@ -7,7 +7,8 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { enUS, fiFI, ukUA, ruRU } from "@clerk/localizations";
 import { etEE } from "@/app/i18n/clerk-et";
 import Footer from "../components/Footer";
-
+import BannerCookie from "@/app/components/BannerCookie";
+import { CartProvider } from "@/app/context/CartContext";
 type ClerkLocale = typeof enUS;
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -15,6 +16,7 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
 // import { LOCALES, type Locale } from "../lib/locale";
 const LOCALES = ["en", "et", "fi", "uk", "ru"] as const;
 type Locale = (typeof LOCALES)[number];
@@ -47,9 +49,12 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ClerkProvider localization={MAP[lang]}>
-          <Header lang={lang} />
-          {children}
-          <Footer lang={lang} />
+          <CartProvider>
+            <Header lang={lang} />
+            {children}
+            <Footer lang={lang} />
+            <BannerCookie lang={lang} />
+          </CartProvider>
         </ClerkProvider>
       </body>
     </html>

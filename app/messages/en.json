@@ -116,7 +116,77 @@
     "cookiesPolicy": " Cookies policy",
     "privacyPolicy": " Privacy policy",
     "followUs": " Follow Us",
-    "copyright": " © 2025 Craft Bear Shop. All rights reserved.",
+    "copyright": " © 2025 Beer Shop. All rights reserved.",
     "prodused": "Produced by Dvi"
+  },
+   "CookieBanner": {
+    "text": "We use cookies to improve your browsing experience, analyse traffic and personalize content. You can accept or reject non-essential cookies.",
+    "accept": "Accept all",
+    "reject": "Reject all",
+    "policyLink": "Cookie policy"
+  },
+  "AccountPage": {
+    "title": "My Account Page",
+    "profileInformation": "Profile Information",
+    "email": "Email",
+    "name": "Name",
+    "accountCreated": "Account created ",
+    "recentOrders": "Recent Orders",
+    "recentOrdersDescription": "Your orders will appear here once you make a purchase.",
+    "viewAllOrders": "View All Orders",
+    "signingOut": "Signing out...",
+    "signOut": "Sign Out"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "welcomeBack": "Welcome back! Please sign in to continue",
+    "createAccount": "Create your account to start shopping",
+    "email": "Email address",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+
+    "passwordStrength": "Password strength",
+    "passwordHint": "(min 8 chars, letters & digits)",
+    "passwordStrengthWeak": "Weak",
+    "passwordStrengthMedium": "Medium",
+    "passwordStrengthStrong": "Strong",
+
+    "showPasswordAria": "Show password",
+    "hidePasswordAria": "Hide password",
+
+    "forgotPassword": "Forgot password?",
+    "submitSignIn": "Sign in",
+    "submitSignUp": "Sign up",
+
+    "passwordsDontMatch": "Passwords do not match.",
+    "enterEmailFirst": "Please enter your email first.",
+    "resetSent": "If this email exists, we have sent instructions to reset your password.",
+    "weakPassword": "Password must be at least 8 characters and contain letters and numbers.",
+
+    "accountCreated": "Account created successfully!",
+    "signInFlowIncomplete": "Please complete the sign-in flow.",
+    "signUpFlowIncomplete": "Please complete the sign-up flow.",
+    "somethingWentWrong": "Something went wrong. Please try again.",
+
+    "forgotPasswordDescription": "Enter your email to receive a reset code.",
+    "resetPasswordDescription": "Enter the code from the email and your new password.",
+    "sendResetCodeButton": "Send reset code",
+    "resetPasswordButton": "Reset password"
+  },
+  "ShoppingCardOverviews": {
+    "shoppingCart": "Shopping Cart",
+    "description": "Items in your shopping cart",
+    "orderSummary": "Order summary",
+    "subtotal": "Subtotal",
+    "shippingEstimate": "Shipping estimate",
+    "shippingEstimateInfo": "Learn more about how shipping is calculated",
+    "taxEstimate": "Tax estimate",
+    "taxEstimateInfo": "Learn more about how tax is calculated",
+    "total": "Total",
+    "checkout": "Checkout",
+    "empty": "Your cart is empty",
+    "emptyDescription": "Add some products to get started!",
+    "CTAAdd": "All Products"
   }
 }

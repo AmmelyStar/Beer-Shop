@@ -1,53 +1,47 @@
-"use client";
+// app/[lang]/account/page.tsx
 
-import { useUser, UserProfile } from "@clerk/nextjs";
-import Link from "next/link";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { getMessages, Locale } from "../messages";
+import AccountContent from "../../components/AccountContent";
+import LoginRegisterForm from "../../components/LoginRegisterForm";
 
-export default function AccountPage() {
-  const { isSignedIn } = useUser();
+export type AccountPageMessages = {
+  title: string;
+  profileInformation: string;
+  email: string;
+  name: string;
+  accountCreated: string;
+  recentOrders: string;
+  recentOrdersDescription: string;
+  viewAllOrders: string;
+  signingOut: string;
+  signOut: string;
+};
 
-  // если пользователь НЕ залогинен
-  if (!isSignedIn) {
-    return (
-      <main className="flex min-h-[60vh] items-center justify-center p-8 text-center">
-        <div>
-          <p className="text-lg font-medium mb-4">
-            Please sign in to manage your account.
-          </p>
+export default async function AccountPage({
+  params,
+}: {
+  params: Promise<{ lang: Locale }>;
+}) {
+  const { lang } = await params;
 
-          <Link
-            href="/sign-in"
-            className="inline-block rounded-xl bg-black px-4 py-2 text-white text-sm font-semibold hover:bg-neutral-800"
-          >
-            Sign in
-          </Link>
-        </div>
-      </main>
-    );
-  }
+  const messages = await getMessages(lang);
 
-  // если пользователь залогинен
   return (
-    <main className="flex min-h-[80vh] flex-col items-center justify-start p-8">
-      <div className="w-full max-w-xl mb-6 text-left">
-        <Link
-          href="/"
-          className="inline-block rounded-xl border border-neutral-300 px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-100"
-        >
-          ← Back to site
-        </Link>
-      </div>
+    <div className="mx-auto max-w-2xl py-8 px-4">
+      <h1 className="mb-4 text-2xl font-semibold">
+        {messages.AccountPage?.title ?? "My account"}
+      </h1>
 
-      <div className="w-full max-w-xl rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-        <UserProfile
-          routing="hash"
-          appearance={{
-            elements: {
-              card: "shadow-none border-0",
-            },
-          }}
-        />
-      </div>
-    </main>
+      {/* Если пользователь залогинен — показываем страницу аккаунта */}
+      <SignedIn>
+        <AccountContent messages={messages.AccountPage} />
+      </SignedIn>
+
+      {/* Если не залогинен — показываем нашу форму логина/регистрации */}
+      <SignedOut>
+        <LoginRegisterForm messages={messages.auth} />
+      </SignedOut>
+    </div>
   );
 }

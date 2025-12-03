@@ -72,7 +72,7 @@ export default function AllProducts({
 
           return (
             <div key={p.id} className="group">
-              <div className="relative">
+              <div className="relative  flex-1 flex flex-col">
                 <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-stone-600 transition-colors duration-300 group-hover:bg-white">
                   {img?.url && (
                     <Image
