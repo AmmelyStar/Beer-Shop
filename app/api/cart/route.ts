@@ -1,9 +1,11 @@
 // app/api/cart/route.ts
 import { NextResponse } from "next/server";
 import { shopifyStorefrontRequest } from "../../lib/shopify/shopify";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { getOrCreateCustomerAccessTokenForEmail } from "../../lib/shopify/customerAccount";
 
 // ---------- Общие типы ----------
-type Money = { amount: string }
+type Money = { amount: string };
 type Image = { url: string; altText?: string | null };
 
 type Variant = {
@@ -114,8 +116,6 @@ const MUTATION_ADD = `
   }
 `;
 
-
-
 const QUERY_GET = `
   query CartGet($cartId: ID!) {
     cart(id: $cartId) {
@@ -151,6 +151,19 @@ const MUTATION_UPDATE = `
 const MUTATION_CLEAR = `
   mutation CartClear($cartId: ID!) {
     cartLinesRemoveAll(cartId: $cartId) {
+      cart { ${CART_FRAGMENT} }
+      userErrors { field message }
+    }
+  }
+`;
+
+// 👇 новая мутация для привязки корзины к customerAccessToken
+const MUTATION_BUYER_IDENTITY_UPDATE = `
+  mutation CartBuyerIdentityUpdate(
+    $cartId: ID!
+    $buyerIdentity: CartBuyerIdentityInput!
+  ) {
+    cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
       cart { ${CART_FRAGMENT} }
       userErrors { field message }
     }
@@ -197,6 +210,66 @@ type ClearResponse = {
   };
 };
 
+type BuyerIdentityUpdateResponse = {
+  cartBuyerIdentityUpdate: {
+    cart: Cart | null;
+    userErrors: { field: string[] | null; message: string }[];
+  };
+};
+
+// ---------- helper: пытаемся получить customerAccessToken, но НЕ ломаем API ----------
+async function tryGetCustomerAccessToken(): Promise<string | null> {
+  try {
+    const { userId } = await auth();
+    if (!userId) return null;
+
+    const user = await currentUser();
+    const email = user?.primaryEmailAddress?.emailAddress;
+    if (!email) return null;
+
+    const token = await getOrCreateCustomerAccessTokenForEmail(email);
+    return token;
+  } catch (e) {
+    console.error("Failed to get customerAccessToken, using guest cart:", e);
+    return null;
+  }
+}
+
+// ---------- helper: пытаемся “прибить” корзину к customerAccessToken ----------
+async function attachBuyerIdentity(
+  cart: Cart | null,
+  customerAccessToken: string | null
+): Promise<Cart | null> {
+  if (!cart || !customerAccessToken) return cart;
+
+  try {
+    const data =
+      await shopifyStorefrontRequest<BuyerIdentityUpdateResponse>(
+        MUTATION_BUYER_IDENTITY_UPDATE,
+        {
+          cartId: cart.id,
+          buyerIdentity: {
+            customerAccessToken,
+          },
+        }
+      );
+
+    if (data.cartBuyerIdentityUpdate.userErrors?.length) {
+      console.error(
+        "cartBuyerIdentityUpdate errors:",
+        data.cartBuyerIdentityUpdate.userErrors
+      );
+      // не ломаем ответ – просто возвращаем оригинальную корзину
+      return cart;
+    }
+
+    return data.cartBuyerIdentityUpdate.cart ?? cart;
+  } catch (e) {
+    console.error("cartBuyerIdentityUpdate fatal error:", e);
+    return cart;
+  }
+}
+
 // ---------- Сам handler ----------
 export async function POST(req: Request) {
   try {
@@ -227,90 +300,111 @@ export async function POST(req: Request) {
         if (data.cartCreate.userErrors?.length) {
           console.error("cartCreate errors:", data.cartCreate.userErrors);
           return NextResponse.json(
-            { error: "Cart create error", details: data.cartCreate.userErrors },
+            {
+              error: "Cart create error",
+              details: data.cartCreate.userErrors,
+            },
             { status: 500 }
           );
         }
 
-        return NextResponse.json(mapCart(data.cartCreate.cart));
+        let cart = data.cartCreate.cart;
+
+        // пробуем привязать корзину к Shopify customer
+        const customerAccessToken = await tryGetCustomerAccessToken();
+        cart = await attachBuyerIdentity(cart, customerAccessToken);
+
+        return NextResponse.json(mapCart(cart));
       }
 
-     // --- ADD ---
-case "add": {
-  // variantId обязателен, cartId может отсутствовать при первом добавлении
-  if (!variantId) {
-    return NextResponse.json(
-      { error: "Missing variantId" },
-      { status: 400 }
-    );
-  }
-
-  // нормализуем quantity: если не пришло или <= 0, используем 1
-  const qty =
-    typeof quantity === "number" && quantity > 0 ? quantity : 1;
-
-  let effectiveCartId = cartId;
-
-  // Если cartId нет – сначала создаём корзину
-  if (!effectiveCartId) {
-    const created = await shopifyStorefrontRequest<CreateResponse>(
-      MUTATION_CREATE
-    );
-
-    if (created.cartCreate.userErrors?.length) {
-      console.error(
-        "cartCreate errors (from add):",
-        created.cartCreate.userErrors
-      );
-      return NextResponse.json(
-        {
-          error: "Cart create error",
-          details: created.cartCreate.userErrors,
-        },
-        { status: 500 }
-      );
-    }
-
-    effectiveCartId = created.cartCreate.cart?.id ?? undefined;
-
-    if (!effectiveCartId) {
-      return NextResponse.json(
-        { error: "No cartId returned from cartCreate" },
-        { status: 500 }
-      );
-    }
-  }
-
-  // Теперь точно есть cartId – добавляем линию
-  const data = await shopifyStorefrontRequest<AddResponse>(
-    MUTATION_ADD,
-    { cartId: effectiveCartId, variantId, quantity: qty }
-  );
-
-  if (data.cartLinesAdd.userErrors?.length) {
-    console.error("cartLinesAdd errors:", data.cartLinesAdd.userErrors);
-    return NextResponse.json(
-      { error: "Cart add error", details: data.cartLinesAdd.userErrors },
-      { status: 500 }
-    );
-  }
-
-  return NextResponse.json(mapCart(data.cartLinesAdd.cart));
-}
-      // --- GET ---
-      case "get": {
-        if (!cartId) {
+      // --- ADD ---
+      case "add": {
+        if (!variantId) {
           return NextResponse.json(
-            { error: "Missing cartId" },
+            { error: "Missing variantId" },
             { status: 400 }
           );
         }
 
-        const data = await shopifyStorefrontRequest<GetResponse>(QUERY_GET, {
-          cartId,
-        });
+        const qty =
+          typeof quantity === "number" && quantity > 0 ? quantity : 1;
 
-        return NextResponse.json(mapCart(data.cart));
+        let effectiveCartId = cartId;
+        let createdCart: Cart | null = null;
+
+        // Если cartId нет – сначала создаём корзину
+        if (!effectiveCartId) {
+          const created = await shopifyStorefrontRequest<CreateResponse>(
+            MUTATION_CREATE
+          );
+
+          if (created.cartCreate.userErrors?.length) {
+            console.error(
+              "cartCreate errors (from add):",
+              created.cartCreate.userErrors
+            );
+            return NextResponse.json(
+              {
+                error: "Cart create error",
+                details: created.cartCreate.userErrors,
+              },
+              { status: 500 }
+            );
+          }
+
+          createdCart = created.cartCreate.cart;
+          effectiveCartId = createdCart?.id ?? undefined;
+
+          if (!effectiveCartId) {
+            return NextResponse.json(
+              { error: "No cartId returned from cartCreate" },
+              { status: 500 }
+            );
+          }
+
+          // пробуем привязать корзину к Shopify customer после создания
+          const customerAccessToken = await tryGetCustomerAccessToken();
+          createdCart = await attachBuyerIdentity(createdCart, customerAccessToken);
+        }
+
+        // Теперь точно есть cartId – добавляем линию
+        const data = await shopifyStorefrontRequest<AddResponse>(
+          MUTATION_ADD,
+          { cartId: effectiveCartId, variantId, quantity: qty }
+        );
+
+        if (data.cartLinesAdd.userErrors?.length) {
+          console.error("cartLinesAdd errors:", data.cartLinesAdd.userErrors);
+          return NextResponse.json(
+            {
+              error: "Cart add error",
+              details: data.cartLinesAdd.userErrors,
+            },
+            { status: 500 }
+          );
+        }
+
+        // если мы только что создавали cart и обновляли buyerIdentity,
+        // можно было бы вернуть createdCart, но у нас уже есть актуальная cart после add
+        return NextResponse.json(mapCart(data.cartLinesAdd.cart));
+      }
+
+      // --- GET ---
+      case "get": {
+        if (!cartId || cartId === "undefined" || cartId === "null") {
+          return NextResponse.json(mapCart(null));
+        }
+
+        try {
+          const data = await shopifyStorefrontRequest<GetResponse>(QUERY_GET, {
+            cartId,
+          });
+
+          return NextResponse.json(mapCart(data.cart));
+        } catch (error) {
+          console.error("Cart get error:", error);
+          return NextResponse.json(mapCart(null));
+        }
       }
 
       // --- REMOVE ---

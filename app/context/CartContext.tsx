@@ -1,19 +1,14 @@
-// app/context/CartContext.tsx
 "use client";
 
-import {
+import React, {
   createContext,
   useContext,
   useState,
   useEffect,
-  useCallback,
-  type ReactNode,
+  ReactNode,
 } from "react";
 
-const SHOPIFY_CART_ID_KEY = "shopify-cart-id";
-
-// Ответ API
-type CartApiLine = {
+type CartLine = {
   id: string;
   merchandiseId: string;
   title: string;
@@ -23,249 +18,228 @@ type CartApiLine = {
   imageAlt: string;
 };
 
-type CartApiResponse = {
+type CartState = {
   cartId: string;
   checkoutUrl: string | null;
-  lines: CartApiLine[];
-};
-
-type CartItem = {
-  id: string; // CartLine.id
-  merchandiseId: string; // Variant.id
-  name: string;
-  price: number;
-  quantity: number;
-  imageSrc: string;
-  imageAlt: string;
+  lines: CartLine[];
 };
 
 type CartContextType = {
-  items: CartItem[];
+  // Новый интерфейс
+  cart: CartState;
+  isLoading: boolean;
   addToCart: (variantId: string, quantity?: number) => Promise<void>;
+  fetchCart: () => Promise<void>;
+  removeLine: (lineId: string) => Promise<void>;
+  updateLineQuantity: (lineId: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
+
+  // Старый интерфейс (для совместимости)
+  items: CartLine[];
+  totalPrice: number;
   removeFromCart: (lineId: string) => Promise<void>;
   updateQuantity: (lineId: string, quantity: number) => Promise<void>;
-  clearCart: () => Promise<void>;
-  totalPrice: number;
-  itemCount: number;
-  loading: boolean;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+const EMPTY_CART: CartState = {
+  cartId: "",
+  checkoutUrl: null,
+  lines: [],
+};
+
+const STORAGE_KEY = "shopify_cart_id";
+
+type CartApiResponse = CartState;
+
+// Вспомогательный вызов API
+async function callApi(body: unknown): Promise<CartApiResponse> {
+  const res = await fetch("/api/cart", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    let errorBody: unknown = null;
+    try {
+      errorBody = await res.json();
+    } catch {
+      // ignore
+    }
+    console.error("Cart API error", res.status, errorBody);
+    throw new Error("Cart API error");
+  }
+
+  const json = (await res.json()) as CartApiResponse;
+  return json;
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cartId, setCartId] = useState<string | null>(null);
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [cart, setCart] = useState<CartState>(EMPTY_CART);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const callApi = async (
-    path: string,
-    body?: Record<string, unknown>
-  ): Promise<CartApiResponse> => {
-    const res = await fetch(path, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: body ? JSON.stringify(body) : undefined,
-    });
+  function syncCart(next: CartState) {
+    setCart(next);
 
-    if (!res.ok) {
-      let errorBody: unknown = null;
-      try {
-        errorBody = await res.json();
-      } catch {
-        try {
-          errorBody = await res.text();
-        } catch {
-          errorBody = null;
-        }
-      }
-
-      console.error("Cart API error", res.status, errorBody);
-      throw new Error("Cart API error");
-    }
-
-    const json = (await res.json()) as CartApiResponse;
-    return {
-      cartId: json.cartId,
-      checkoutUrl: json.checkoutUrl ?? null,
-      lines: json.lines ?? [],
-    };
-  };
-
-  const mapLinesToItems = (lines: CartApiLine[] = []): CartItem[] =>
-    lines.map((l) => ({
-      id: l.id,
-      merchandiseId: l.merchandiseId,
-      name: l.title,
-      price: l.unitPrice,
-      quantity: l.quantity,
-      imageSrc: l.imageUrl,
-      imageAlt: l.imageAlt ?? l.title,
-    }));
-
-  // восстановление из localStorage
-  useEffect(() => {
     if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(SHOPIFY_CART_ID_KEY);
-    if (stored) {
-      setCartId(stored);
-      void fetchCart(stored);
-    }
-  }, []);
 
-  const fetchCart = useCallback(async (id: string) => {
-    setLoading(true);
+    if (next.cartId) {
+      window.localStorage.setItem(STORAGE_KEY, next.cartId);
+    } else {
+      window.localStorage.removeItem(STORAGE_KEY);
+    }
+  }
+
+  const fetchCart = async () => {
+    if (typeof window === "undefined") return;
+
     try {
-      const data = await callApi("/api/cart", {
-        action: "get",
-        cartId: id,
-      });
+      setIsLoading(true);
+      const storedId = window.localStorage.getItem(STORAGE_KEY);
 
-      setCartId(data.cartId);
-      setCheckoutUrl(data.checkoutUrl);
-      setItems(mapLinesToItems(data.lines));
-
-      window.localStorage.setItem(SHOPIFY_CART_ID_KEY, data.cartId);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const ensureCart = useCallback(async () => {
-    if (cartId) return cartId;
-
-    setLoading(true);
-    try {
-      const data = await callApi("/api/cart", { action: "create" });
-
-      setCartId(data.cartId);
-      setCheckoutUrl(data.checkoutUrl);
-      setItems(mapLinesToItems(data.lines));
-
-      window.localStorage.setItem(SHOPIFY_CART_ID_KEY, data.cartId);
-      return data.cartId;
-    } finally {
-      setLoading(false);
-    }
-  }, [cartId]);
-
-  const addToCart = useCallback(
-    async (variantId: string, quantity = 1) => {
-      setLoading(true);
-      try {
-        // если корзины нет – создаём (через action:"create")
-        const id = await ensureCart();
-
-        const data = await callApi("/api/cart", {
-          action: "add",
-          cartId: id,
-          variantId,
-          quantity,
-        });
-
-        setCartId(data.cartId);
-        setCheckoutUrl(data.checkoutUrl);
-        setItems(mapLinesToItems(data.lines));
-      } finally {
-        setLoading(false);
-      }
-    },
-    [ensureCart]
-  );
-
-  const removeFromCart = useCallback(
-    async (lineId: string) => {
-      if (!cartId) return;
-
-      setLoading(true);
-      try {
-        const data = await callApi("/api/cart", {
-          action: "remove",
-          cartId,
-          lineId,
-        });
-
-        setCartId(data.cartId);
-        setCheckoutUrl(data.checkoutUrl);
-        setItems(mapLinesToItems(data.lines));
-      } finally {
-        setLoading(false);
-      }
-    },
-    [cartId]
-  );
-
-  const updateQuantity = useCallback(
-    async (lineId: string, quantity: number) => {
-      if (!cartId) return;
-      if (quantity < 1) {
-        await removeFromCart(lineId);
+      if (!storedId || storedId === "undefined" || storedId === "null") {
+        syncCart(EMPTY_CART);
         return;
       }
 
-      setLoading(true);
-      try {
-        const data = await callApi("/api/cart", {
-          action: "update",
-          cartId,
-          lineId,
-          quantity,
-        });
-
-        setCartId(data.cartId);
-        setCheckoutUrl(data.checkoutUrl);
-        setItems(mapLinesToItems(data.lines));
-      } finally {
-        setLoading(false);
-      }
-    },
-    [cartId, removeFromCart]
-  );
-
-  const clearCart = useCallback(async () => {
-    if (!cartId) return;
-
-    setLoading(true);
-    try {
-      const data = await callApi("/api/cart", {
-        action: "clear",
-        cartId,
+      const data = await callApi({
+        action: "get",
+        cartId: storedId,
       });
 
-        setCartId(data.cartId);
-        setCheckoutUrl(data.checkoutUrl);
-        setItems(mapLinesToItems(data.lines));
+      syncCart(data);
+    } catch (e) {
+      console.error("fetchCart error:", e);
+      syncCart(EMPTY_CART);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  }, [cartId]);
+  };
 
+  const addToCart = async (variantId: string, quantity: number = 1) => {
+    try {
+      setIsLoading(true);
+
+      const data = await callApi({
+        action: "add",
+        cartId: cart.cartId || undefined,
+        variantId,
+        quantity,
+      });
+
+      syncCart(data);
+    } catch (e) {
+      console.error("addToCart error:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const removeLine = async (lineId: string) => {
+    if (!cart.cartId) return;
+
+    try {
+      setIsLoading(true);
+
+      const data = await callApi({
+        action: "remove",
+        cartId: cart.cartId,
+        lineId,
+      });
+
+      syncCart(data);
+    } catch (e) {
+      console.error("removeLine error:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateLineQuantity = async (lineId: string, quantity: number) => {
+    if (!cart.cartId) return;
+
+    try {
+      setIsLoading(true);
+
+      const data = await callApi({
+        action: "update",
+        cartId: cart.cartId,
+        lineId,
+        quantity,
+      });
+
+      syncCart(data);
+    } catch (e) {
+      console.error("updateLineQuantity error:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const clearCart = async () => {
+    if (!cart.cartId) {
+      syncCart(EMPTY_CART);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const data = await callApi({
+        action: "clear",
+        cartId: cart.cartId,
+      });
+
+      syncCart(data);
+    } catch (e) {
+      console.error("clearCart error:", e);
+      // если что-то пошло не так — всё равно сбрасываем локально
+      syncCart(EMPTY_CART);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Авто-фетч при монтировании
+  useEffect(() => {
+    void fetchCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Удобные поля для старых компонентов
+  const items = cart.lines;
   const totalPrice = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum: number, line: CartLine) => sum + line.unitPrice * line.quantity,
     0
   );
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
-  return (
-    <CartContext.Provider
-      value={{
-        items,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        totalPrice,
-        itemCount,
-        loading,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
-  );
+  const removeFromCart = (lineId: string) => removeLine(lineId);
+  const updateQuantity = (lineId: string, quantity: number) =>
+    updateLineQuantity(lineId, quantity);
+
+  const value: CartContextType = {
+    cart,
+    isLoading,
+    addToCart,
+    fetchCart,
+    removeLine,
+    updateLineQuantity,
+    clearCart,
+    items,
+    totalPrice,
+    removeFromCart,
+    updateQuantity,
+  };
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
-export function useCart() {
+export function useCart(): CartContextType {
   const ctx = useContext(CartContext);
-  if (!ctx) throw new Error("useCart must be used within CartProvider");
+  if (!ctx) {
+    throw new Error("useCart must be used within a CartProvider");
+  }
   return ctx;
 }
