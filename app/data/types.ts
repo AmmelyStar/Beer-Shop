@@ -31,6 +31,19 @@ export interface ProductNode {
       };
     }>;
   };
+  /** Варианты товара из Shopify — нам нужен их id для корзины */
+  variants?: {
+    edges: Array<{
+      node: {
+        id: string; // gid://shopify/ProductVariant/...
+        title: string;
+        price?: {
+          amount: string;
+          currencyCode: string;
+        };
+      };
+    }>;
+  };
   metafields?: Metafield[];
   translations?: Array<{ key: string; value: string }>;
 }

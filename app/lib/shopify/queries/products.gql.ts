@@ -19,10 +19,31 @@ export const PRODUCTS_ALL_WITH_METAFIELDS = /* GraphQL */ `
             url
             altText
           }
+          images(first: 10) {
+            edges {
+              node {
+                url
+                altText
+              }
+            }
+          }
           priceRange {
             minVariantPrice {
               amount
               currencyCode
+            }
+          }
+          # ⬇️ ВАРИАНТЫ ТОВАРА — ОТСЮДА БЕРЁМ variantId
+          variants(first: 20) {
+            edges {
+              node {
+                id
+                title
+                price {
+                  amount
+                  currencyCode
+                }
+              }
             }
           }
           collections(first: 10) {
@@ -108,6 +129,19 @@ export const PRODUCT_BY_HANDLE = /* GraphQL */ `
         minVariantPrice {
           amount
           currencyCode
+        }
+      }
+      # ⬇️ ВАРИАНТЫ ДЛЯ КОНКРЕТНОГО ПРОДУКТА (страница товара)
+      variants(first: 20) {
+        edges {
+          node {
+            id
+            title
+            price {
+              amount
+              currencyCode
+            }
+          }
         }
       }
       collections(first: 20) {
@@ -214,10 +248,31 @@ export const PRODUCTS_BY_COLLECTION = /* GraphQL */ `
               url
               altText
             }
+            images(first: 10) {
+              edges {
+                node {
+                  url
+                  altText
+                }
+              }
+            }
             priceRange {
               minVariantPrice {
                 amount
                 currencyCode
+              }
+            }
+            # ⬇️ ВАРИАНТЫ ДЛЯ ПРОДУКТОВ В КОЛЛЕКЦИИ
+            variants(first: 20) {
+              edges {
+                node {
+                  id
+                  title
+                  price {
+                    amount
+                    currencyCode
+                  }
+                }
               }
             }
             collections(first: 10) {

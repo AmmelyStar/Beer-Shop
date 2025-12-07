@@ -1,38 +1,46 @@
 // app/components/ui/QuantityCounter.tsx
 "use client";
+
 import { useCart } from "@/app/context/CartContext";
 
-type QuantityCounterProps = {
-  productId: string;
-  quantity: number;
+export type QuantityCounterProps = {
+  lineId: string;   // id строки корзины (CartLine.id)
+  quantity: number; // текущее количество
 };
 
-export default function QuantityCounter({
-  productId,
-  quantity,
-}: QuantityCounterProps) {
-  const { updateQuantity } = useCart();
+export default function QuantityCounter({ lineId, quantity }: QuantityCounterProps) {
+  const { updateQuantity, loading } = useCart();
+
+  const handleDecrement = async () => {
+    if (loading) return;
+    const next = quantity - 1;
+    await updateQuantity(lineId, next);
+  };
+
+  const handleIncrement = async () => {
+    if (loading) return;
+    const next = quantity + 1;
+    await updateQuantity(lineId, next);
+  };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="inline-flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm sm:w-auto lg:w-full">
       <button
         type="button"
-        onClick={() => updateQuantity(productId, quantity - 1)}
-        className="flex size-10 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-900 hover:bg-gray-100 transition-colors"
+        onClick={handleDecrement}
+        className="px-2 text-lg leading-none"
+        disabled={loading}
       >
-        <span className="sr-only">Decrease quantity</span>
-        <span className="text-lg font-medium">−</span>
+        –
       </button>
-      <span className="w-10 text-center text-base font-medium text-white">
-        {quantity}
-      </span>
+      <span className="px-3 text-base font-medium">{quantity}</span>
       <button
         type="button"
-        onClick={() => updateQuantity(productId, quantity + 1)}
-        className="flex size-10 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-900 hover:bg-gray-100 transition-colors"
+        onClick={handleIncrement}
+        className="px-2 text-lg leading-none"
+        disabled={loading}
       >
-        <span className="sr-only">Increase quantity</span>
-        <span className="text-lg font-medium">+</span>
+        +
       </button>
     </div>
   );

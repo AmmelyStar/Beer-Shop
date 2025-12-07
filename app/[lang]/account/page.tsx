@@ -1,9 +1,10 @@
 // app/[lang]/account/page.tsx
 
 import { SignedIn, SignedOut } from "@clerk/nextjs";
-import { getMessages, Locale } from "../messages";
+import { getMessages, type Locale } from "../messages";
 import AccountContent from "../../components/AccountContent";
 import LoginRegisterForm from "../../components/LoginRegisterForm";
+import SyncShopifyCustomer from "../../components/SyncShopifyCustomer";
 
 export type AccountPageMessages = {
   title: string;
@@ -21,10 +22,9 @@ export type AccountPageMessages = {
 export default async function AccountPage({
   params,
 }: {
-  params: Promise<{ lang: Locale }>;
+  params: { lang: Locale };
 }) {
-  const { lang } = await params;
-
+  const { lang } = params; // тут уже обычный объект, НЕ Promise
   const messages = await getMessages(lang);
 
   return (
@@ -33,12 +33,14 @@ export default async function AccountPage({
         {messages.AccountPage?.title ?? "My account"}
       </h1>
 
-      {/* Если пользователь залогинен — показываем страницу аккаунта */}
+      {/* Пользователь залогинен */}
       <SignedIn>
+        {/* запускаем синхронизацию Clerk → Shopify */}
+        <SyncShopifyCustomer />
         <AccountContent messages={messages.AccountPage} />
       </SignedIn>
 
-      {/* Если не залогинен — показываем нашу форму логина/регистрации */}
+      {/* Пользователь НЕ залогинен */}
       <SignedOut>
         <LoginRegisterForm messages={messages.auth} />
       </SignedOut>

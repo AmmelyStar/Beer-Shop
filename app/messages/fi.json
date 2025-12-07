@@ -186,5 +186,9 @@
     "empty": "Ostoskorisi on tyhjä",
     "emptyDescription": "Lisää tuotteita aloittaaksesi!",
     "CTAAdd": "Kaikki tuotteet"
+  },
+  "AddToCartButton":{
+    "addToCart": "Lisää koriin"
   }
+
 }

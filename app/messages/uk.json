@@ -187,5 +187,8 @@
     "empty": "Ваш кошик порожній",
     "emptyDescription": "Додайте товари, щоб розпочати!",
     "CTAAdd": "Усі товари"
+  },
+  "AddToCartButton":{
+    "addToCart": "Додати в кошик"
   }
 }

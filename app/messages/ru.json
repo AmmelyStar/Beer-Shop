@@ -189,6 +189,9 @@
     "empty": "Ваша корзина пуста",
     "emptyDescription": "Добавьте товары, чтобы начать!",
     "CTAAdd": "Все товары"
+  },
+  "AddToCartButton":{
+    "addToCart": "Добавить в корзину"
   }
 
 

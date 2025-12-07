@@ -188,5 +188,8 @@
     "empty": "Your cart is empty",
     "emptyDescription": "Add some products to get started!",
     "CTAAdd": "All Products"
+  },
+  "AddToCartButton":{
+    "addToCart": "Add to cart"
   }
 }

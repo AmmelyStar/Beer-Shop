@@ -6,6 +6,8 @@ export type FlattenedProduct = Omit<
   "metafields" | "collections" | "translations"
 > & {
   collections: string[];
+  /** ID первого варианта (gid://shopify/ProductVariant/...) — нужен для корзины */
+  variantId: string;
   specs?: Partial<{
     abv: string;
     allergens: string;
@@ -98,13 +100,18 @@ export function flattenMetafields(p: ProductNode): FlattenedProduct {
 
   const combinedSpecs = {
     ...(grouped["specs"] ?? {}),
-    ...(grouped["custom"] ?? {}),  // <-- наши custom.* из CSV
+    ...(grouped["custom"] ?? {}), // <-- наши custom.* из CSV
     ...(grouped["product"] ?? {}),
   };
+
+  // ID первого варианта — пойдёт в корзину как variantId
+  const firstVariantId =
+    p.variants?.edges?.[0]?.node?.id ?? "";
 
   return {
     ...base,
     collections,
+    variantId: firstVariantId,
     specs: Object.keys(combinedSpecs).length
       ? (combinedSpecs as FlattenedProduct["specs"])
       : undefined,

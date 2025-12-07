@@ -1,141 +1,249 @@
 // app/context/CartContext.tsx
 "use client";
+
 import {
   createContext,
   useContext,
+  useState,
+  useEffect,
   useCallback,
-  useSyncExternalStore,
-  ReactNode,
+  type ReactNode,
 } from "react";
 
-type CartItem = {
+const SHOPIFY_CART_ID_KEY = "shopify-cart-id";
+
+// Ответ API
+type CartApiLine = {
   id: string;
+  merchandiseId: string;
+  title: string;
+  unitPrice: number;
+  quantity: number;
+  imageUrl: string;
+  imageAlt: string;
+};
+
+type CartApiResponse = {
+  cartId: string;
+  checkoutUrl: string | null;
+  lines: CartApiLine[];
+};
+
+type CartItem = {
+  id: string; // CartLine.id
+  merchandiseId: string; // Variant.id
   name: string;
   price: number;
   quantity: number;
   imageSrc: string;
   imageAlt: string;
-  country?: string;
-  size?: string;
-  abv?: string;
 };
 
 type CartContextType = {
   items: CartItem[];
-  addToCart: (item: Omit<CartItem, "quantity">) => void;
-  removeFromCart: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  clearCart: () => void;
+  addToCart: (variantId: string, quantity?: number) => Promise<void>;
+  removeFromCart: (lineId: string) => Promise<void>;
+  updateQuantity: (lineId: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
   totalPrice: number;
   itemCount: number;
+  loading: boolean;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const CART_STORAGE_KEY = "shopping-cart";
-
-// Кешируем значение чтобы избежать бесконечного цикла
-let cachedItems: CartItem[] = [];
-let listeners: Array<() => void> = [];
-
-function getCartSnapshot(): CartItem[] {
-  return cachedItems;
-}
-
-// Серверный snapshot — пустой массив, создаём один раз
-const emptyCart: CartItem[] = [];
-function getServerSnapshot(): CartItem[] {
-  return emptyCart;
-}
-
-function loadFromStorage() {
-  if (typeof window === "undefined") return;
-  try {
-    const stored = localStorage.getItem(CART_STORAGE_KEY);
-    cachedItems = stored ? JSON.parse(stored) : [];
-  } catch {
-    cachedItems = [];
-  }
-}
-
-function saveToStorage(items: CartItem[]) {
-  cachedItems = items;
-  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-  listeners.forEach((listener) => listener());
-}
-
-function subscribe(listener: () => void) {
-  // Загружаем из localStorage при первой подписке
-  if (listeners.length === 0) {
-    loadFromStorage();
-  }
-  listeners.push(listener);
-
-  // Слушаем изменения localStorage из других вкладок
-  const handleStorage = (e: StorageEvent) => {
-    if (e.key === CART_STORAGE_KEY) {
-      loadFromStorage();
-      listener();
-    }
-  };
-  window.addEventListener("storage", handleStorage);
-
-  return () => {
-    listeners = listeners.filter((l) => l !== listener);
-    window.removeEventListener("storage", handleStorage);
-  };
-}
-
 export function CartProvider({ children }: { children: ReactNode }) {
-  const items = useSyncExternalStore(
-    subscribe,
-    getCartSnapshot,
-    getServerSnapshot
+  const [cartId, setCartId] = useState<string | null>(null);
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+
+  const callApi = async (
+    path: string,
+    body?: Record<string, unknown>
+  ): Promise<CartApiResponse> => {
+    const res = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!res.ok) {
+      let errorBody: unknown = null;
+      try {
+        errorBody = await res.json();
+      } catch {
+        try {
+          errorBody = await res.text();
+        } catch {
+          errorBody = null;
+        }
+      }
+
+      console.error("Cart API error", res.status, errorBody);
+      throw new Error("Cart API error");
+    }
+
+    const json = (await res.json()) as CartApiResponse;
+    return {
+      cartId: json.cartId,
+      checkoutUrl: json.checkoutUrl ?? null,
+      lines: json.lines ?? [],
+    };
+  };
+
+  const mapLinesToItems = (lines: CartApiLine[] = []): CartItem[] =>
+    lines.map((l) => ({
+      id: l.id,
+      merchandiseId: l.merchandiseId,
+      name: l.title,
+      price: l.unitPrice,
+      quantity: l.quantity,
+      imageSrc: l.imageUrl,
+      imageAlt: l.imageAlt ?? l.title,
+    }));
+
+  // восстановление из localStorage
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem(SHOPIFY_CART_ID_KEY);
+    if (stored) {
+      setCartId(stored);
+      void fetchCart(stored);
+    }
+  }, []);
+
+  const fetchCart = useCallback(async (id: string) => {
+    setLoading(true);
+    try {
+      const data = await callApi("/api/cart", {
+        action: "get",
+        cartId: id,
+      });
+
+      setCartId(data.cartId);
+      setCheckoutUrl(data.checkoutUrl);
+      setItems(mapLinesToItems(data.lines));
+
+      window.localStorage.setItem(SHOPIFY_CART_ID_KEY, data.cartId);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const ensureCart = useCallback(async () => {
+    if (cartId) return cartId;
+
+    setLoading(true);
+    try {
+      const data = await callApi("/api/cart", { action: "create" });
+
+      setCartId(data.cartId);
+      setCheckoutUrl(data.checkoutUrl);
+      setItems(mapLinesToItems(data.lines));
+
+      window.localStorage.setItem(SHOPIFY_CART_ID_KEY, data.cartId);
+      return data.cartId;
+    } finally {
+      setLoading(false);
+    }
+  }, [cartId]);
+
+  const addToCart = useCallback(
+    async (variantId: string, quantity = 1) => {
+      setLoading(true);
+      try {
+        // если корзины нет – создаём (через action:"create")
+        const id = await ensureCart();
+
+        const data = await callApi("/api/cart", {
+          action: "add",
+          cartId: id,
+          variantId,
+          quantity,
+        });
+
+        setCartId(data.cartId);
+        setCheckoutUrl(data.checkoutUrl);
+        setItems(mapLinesToItems(data.lines));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [ensureCart]
   );
 
-  const addToCart = useCallback((newItem: Omit<CartItem, "quantity">) => {
-    const existing = cachedItems.find((item) => item.id === newItem.id);
-    if (existing) {
-      saveToStorage(
-        cachedItems.map((item) =>
-          item.id === newItem.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      );
-    } else {
-      saveToStorage([...cachedItems, { ...newItem, quantity: 1 }]);
-    }
-  }, []);
+  const removeFromCart = useCallback(
+    async (lineId: string) => {
+      if (!cartId) return;
 
-  const removeFromCart = useCallback((id: string) => {
-    saveToStorage(cachedItems.filter((item) => item.id !== id));
-  }, []);
+      setLoading(true);
+      try {
+        const data = await callApi("/api/cart", {
+          action: "remove",
+          cartId,
+          lineId,
+        });
+
+        setCartId(data.cartId);
+        setCheckoutUrl(data.checkoutUrl);
+        setItems(mapLinesToItems(data.lines));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [cartId]
+  );
 
   const updateQuantity = useCallback(
-    (id: string, quantity: number) => {
+    async (lineId: string, quantity: number) => {
+      if (!cartId) return;
       if (quantity < 1) {
-        removeFromCart(id);
+        await removeFromCart(lineId);
         return;
       }
-      saveToStorage(
-        cachedItems.map((item) =>
-          item.id === id ? { ...item, quantity } : item
-        )
-      );
+
+      setLoading(true);
+      try {
+        const data = await callApi("/api/cart", {
+          action: "update",
+          cartId,
+          lineId,
+          quantity,
+        });
+
+        setCartId(data.cartId);
+        setCheckoutUrl(data.checkoutUrl);
+        setItems(mapLinesToItems(data.lines));
+      } finally {
+        setLoading(false);
+      }
     },
-    [removeFromCart]
+    [cartId, removeFromCart]
   );
 
-  const clearCart = useCallback(() => {
-    saveToStorage([]);
-  }, []);
+  const clearCart = useCallback(async () => {
+    if (!cartId) return;
+
+    setLoading(true);
+    try {
+      const data = await callApi("/api/cart", {
+        action: "clear",
+        cartId,
+      });
+
+        setCartId(data.cartId);
+        setCheckoutUrl(data.checkoutUrl);
+        setItems(mapLinesToItems(data.lines));
+    } finally {
+      setLoading(false);
+    }
+  }, [cartId]);
 
   const totalPrice = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -148,6 +256,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         clearCart,
         totalPrice,
         itemCount,
+        loading,
       }}
     >
       {children}
@@ -156,14 +265,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 }
 
 export function useCart() {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error("useCart must be used within CartProvider");
-  }
-  return context;
+  const ctx = useContext(CartContext);
+  if (!ctx) throw new Error("useCart must be used within CartProvider");
+  return ctx;
 }
-
-// cachedItems — кешируем массив, getCartSnapshot всегда возвращает один и тот же объект
-// emptyCart — серверный snapshot создаётся один раз, не на каждый вызов
-// loadFromStorage() вызывается при первой подписке, не при каждом snapshot
-// Бонус — добавил слушатель storage event, корзина синхронизируется между вкладками браузера!

@@ -187,5 +187,9 @@
     "empty": "Sinu ostukorv on tühi",
     "emptyDescription": "Lisa tooteid, et alustada!",
     "CTAAdd": "Kõik tooted"
+  },
+  "AddToCartButton":{
+    "addToCart": "Lisa ostukorvi"
   }
 }
+

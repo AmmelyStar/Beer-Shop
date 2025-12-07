@@ -23,6 +23,7 @@ import {
 
 // Локали фронта
 import type { Locale } from "../lib/locale";
+
 // вспомогательный тип для edges
 type Edge<T> = { cursor?: string | null; node: T };
 
@@ -35,12 +36,13 @@ export async function fetchAllProducts(
   const acc: ProductNode[] = [];
 
   do {
-    const data = await shopifyFetchWithLocale<ProductsAllResponse>(
-      PRODUCTS_ALL_WITH_METAFIELDS,
-      { first: pageSize, after },
-      locale,
-      60
-    );
+    const data: ProductsAllResponse =
+      await shopifyFetchWithLocale<ProductsAllResponse>(
+        PRODUCTS_ALL_WITH_METAFIELDS,
+        { first: pageSize, after },
+        locale,
+        60
+      );
 
     const edges = data.products.edges as Array<Edge<ProductNode>>;
     acc.push(...edges.map((e) => e.node));
@@ -57,7 +59,6 @@ export async function fetchAllProductsFlattened(
   locale: Locale = "en"
 ): Promise<FlattenedProduct[]> {
   const nodes = await fetchAllProducts(locale);
-
   return flattenProducts(nodes);
 }
 
@@ -71,12 +72,13 @@ export async function fetchCollectionProducts(
   const acc: ProductNode[] = [];
 
   do {
-    const data = await shopifyFetchWithLocale<ProductsByCollectionResponse>(
-      PRODUCTS_BY_COLLECTION,
-      { handle, first: pageSize, after },
-      locale,
-      60
-    );
+    const data: ProductsByCollectionResponse =
+      await shopifyFetchWithLocale<ProductsByCollectionResponse>(
+        PRODUCTS_BY_COLLECTION,
+        { handle, first: pageSize, after },
+        locale,
+        60
+      );
 
     const block = data.collection?.products as
       | {
@@ -109,12 +111,13 @@ export async function fetchProductByHandleFlattened(
 ): Promise<FlattenedProduct | null> {
   if (!handle) return null;
 
-  const data = await shopifyFetchWithLocale<ProductByHandleResponse>(
-    PRODUCT_BY_HANDLE,
-    { handle },
-    locale,
-    60
-  );
+  const data: ProductByHandleResponse =
+    await shopifyFetchWithLocale<ProductByHandleResponse>(
+      PRODUCT_BY_HANDLE,
+      { handle },
+      locale,
+      60
+    );
 
   if (!data.product) return null;
 
@@ -128,12 +131,13 @@ export async function fetchPageByHandle(
 ): Promise<ShopifyPage | null> {
   if (!handle) return null;
 
-  const data = await shopifyFetchWithLocale<{ page: ShopifyPage | null }>(
-    PAGE_BY_HANDLE,
-    { handle },
-    locale,
-    60
-  );
+  const data: { page: ShopifyPage | null } =
+    await shopifyFetchWithLocale<{ page: ShopifyPage | null }>(
+      PAGE_BY_HANDLE,
+      { handle },
+      locale,
+      60
+    );
 
   return data.page;
 }
