@@ -19,12 +19,13 @@ export type AccountPageMessages = {
   signOut: string;
 };
 
-export default async function AccountPage({
-  params,
-}: {
-  params: { lang: Locale };
-}) {
-  const { lang } = params; // тут уже обычный объект, НЕ Promise
+// ⬇️ params теперь Promise — тип меняем и делаем await
+type AccountPageProps = {
+  params: Promise<{ lang: Locale }>;
+};
+
+export default async function AccountPage({ params }: AccountPageProps) {
+  const { lang } = await params; // тут уже правильно: сначала await
   const messages = await getMessages(lang);
 
   return (

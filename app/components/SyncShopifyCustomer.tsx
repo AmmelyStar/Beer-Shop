@@ -1,64 +1,45 @@
 // app/components/SyncShopifyCustomer.tsx
+
 "use client";
 
 import { useEffect } from "react";
 
-type SyncCustomerResponse = {
-  success?: boolean;
-  shopifyCustomerId?: string;
-  error?: string;
-};
+const SYNC_ENABLED =
+  process.env.NEXT_PUBLIC_ENABLE_SHOPIFY_CUSTOMER_SYNC === "true";
 
 export default function SyncShopifyCustomer() {
   useEffect(() => {
+    // на этом магазине синк отключён
+    if (!SYNC_ENABLED) {
+      console.info("Shopify customer sync is disabled for this environment.");
+      return;
+    }
+
     const sync = async () => {
       try {
         const res = await fetch("/api/shopify/sync-customer", {
           method: "POST",
         });
 
-        let bodyText: string | null = null;
-        try {
-          bodyText = await res.text(); // читаем всегда как текст
-        } catch {
-          bodyText = null;
-        }
-
         if (!res.ok) {
+          const text = await res.text();
           console.error(
             "Failed to sync Shopify customer:",
             res.status,
-            res.statusText,
-            bodyText
+            text
           );
-          return;
-        }
-
-        if (!bodyText) {
-          console.error("Empty response from /api/shopify/sync-customer");
-          return;
-        }
-
-        let data: SyncCustomerResponse;
-        try {
-          data = JSON.parse(bodyText) as SyncCustomerResponse;
-        } catch {
-          console.error("Response is not valid JSON:", bodyText);
-          return;
-        }
-
-        if (data.shopifyCustomerId) {
-          console.log("Shopify customer synced:", data.shopifyCustomerId);
         } else {
-          console.log("Sync response without customerId:", data);
+          const data = await res.json();
+          console.log("Shopify customer synced:", data);
         }
-      } catch (e) {
-        console.error("Sync Shopify customer error", e);
+      } catch (err) {
+        console.error("Sync error:", err);
       }
     };
 
-    void sync();
+    sync();
   }, []);
 
+  // компонент ничего не рендерит
   return null;
 }
