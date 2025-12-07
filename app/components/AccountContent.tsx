@@ -10,8 +10,10 @@ import type { AccountPageMessages } from "../[lang]/account/page";
 
 export default function AccountContent({
   messages,
+  shopifyCustomerId,
 }: {
   messages: AccountPageMessages;
+  shopifyCustomerId: string | null;
 }) {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
@@ -47,6 +49,16 @@ export default function AccountContent({
     return null;
   }
 
+  const email = user.primaryEmailAddress?.emailAddress || "—";
+
+  // ссылка для клиента на Shopify-аккаунт (front)
+  const shopifyAccountUrl = "https://pw1tca-x0.myshopify.com/account";
+
+  // (опционально) ссылка в админку на карточку этого customer
+  const shopifyAdminCustomerUrl = shopifyCustomerId
+    ? `https://pw1tca-x0.myshopify.com/admin/customers/${shopifyCustomerId}`
+    : null;
+
   return (
     <div className="space-y-6">
       {/* Информация о пользователе */}
@@ -58,9 +70,7 @@ export default function AccountContent({
         <div className="space-y-3">
           <div>
             <p className="text-sm text-gray-400">{messages.email}</p>
-            <p className="text-base text-white">
-              {user.primaryEmailAddress?.emailAddress || "—"}
-            </p>
+            <p className="text-base text-white">{email}</p>
           </div>
 
           {(user.firstName || user.lastName) && (
@@ -73,7 +83,9 @@ export default function AccountContent({
           )}
 
           <div>
-            <p className="text-sm text-gray-400">{messages.accountCreated}</p>
+            <p className="text-sm text-gray-400">
+              {messages.accountCreated}
+            </p>
             <p className="text-base text-white">
               {new Date(user.createdAt!).toLocaleDateString()}
             </p>
@@ -81,12 +93,23 @@ export default function AccountContent({
         </div>
       </div>
 
-      {/* Заказы — позже подцепим Shopify */}
+      {/* Заказы — ссылка на Shopify */}
       <div className="bg-white/5 rounded-lg p-6 border border-white/10">
         <h2 className="text-xl font-semibold text-white mb-4">
           {messages.recentOrders}
         </h2>
-        <p className="text-gray-400">{messages.recentOrdersDescription}</p>
+
+        <p className="text-sm text-gray-400 mb-4">
+          {messages.recentOrdersDescription}
+        </p>
+
+        
+
+        {/* Debug-инфа для тебя, можно позже удалить */}
+        <div className="mt-4 text-xs text-gray-500 space-y-1">
+
+        
+        </div>
       </div>
 
       {/* Действия */}

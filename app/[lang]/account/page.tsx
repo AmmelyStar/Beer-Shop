@@ -4,7 +4,8 @@ import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { getMessages, type Locale } from "../messages";
 import AccountContent from "../../components/AccountContent";
 import LoginRegisterForm from "../../components/LoginRegisterForm";
-import SyncShopifyCustomer from "../../components/SyncShopifyCustomer";
+import { auth } from "@clerk/nextjs/server";
+import { getOrCreateShopifyCustomer } from "@/app/lib/shopify/customerAdmin";
 
 export type AccountPageMessages = {
   title: string;
@@ -19,14 +20,26 @@ export type AccountPageMessages = {
   signOut: string;
 };
 
-// ⬇️ params теперь Promise — тип меняем и делаем await
-type AccountPageProps = {
-  params: Promise<{ lang: Locale }>;
-};
-
-export default async function AccountPage({ params }: AccountPageProps) {
-  const { lang } = await params; // тут уже правильно: сначала await
+export default async function AccountPage({
+  params,
+}: {
+  params: { lang: Locale };
+}) {
+  const { lang } = params;
   const messages = await getMessages(lang);
+
+  // Проверяем, залогинен ли пользователь на сервере
+  const { userId } = await auth();
+
+  let shopifyCustomerId: string | null = null;
+
+  if (userId) {
+    try {
+      shopifyCustomerId = await getOrCreateShopifyCustomer();
+    } catch (err) {
+      console.error("Failed to sync Shopify customer:", err);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-2xl py-8 px-4">
@@ -34,14 +47,13 @@ export default async function AccountPage({ params }: AccountPageProps) {
         {messages.AccountPage?.title ?? "My account"}
       </h1>
 
-      {/* Пользователь залогинен */}
       <SignedIn>
-        {/* запускаем синхронизацию Clerk → Shopify */}
-        <SyncShopifyCustomer />
-        <AccountContent messages={messages.AccountPage} />
+        <AccountContent
+          messages={messages.AccountPage}
+          shopifyCustomerId={shopifyCustomerId}
+        />
       </SignedIn>
 
-      {/* Пользователь НЕ залогинен */}
       <SignedOut>
         <LoginRegisterForm messages={messages.auth} />
       </SignedOut>
