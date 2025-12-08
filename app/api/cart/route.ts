@@ -148,16 +148,20 @@ const MUTATION_UPDATE = `
   }
 `;
 
+// 🔹 Удаляем ВСЕ линии через cartLinesRemove с массивом lineIds
 const MUTATION_CLEAR = `
-  mutation CartClear($cartId: ID!) {
-    cartLinesRemoveAll(cartId: $cartId) {
+  mutation CartClear($cartId: ID!, $lineIds: [ID!]!) {
+    cartLinesRemove(
+      cartId: $cartId,
+      lineIds: $lineIds
+    ) {
       cart { ${CART_FRAGMENT} }
       userErrors { field message }
     }
   }
 `;
 
-// 👇 новая мутация для привязки корзины к customerAccessToken
+// 👇 мутация для привязки корзины к customerAccessToken
 const MUTATION_BUYER_IDENTITY_UPDATE = `
   mutation CartBuyerIdentityUpdate(
     $cartId: ID!
@@ -204,7 +208,7 @@ type UpdateResponse = {
 };
 
 type ClearResponse = {
-  cartLinesRemoveAll: {
+  cartLinesRemove: {
     cart: Cart | null;
     userErrors: { field: string[] | null; message: string }[];
   };
@@ -471,33 +475,47 @@ export async function POST(req: Request) {
 
       // --- CLEAR ---
       case "clear": {
-        if (!cartId) {
-          return NextResponse.json(
-            { error: "Missing cartId" },
-            { status: 400 }
-          );
+        // если cartId нет или он мусорный – просто отдаём пустую корзину
+        if (!cartId || cartId === "undefined" || cartId === "null") {
+          return NextResponse.json(mapCart(null));
         }
 
-        const data = await shopifyStorefrontRequest<ClearResponse>(
-          MUTATION_CLEAR,
+        // 1. забираем текущую корзину, чтобы узнать все lineIds
+        const existing = await shopifyStorefrontRequest<GetResponse>(
+          QUERY_GET,
           { cartId }
         );
 
-        if (data.cartLinesRemoveAll.userErrors?.length) {
+        const cart = existing.cart;
+        const lineIds =
+          cart?.lines.edges.map((edge) => edge.node.id) ?? [];
+
+        // корзина уже пустая
+        if (!cart || lineIds.length === 0) {
+          return NextResponse.json(mapCart(cart ?? null));
+        }
+
+        // 2. удаляем все линии одним вызовом
+        const data = await shopifyStorefrontRequest<ClearResponse>(
+          MUTATION_CLEAR,
+          { cartId, lineIds }
+        );
+
+        if (data.cartLinesRemove.userErrors?.length) {
           console.error(
-            "cartLinesRemoveAll errors:",
-            data.cartLinesRemoveAll.userErrors
+            "cartLinesRemove (clear) errors:",
+            data.cartLinesRemove.userErrors
           );
           return NextResponse.json(
             {
               error: "Cart clear error",
-              details: data.cartLinesRemoveAll.userErrors,
+              details: data.cartLinesRemove.userErrors,
             },
             { status: 500 }
           );
         }
 
-        return NextResponse.json(mapCart(data.cartLinesRemoveAll.cart));
+        return NextResponse.json(mapCart(data.cartLinesRemove.cart));
       }
 
       default:

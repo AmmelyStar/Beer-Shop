@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-
 import {
   QuestionMarkCircleIcon,
   XMarkIcon as XMarkIconMini,
@@ -85,12 +84,13 @@ export default function ShoppingCardOverviews({
                 <div className="py-16 ">
                   <p className="text-gray-400 text-lg">{empty}</p>
                   <p className="text-gray-500 my-2">{emptyDescription}</p>
-                  <Link
-                    href={`/${lang}/shop`}
-                    className="relative flex items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30 w-70 mt-10"
-                  >
-                    {CTAAdd}
-                  </Link>
+                 <Link
+      href={`/shop`}
+      prefetch={false}
+      className="relative mt-10 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
+    >
+      {CTAAdd}
+    </Link>
                 </div>
               ) : (
                 <ul
