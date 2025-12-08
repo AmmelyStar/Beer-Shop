@@ -7,6 +7,8 @@ import {
   XMarkIcon as XMarkIconMini,
 } from "@heroicons/react/20/solid";
 import { useCart } from "@/app/context/CartContext";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 
 import type { Locale } from "../lib/locale";
 
@@ -43,13 +45,8 @@ export default function ShoppingCardOverviews({
   CTAAdd,
   lang,
 }: ShoppingCardOverviewsProps) {
-  const {
-    cart,
-    isLoading,
-    removeLine,
-    updateLineQuantity,
-    clearCart,
-  } = useCart();
+  const { cart, isLoading, removeLine, updateLineQuantity, clearCart } =
+    useCart();
 
   const items = cart.lines;
   const hasItems = items.length > 0;
@@ -64,8 +61,24 @@ export default function ShoppingCardOverviews({
   const taxAmount = hasItems ? totalPrice * taxRate : 0;
   const orderTotal = totalPrice + shippingCost + taxAmount;
 
+  const router = useRouter();
+  const { isSignedIn } = useAuth();
+
+  const handleCheckoutClick = () => {
+    if (!cart.checkoutUrl) return;
+
+    if (isSignedIn) {
+      // Пользователь залогинен → сразу на Shopify checkout
+      router.push(cart.checkoutUrl);
+    } else {
+      // Не залогинен → на страницу аккаунта/регистрации с редиректом обратно на checkout
+      const redirectTo = encodeURIComponent(cart.checkoutUrl);
+      router.push(`/account?redirectTo=${redirectTo}`);
+    }
+  };
+
   return (
-    <div className="">
+    <div>
       <main className="mx-auto max-w-2xl px-4 pb-24 pt-16 sm:px-6 lg:max-w-7xl lg:px-8">
         <h1 className="text-3xl tracking-tight font-semibold text-yellow-400 max-w-md">
           {shoppingCart}
@@ -81,16 +94,16 @@ export default function ShoppingCardOverviews({
               </h2>
 
               {!hasItems ? (
-                <div className="py-16 ">
+                <div className="py-16">
                   <p className="text-gray-400 text-lg">{empty}</p>
                   <p className="text-gray-500 my-2">{emptyDescription}</p>
-                 <Link
-      href={`/shop`}
-      prefetch={false}
-      className="relative mt-10 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
-    >
-      {CTAAdd}
-    </Link>
+                  <Link
+                    href={`/${lang}/shop`}
+                    prefetch={false}
+                    className="relative mt-10 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
+                  >
+                    {CTAAdd}
+                  </Link>
                 </div>
               ) : (
                 <ul
@@ -121,7 +134,6 @@ export default function ShoppingCardOverviews({
                                 </span>
                               </h3>
                             </div>
-                            {/* Здесь можно позже добавить страну/объём/ABV, если будешь хранить их в Shopify */}
                           </div>
 
                           <div className="absolute right-0 top-0 mt-4 sm:mt-0 sm:pr-9 flex flex-col gap-5">
@@ -155,7 +167,7 @@ export default function ShoppingCardOverviews({
                                     Math.max(1, product.quantity - 1)
                                   )
                                 }
-                                className="flex size-8 items-center justify-center rounded-md border border-gray-400 text-gray-300 hover:bg.white/10 transition-colors"
+                                className="flex size-8 items-center justify-center rounded-md border border-gray-400 text-gray-300 hover:bg-white/10 transition-colors"
                               >
                                 <span className="sr-only">
                                   Decrease quantity
@@ -194,7 +206,7 @@ export default function ShoppingCardOverviews({
             {hasItems && (
               <section
                 aria-labelledby="summary-heading"
-                className="mt-16 rounded-lg bg.white/5 border border-white/10 sm:p-6 lg:col-span-5 lg:mt-0 lg:p-8"
+                className="mt-16 rounded-lg bg-white/5 border border-white/10 sm:p-6 lg:col-span-5 lg:mt-0 lg:p-8"
               >
                 <h2
                   id="summary-heading"
@@ -258,12 +270,13 @@ export default function ShoppingCardOverviews({
 
                 <div className="mt-6 space-y-3">
                   {cart.checkoutUrl && (
-                    <a
-                      href={cart.checkoutUrl}
+                    <button
+                      type="button"
+                      onClick={handleCheckoutClick}
                       className="inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-8 py-2 text-sm font-semibold text-gray-900 hover:bg-yellow-500 hover:border-yellow-600 lg:w-full duration-300"
                     >
                       {checkout}
-                    </a>
+                    </button>
                   )}
 
                   <button

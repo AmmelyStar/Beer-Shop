@@ -1,20 +1,16 @@
+// app/components/ui/ShoppingCart.tsx
 "use client";
+
 import { ShoppingCartIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
 import type { Locale } from "../../lib/locale";
 
-type ShoppingCartMsgs = {
+export type ShoppingCartMsgs = {
   ariaLabel: string;
   emptyMessage: string;
   checkoutButton: string;
   itemsInCart: string;
-};
-
-type Messages = {
-  [lang: string]: {
-    ShoppingCart: ShoppingCartMsgs;
-  };
 };
 
 const FALLBACK: ShoppingCartMsgs = {
@@ -31,18 +27,18 @@ export default function ShoppingCart({
 }: {
   lang?: Locale | string;
   href?: string;
-  messages: Messages;
+  messages: ShoppingCartMsgs;
 }) {
-  const { totalQuantity } = useCart();   // ← ИСПРАВЛЕНО
+  // Берём количество из контекста
+  const { totalQuantity } = useCart();
+  const itemCount = totalQuantity ?? 0;
 
-  const dict =
-    messages?.[lang as string]?.ShoppingCart ??
-    messages?.en?.ShoppingCart ??
-    FALLBACK;
+  // Берём тексты или фолбэк
+  const dict = messages ?? FALLBACK;
 
   const label =
-    totalQuantity > 0
-      ? `${dict.ariaLabel}: ${totalQuantity} ${dict.itemsInCart}`
+    itemCount > 0
+      ? `${dict.ariaLabel}: ${itemCount} ${dict.itemsInCart}`
       : `${dict.ariaLabel}: ${dict.emptyMessage}`;
 
   return (
@@ -58,10 +54,9 @@ export default function ShoppingCart({
         className="size-6 shrink-0 text-gray-400 group-hover:text-yellow-500 transition-colors"
       />
 
-      {/* Badge с количеством */}
-      {totalQuantity > 0 && (
+      {itemCount > 0 && (
         <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-yellow-500 text-xs font-bold text-gray-900">
-          {totalQuantity > 99 ? "99+" : totalQuantity}
+          {itemCount > 99 ? "99+" : itemCount}
         </span>
       )}
 
