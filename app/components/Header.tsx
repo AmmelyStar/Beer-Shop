@@ -8,11 +8,14 @@ import ProfileButton from "./ui/ProfileButton";
 import HeaderSearch from "./ui/HeaderSearch";
 import ShoppingCart from "./ui/ShoppingCart";
 
-// Тип всей структуры сообщений берём из эталона en.json
-type AllMessages = typeof import("../messages/en.json");
+// 🔹 Берём общий тип Messages из messages/index.ts
+import type { Messages } from "../messages";
 
-// Фолбэк для раздела корзины — на случай, если messages отсутствует
-const SHOPPING_CART_FALLBACK: AllMessages["ShoppingCart"] = {
+// Тип только для блока ShoppingCart в messages
+type ShoppingCartMessages = Messages["ShoppingCart"];
+
+// Фолбэк для раздела корзины — если messages не передали
+const SHOPPING_CART_FALLBACK: ShoppingCartMessages = {
   ariaLabel: "Shopping cart",
   emptyMessage: "Your cart is empty",
   checkoutButton: "Proceed to Checkout",
@@ -21,12 +24,12 @@ const SHOPPING_CART_FALLBACK: AllMessages["ShoppingCart"] = {
 
 type Props = {
   lang: Locale;
-  messages?: AllMessages; // делаем необязательным, чтобы не падать в рантайме
+  messages?: Messages; // весь объект messages, как в других местах
 };
 
 export default function Header({ lang, messages }: Props) {
   // Берём нужный срез или фолбэк
-  const cartMessages =
+  const cartMessages: ShoppingCartMessages =
     messages?.ShoppingCart ?? SHOPPING_CART_FALLBACK;
 
   return (
