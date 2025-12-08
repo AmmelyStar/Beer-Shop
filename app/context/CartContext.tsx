@@ -5,6 +5,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useMemo,
   ReactNode,
 } from "react";
 
@@ -33,6 +34,9 @@ type CartContextType = {
   removeLine: (lineId: string) => Promise<void>;
   updateLineQuantity: (lineId: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
+
+  // 👉 для иконки в хедере
+  totalQuantity: number;
 
   // Старый интерфейс (для совместимости)
   items: CartLine[];
@@ -210,9 +214,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Удобные поля для старых компонентов
   const items = cart.lines;
-  const totalPrice = items.reduce(
-    (sum: number, line: CartLine) => sum + line.unitPrice * line.quantity,
-    0
+
+  const totalPrice = useMemo(
+    () =>
+      items.reduce(
+        (sum: number, line: CartLine) => sum + line.unitPrice * line.quantity,
+        0
+      ),
+    [items]
+  );
+
+  // 👉 тут считаем суммарное количество для бейджа
+  const totalQuantity = useMemo(
+    () =>
+      items.reduce(
+        (sum: number, line: CartLine) => sum + line.quantity,
+        0
+      ),
+    [items]
   );
 
   const removeFromCart = (lineId: string) => removeLine(lineId);
@@ -231,6 +250,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     totalPrice,
     removeFromCart,
     updateQuantity,
+    totalQuantity,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

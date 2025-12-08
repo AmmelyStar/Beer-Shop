@@ -9,16 +9,21 @@ export type QuantityCounterProps = {
 };
 
 export default function QuantityCounter({ lineId, quantity }: QuantityCounterProps) {
-  const { updateQuantity, loading } = useCart();
+  const { updateQuantity, isLoading } = useCart();
 
   const handleDecrement = async () => {
-    if (loading) return;
+    if (isLoading) return;
+
     const next = quantity - 1;
+    // не даём уйти ниже 1 (если хочешь при 0 удалять строку — скажи, переделаем)
+    if (next < 1) return;
+
     await updateQuantity(lineId, next);
   };
 
   const handleIncrement = async () => {
-    if (loading) return;
+    if (isLoading) return;
+
     const next = quantity + 1;
     await updateQuantity(lineId, next);
   };
@@ -29,7 +34,7 @@ export default function QuantityCounter({ lineId, quantity }: QuantityCounterPro
         type="button"
         onClick={handleDecrement}
         className="px-2 text-lg leading-none"
-        disabled={loading}
+        disabled={isLoading}
       >
         –
       </button>
@@ -38,7 +43,7 @@ export default function QuantityCounter({ lineId, quantity }: QuantityCounterPro
         type="button"
         onClick={handleIncrement}
         className="px-2 text-lg leading-none"
-        disabled={loading}
+        disabled={isLoading}
       >
         +
       </button>

@@ -33,7 +33,7 @@ export default function ShoppingCart({
   href?: string;
   messages: Messages;
 }) {
-  const { itemCount } = useCart();
+  const { totalQuantity } = useCart();   // ← ИСПРАВЛЕНО
 
   const dict =
     messages?.[lang as string]?.ShoppingCart ??
@@ -41,8 +41,8 @@ export default function ShoppingCart({
     FALLBACK;
 
   const label =
-    itemCount > 0
-      ? `${dict.ariaLabel}: ${itemCount} ${dict.itemsInCart}`
+    totalQuantity > 0
+      ? `${dict.ariaLabel}: ${totalQuantity} ${dict.itemsInCart}`
       : `${dict.ariaLabel}: ${dict.emptyMessage}`;
 
   return (
@@ -59,9 +59,9 @@ export default function ShoppingCart({
       />
 
       {/* Badge с количеством */}
-      {itemCount > 0 && (
+      {totalQuantity > 0 && (
         <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-yellow-500 text-xs font-bold text-gray-900">
-          {itemCount > 99 ? "99+" : itemCount}
+          {totalQuantity > 99 ? "99+" : totalQuantity}
         </span>
       )}
 
