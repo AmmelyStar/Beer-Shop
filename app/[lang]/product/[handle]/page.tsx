@@ -3,6 +3,7 @@ import { fetchProductByHandleFlattened } from "../../../data/repo";
 import { getMessages } from "../../messages";
 import type { Locale } from "../../../lib/locale";
 import ProductOverviews from "../../../components/ProductOverviews";
+import CustomerReviews from "../../../components/CustomerReviews";
 import { notFound } from "next/navigation";
 import Breadcrumbs from "@/app/components/ui/Breadcrumbs";
 
@@ -52,6 +53,8 @@ export default async function ProductPage({
         productCategory={productCategory}
         currentLabel={product.title}
       />
+
+      {/* Карточка товара */}
       <ProductOverviews
         product={product}
         perUnit={t.OneProduct.perUnit}
@@ -71,11 +74,9 @@ export default async function ProductPage({
         allergens={t.OneProduct.allergens}
         ingredients={t.OneProduct.ingredients}
       />
-    </main>
-  );
-}
 
-/* <CustomerReviews
+      {/* Блок отзывов под товаром */}
+      <CustomerReviews
         title={t.CustomerReviews.title}
         stars={t.CustomerReviews.stars}
         base1={t.CustomerReviews.base1}
@@ -85,4 +86,9 @@ export default async function ProductPage({
         CTASubtitle={t.CustomerReviews.CTASubtitle}
         button={t.CustomerReviews.button}
         recentReviews={t.CustomerReviews.recentReviews}
-      /> */
+         productHandle={product.handle} 
+        
+      />
+    </main>
+  );
+}

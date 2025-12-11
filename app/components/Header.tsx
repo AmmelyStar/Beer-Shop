@@ -37,7 +37,7 @@ export default function Header({ lang, messages }: Props) {
         {/* 🔥 LOGO LEFT */}
         <Link href={`/${lang}`} className="flex items-center">
           <Image
-            src="/logo-beer.jpg"     // 👉 заменишь на свой файл
+            src="/category/logo-beer.jpg"     // 👉 заменишь на свой файл
             alt="Logo"
             width={120}         // можно изменить
             height={40}
