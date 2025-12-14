@@ -19,6 +19,14 @@ type Review = {
   pictures?: { id: number; url: string }[];
 };
 
+type ReviewsApiResponse = {
+  reviews?: Review[];
+  stats?: {
+    average_rating?: number;
+    reviews_count?: number;
+  };
+};
+
 type CustomerReviewsProps = {
   productHandle: string;
   title: string;
@@ -28,7 +36,7 @@ type CustomerReviewsProps = {
   starRew: string;
   CTATitle: string;
   CTASubtitle: string;
-  button: string;         // текст кнопки "Оставить отзыв"
+  button: string; // текст кнопки "Оставить отзыв"
   recentReviews: string;
 };
 
@@ -38,7 +46,7 @@ export default function CustomerReviews({
   stars,
   base1,
   base2,
-  starRew,
+  starRew, // пока не используется, но оставляем в пропсах
   CTATitle,
   CTASubtitle,
   button,
@@ -57,17 +65,31 @@ export default function CustomerReviews({
     async function loadReviews() {
       try {
         setLoading(true);
+
         const res = await fetch(`/api/reviews/${productHandle}`);
+
         if (!res.ok) {
           console.error("Failed to load reviews", res.status);
           setLoading(false);
           return;
         }
-        const data = await res.json();
 
-        setReviews(data.reviews || []);
-        setAverage(data.stats?.average_rating || 0);
-        setTotal(data.stats?.reviews_count || 0);
+        const contentType = res.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) {
+          const text = await res.text();
+          console.error(
+            "Non-JSON response from /api/reviews:",
+            text.slice(0, 300)
+          );
+          setLoading(false);
+          return;
+        }
+
+        const data = (await res.json()) as ReviewsApiResponse;
+
+        setReviews(data.reviews ?? []);
+        setAverage(data.stats?.average_rating ?? 0);
+        setTotal(data.stats?.reviews_count ?? 0);
       } catch (err) {
         console.error("Reviews fetch error:", err);
       } finally {
@@ -75,7 +97,9 @@ export default function CustomerReviews({
       }
     }
 
-    loadReviews();
+    if (productHandle) {
+      loadReviews();
+    }
   }, [productHandle]);
 
   const defaultName =

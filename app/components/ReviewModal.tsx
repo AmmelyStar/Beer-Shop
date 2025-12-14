@@ -16,6 +16,13 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
+type SubmitResponse = {
+  ok?: boolean;
+  status?: number;
+  error?: string;
+  raw?: string;
+};
+
 export default function ReviewModal({
   isOpen,
   onClose,
@@ -35,14 +42,18 @@ export default function ReviewModal({
   const chars = text.length;
   const currentRating = hoverRating ?? rating;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    console.log("CLICK Submit review button");
     setError(null);
     setSuccess(null);
 
     const trimmed = text.trim();
 
-    // локальная валидация
+    if (!name.trim()) {
+      setError("Please enter your name.");
+      return;
+    }
+
     if (trimmed.length < 10) {
       setError("Review text must be at least 10 characters.");
       return;
@@ -58,14 +69,21 @@ export default function ReviewModal({
       return;
     }
 
-    if (!name.trim()) {
-      setError("Please enter your name.");
+    if (!productHandle) {
+      setError("Missing product handle.");
       return;
     }
 
     setLoading(true);
 
     try {
+      console.log("▶️ Sending fetch to /api/reviews/submit", {
+        productHandle,
+        rating,
+        text: trimmed,
+        name: name.trim(),
+      });
+
       const res = await fetch("/api/reviews/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -77,32 +95,34 @@ export default function ReviewModal({
         }),
       });
 
-      // безопасно читаем ответ: сначала text, потом пытаемся распарсить JSON
-     let data: { error?: string } | null = null;
       let rawText = "";
+      let data: SubmitResponse | null = null;
+
       try {
         rawText = await res.text();
-        data = rawText ? JSON.parse(rawText) : null;
-      } catch {
-        // тело не JSON — оставляем data = null
+        console.log("⬅️ Raw response from /api/reviews/submit:", rawText);
+        data = rawText ? (JSON.parse(rawText) as SubmitResponse) : null;
+      } catch (parseErr) {
+        console.error("Failed to parse JSON from submit response:", parseErr);
       }
 
-      if (!res.ok) {
-        console.error(
-          "Submit review failed:",
-          res.status,
-          rawText || "<empty body>"
-        );
-        setError(
-          (data && data.error) ||
-            `Failed to submit review. (status ${res.status})`
-        );
+      const okFromApi = data?.ok ?? res.ok;
+
+      if (!okFromApi) {
+        const msg =
+          data?.error ||
+          `Failed to submit review. Status: ${data?.status ?? res.status}`;
+        console.error("Submit review failed:", msg);
+        setError(msg);
         return;
       }
 
       setSuccess("Thank you! Your review has been submitted.");
       setText("");
-      // если хочешь, можно сразу закрывать модалку:
+      setRating(5);
+      setHoverRating(null);
+      console.log("✅ Review submitted successfully");
+      // можно закрывать:
       // onClose();
     } catch (err) {
       console.error("Submit review error:", err);
@@ -134,12 +154,11 @@ export default function ReviewModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+        {/* БЕЗ <form>, просто div со всеми полями */}
+        <div className="mt-6 space-y-5">
           {/* Name */}
           <div>
-            <label className="text-sm text-gray-300 block mb-1">
-              Name
-            </label>
+            <label className="text-sm text-gray-300 block mb-1">Name</label>
             <input
               type="text"
               value={name}
@@ -150,9 +169,7 @@ export default function ReviewModal({
 
           {/* Stars */}
           <div>
-            <label className="text-sm text-gray-300 block mb-1">
-              Rating
-            </label>
+            <label className="text-sm text-gray-300 block mb-1">Rating</label>
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -199,15 +216,9 @@ export default function ReviewModal({
           </div>
 
           {/* Messages */}
-          {error && (
-            <p className="text-sm text-red-400">
-              {error}
-            </p>
-          )}
+          {error && <p className="text-sm text-red-400">{error}</p>}
           {success && (
-            <p className="text-sm text-emerald-400">
-              {success}
-            </p>
+            <p className="text-sm text-emerald-400">{success}</p>
           )}
 
           {/* Buttons */}
@@ -220,14 +231,15 @@ export default function ReviewModal({
               Cancel
             </button>
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               disabled={loading}
               className="rounded-md bg-yellow-500 px-5 py-2 text-sm font-semibold text-black hover:bg-yellow-400 disabled:opacity-60"
             >
               {loading ? "Sending..." : "Submit review"}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
