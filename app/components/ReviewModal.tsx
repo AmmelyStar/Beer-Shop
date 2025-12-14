@@ -1,26 +1,35 @@
 // app/components/ReviewModal.tsx
-
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StarIcon } from "@heroicons/react/20/solid";
+
+type EditingReview = {
+  id: string;
+  rating: number;
+  text: string;
+  name: string;
+};
 
 type ReviewModalProps = {
   isOpen: boolean;
   onClose: () => void;
   productHandle: string;
   defaultName?: string;
+
+  // новое:
+  editing?: EditingReview | null;
+  onSuccess?: () => void;
 };
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-type SubmitResponse = {
+type ApiResponse = {
   ok?: boolean;
-  status?: number;
   error?: string;
-  raw?: string;
+  message?: string;
 };
 
 export default function ReviewModal({
@@ -28,105 +37,148 @@ export default function ReviewModal({
   onClose,
   productHandle,
   defaultName = "",
+  editing = null,
+  onSuccess,
 }: ReviewModalProps) {
+  const isEditMode = !!editing;
+
   const [name, setName] = useState(defaultName);
   const [rating, setRating] = useState<number>(5);
   const [hoverRating, setHoverRating] = useState<number | null>(null);
   const [text, setText] = useState("");
+
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  if (!isOpen) return null;
+  // Когда модалка открывается или меняется режим (create/edit) — заполняем поля
+  useEffect(() => {
+    if (!isOpen) return;
 
-  const chars = text.length;
-  const currentRating = hoverRating ?? rating;
-
-  const handleSubmit = async () => {
-    console.log("CLICK Submit review button");
     setError(null);
     setSuccess(null);
+    setHoverRating(null);
 
+    if (editing) {
+      setName(editing.name ?? "");
+      setRating(editing.rating ?? 5);
+      setText(editing.text ?? "");
+    } else {
+      setName(defaultName ?? "");
+      setRating(5);
+      setText("");
+    }
+  }, [isOpen, editing, defaultName]);
+
+  const currentRating = hoverRating ?? rating;
+
+  const chars = text.length;
+
+  const title = useMemo(() => (isEditMode ? "Edit review" : "Leave a review"), [isEditMode]);
+  const subtitle = useMemo(
+    () =>
+      isEditMode
+        ? "Update your rating and text. After editing, the review may be re-moderated."
+        : "Tell us what you think about this product.",
+    [isEditMode]
+  );
+
+  if (!isOpen) return null;
+
+  const validate = () => {
     const trimmed = text.trim();
 
     if (!name.trim()) {
-      setError("Please enter your name.");
-      return;
+      return "Please enter your name.";
     }
-
     if (trimmed.length < 10) {
-      setError("Review text must be at least 10 characters.");
-      return;
+      return "Review text must be at least 10 characters.";
     }
-
     if (trimmed.length > 200) {
-      setError("Review text must be at most 200 characters.");
-      return;
+      return "Review text must be at most 200 characters.";
     }
-
     if (rating < 1 || rating > 5) {
-      setError("Please select a rating from 1 to 5 stars.");
+      return "Please select a rating from 1 to 5 stars.";
+    }
+    if (!productHandle) {
+      return "Missing product handle.";
+    }
+    return null;
+  };
+
+  const handleSubmit = async () => {
+    setError(null);
+    setSuccess(null);
+
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
-    if (!productHandle) {
-      setError("Missing product handle.");
-      return;
-    }
+    const trimmed = text.trim();
 
     setLoading(true);
-
     try {
-      console.log("▶️ Sending fetch to /api/reviews/submit", {
-        productHandle,
-        rating,
-        text: trimmed,
-        name: name.trim(),
-      });
+      let res: Response;
 
-      const res = await fetch("/api/reviews/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productHandle,
-          rating,
-          text: trimmed,
-          name: name.trim(),
-        }),
-      });
-
-      let rawText = "";
-      let data: SubmitResponse | null = null;
-
-      try {
-        rawText = await res.text();
-        console.log("⬅️ Raw response from /api/reviews/submit:", rawText);
-        data = rawText ? (JSON.parse(rawText) as SubmitResponse) : null;
-      } catch (parseErr) {
-        console.error("Failed to parse JSON from submit response:", parseErr);
+      if (isEditMode && editing?.id) {
+        // UPDATE
+        res = await fetch(`/api/reviews/${editing.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rating,
+            text: trimmed,
+            name: name.trim(),
+          }),
+        });
+      } else {
+        // CREATE
+        res = await fetch(`/api/reviews`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            productHandle,
+            rating,
+            text: trimmed,
+            name: name.trim(),
+          }),
+        });
       }
 
-      const okFromApi = data?.ok ?? res.ok;
+      const raw = await res.text();
+      let data: ApiResponse = {};
+      try {
+        data = raw ? (JSON.parse(raw) as ApiResponse) : {};
+      } catch {
+        // если ответ не JSON
+        data = { ok: res.ok, error: raw?.slice(0, 200) };
+      }
+
+      const okFromApi = data.ok ?? res.ok;
 
       if (!okFromApi) {
-        const msg =
-          data?.error ||
-          `Failed to submit review. Status: ${data?.status ?? res.status}`;
-        console.error("Submit review failed:", msg);
-        setError(msg);
+        setError(data.error || `Request failed. Status: ${res.status}`);
         return;
       }
 
-      setSuccess("Thank you! Your review has been submitted.");
-      setText("");
-      setRating(5);
-      setHoverRating(null);
-      console.log("✅ Review submitted successfully");
-      // можно закрывать:
-      // onClose();
-    } catch (err) {
-      console.error("Submit review error:", err);
-      setError("Failed to submit review.");
+      // Успех
+      setSuccess(
+        data.message ||
+          (isEditMode
+            ? "Your review has been updated."
+            : "Thank you! Your review has been submitted.")
+      );
+
+      // Дадим UI обновиться + рефрешим список
+      onSuccess?.();
+
+      // можно закрывать сразу (чаще UX лучше)
+      onClose();
+    } catch (e) {
+      console.error("Review submit/update error:", e);
+      setError(isEditMode ? "Failed to update review." : "Failed to submit review.");
     } finally {
       setLoading(false);
     }
@@ -137,12 +189,8 @@ export default function ReviewModal({
       <div className="w-full max-w-lg rounded-2xl bg-zinc-900 p-6 shadow-xl border border-white/10">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold text-white">
-              Leave a review
-            </h2>
-            <p className="mt-1 text-sm text-gray-400">
-              Tell us what you think about this product.
-            </p>
+            <h2 className="text-xl font-semibold text-white">{title}</h2>
+            <p className="mt-1 text-sm text-gray-400">{subtitle}</p>
           </div>
           <button
             type="button"
@@ -154,7 +202,6 @@ export default function ReviewModal({
           </button>
         </div>
 
-        {/* БЕЗ <form>, просто div со всеми полями */}
         <div className="mt-6 space-y-5">
           {/* Name */}
           <div>
@@ -182,25 +229,19 @@ export default function ReviewModal({
                 >
                   <StarIcon
                     className={classNames(
-                      currentRating >= star
-                        ? "text-yellow-400"
-                        : "text-gray-600",
+                      currentRating >= star ? "text-yellow-400" : "text-gray-600",
                       "h-6 w-6"
                     )}
                   />
                 </button>
               ))}
-              <span className="ml-2 text-sm text-gray-400">
-                {rating} / 5
-              </span>
+              <span className="ml-2 text-sm text-gray-400">{rating} / 5</span>
             </div>
           </div>
 
           {/* Text */}
           <div>
-            <label className="text-sm text-gray-300 block mb-1">
-              Your review
-            </label>
+            <label className="text-sm text-gray-300 block mb-1">Your review</label>
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
@@ -217,9 +258,7 @@ export default function ReviewModal({
 
           {/* Messages */}
           {error && <p className="text-sm text-red-400">{error}</p>}
-          {success && (
-            <p className="text-sm text-emerald-400">{success}</p>
-          )}
+          {success && <p className="text-sm text-emerald-400">{success}</p>}
 
           {/* Buttons */}
           <div className="mt-4 flex justify-end gap-3">
@@ -236,7 +275,7 @@ export default function ReviewModal({
               disabled={loading}
               className="rounded-md bg-yellow-500 px-5 py-2 text-sm font-semibold text-black hover:bg-yellow-400 disabled:opacity-60"
             >
-              {loading ? "Sending..." : "Submit review"}
+              {loading ? "Sending..." : isEditMode ? "Save changes" : "Submit review"}
             </button>
           </div>
         </div>

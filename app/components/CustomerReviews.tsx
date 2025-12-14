@@ -1,30 +1,38 @@
 // app/components/CustomerReviews.tsx
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StarIcon } from "@heroicons/react/20/solid";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useAuth } from "@clerk/nextjs";
 import ReviewModal from "./ReviewModal";
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-type Review = {
-  id: number;
+type PublicReview = {
+  id: string;
   rating: number;
-  body: string;
-  reviewer: { name: string };
-  pictures?: { id: number; url: string }[];
+  text: string;
+  name: string | null;
+  created_at: string;
 };
 
-type ReviewsApiResponse = {
-  reviews?: Review[];
-  stats?: {
-    average_rating?: number;
-    reviews_count?: number;
-  };
+type MyReview = {
+  id: string;
+  product_handle: string;
+  rating: number;
+  text: string;
+  name: string | null;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+type Stats = {
+  average: number;
+  count: number;
+  breakdown: Record<number, number>; // 1..5
 };
 
 type CustomerReviewsProps = {
@@ -36,7 +44,8 @@ type CustomerReviewsProps = {
   starRew: string;
   CTATitle: string;
   CTASubtitle: string;
-  button: string; // текст кнопки "Оставить отзыв"
+  button: string;
+  loginToReview: string;
   recentReviews: string;
 };
 
@@ -46,66 +55,147 @@ export default function CustomerReviews({
   stars,
   base1,
   base2,
-  starRew, // пока не используется, но оставляем в пропсах
+  starRew,
   CTATitle,
   CTASubtitle,
   button,
+  loginToReview,
   recentReviews,
 }: CustomerReviewsProps) {
   const { user } = useUser();
+  const { isSignedIn } = useAuth();
 
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [average, setAverage] = useState(0);
-  const [total, setTotal] = useState(0);
+  const [reviews, setReviews] = useState<PublicReview[]>([]);
+  const [stats, setStats] = useState<Stats>({
+    average: 0,
+    count: 0,
+    breakdown: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+  });
+
+  const [myReview, setMyReview] = useState<MyReview | null>(null);
+
   const [loading, setLoading] = useState(true);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    async function loadReviews() {
-      try {
-        setLoading(true);
-
-        const res = await fetch(`/api/reviews/${productHandle}`);
-
-        if (!res.ok) {
-          console.error("Failed to load reviews", res.status);
-          setLoading(false);
-          return;
-        }
-
-        const contentType = res.headers.get("content-type") || "";
-        if (!contentType.includes("application/json")) {
-          const text = await res.text();
-          console.error(
-            "Non-JSON response from /api/reviews:",
-            text.slice(0, 300)
-          );
-          setLoading(false);
-          return;
-        }
-
-        const data = (await res.json()) as ReviewsApiResponse;
-
-        setReviews(data.reviews ?? []);
-        setAverage(data.stats?.average_rating ?? 0);
-        setTotal(data.stats?.reviews_count ?? 0);
-      } catch (err) {
-        console.error("Reviews fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (productHandle) {
-      loadReviews();
-    }
-  }, [productHandle]);
+  // для режима редактирования в модалке
+  const [editing, setEditing] = useState<{
+    id: string;
+    rating: number;
+    text: string;
+    name: string;
+  } | null>(null);
 
   const defaultName =
     user?.firstName && user?.lastName
       ? `${user.firstName} ${user.lastName}`
       : user?.firstName || "";
+
+  const averageRounded = useMemo(() => {
+    // для заливки звезд (0..5)
+    return Math.round((stats.average || 0) * 10) / 10;
+  }, [stats.average]);
+
+  async function loadPublic() {
+    const res = await fetch(`/api/reviews?productHandle=${encodeURIComponent(productHandle)}`);
+    const json = await res.json();
+    if (json.ok) setReviews(json.reviews ?? []);
+  }
+
+  async function loadStats() {
+    const res = await fetch(`/api/reviews/stars?productHandle=${encodeURIComponent(productHandle)}`);
+    const json = await res.json();
+    if (json.ok && json.stats) setStats(json.stats);
+  }
+
+  async function loadMine() {
+    if (!isSignedIn) {
+      setMyReview(null);
+      return;
+    }
+    const res = await fetch(`/api/reviews/me`);
+    const json = await res.json();
+    if (!json.ok) {
+      setMyReview(null);
+      return;
+    }
+    const mine: MyReview[] = json.reviews ?? [];
+    const found = mine.find((r) => r.product_handle === productHandle) ?? null;
+    setMyReview(found);
+  }
+
+  async function refreshAll() {
+    await Promise.all([loadPublic(), loadStats(), loadMine()]);
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      if (!productHandle) return;
+      try {
+        setLoading(true);
+        await refreshAll();
+      } catch (e) {
+        console.error("Reviews load error:", e);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productHandle, isSignedIn]);
+
+  const total = stats.count;
+
+  const breakdownRows = useMemo(() => {
+    // отображаем 5..1
+    const rows = [5, 4, 3, 2, 1].map((s) => {
+      const c = stats.breakdown?.[s] ?? 0;
+      const pct = total ? Math.round((c / total) * 100) : 0;
+      return { stars: s, count: c, pct };
+    });
+    return rows;
+  }, [stats.breakdown, total]);
+
+  const openCreateModal = () => {
+    setEditing(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = () => {
+    if (!myReview) return;
+    setEditing({
+      id: myReview.id,
+      rating: myReview.rating,
+      text: myReview.text,
+      name: myReview.name ?? defaultName ?? "",
+    });
+    setIsModalOpen(true);
+  };
+
+  const onDeleteMyReview = async () => {
+    if (!myReview) return;
+
+    const res = await fetch(`/api/reviews/${myReview.id}`, { method: "DELETE" });
+    const json = await res.json().catch(() => ({}));
+
+    if (!res.ok || !json.ok) {
+      console.error("Delete review failed:", json?.error || res.status);
+      return;
+    }
+
+    await refreshAll();
+  };
+
+  // сюда будет звать ReviewModal после успешного submit/update
+  const handleModalSuccess = async () => {
+    setIsModalOpen(false);
+    setEditing(null);
+    await refreshAll();
+  };
 
   return (
     <div>
@@ -120,12 +210,12 @@ export default function CustomerReviews({
           <div className="mt-3 flex items-center">
             <div>
               <div className="flex items-center">
-                {[0, 1, 2, 3, 4].map((rating) => (
+                {[0, 1, 2, 3, 4].map((i) => (
                   <StarIcon
-                    key={rating}
+                    key={i}
                     aria-hidden="true"
                     className={classNames(
-                      average > rating ? "text-yellow-400" : "text-gray-600",
+                      averageRounded > i ? "text-yellow-400" : "text-gray-600",
                       "size-5 shrink-0"
                     )}
                   />
@@ -133,9 +223,35 @@ export default function CustomerReviews({
               </div>
               <p className="sr-only">{stars}</p>
             </div>
+
             <p className="ml-2 text-sm text-gray-400">
               {base1} {total} {base2}
             </p>
+          </div>
+
+          {/* BREAKDOWN */}
+          <div className="mt-6 space-y-2">
+            {breakdownRows.map((row) => (
+              <div key={row.stars} className="flex items-center gap-3">
+                <div className="flex items-center gap-1 w-16">
+                  <span className="text-sm text-gray-300">{row.stars}</span>
+                  <StarIcon className="size-4 text-gray-500" aria-hidden="true" />
+                </div>
+
+                <div className="h-2 flex-1 rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full bg-white/30"
+                    style={{ width: `${row.pct}%` }}
+                  />
+                </div>
+
+                <div className="w-14 text-right text-sm text-gray-400">
+                  {row.count}
+                </div>
+              </div>
+            ))}
+            {/* starRew у тебя в i18n — можно использовать как подпись */}
+            <p className="pt-2 text-xs text-gray-500">{starRew}</p>
           </div>
 
           {/* CTA LEFT BLOCK */}
@@ -143,14 +259,44 @@ export default function CustomerReviews({
             <h3 className="text-lg font-medium text-gray-200">{CTATitle}</h3>
             <p className="mt-6 text-sm text-gray-300">{CTASubtitle}</p>
 
-            {/* КНОПКА ОТКРЫТИЯ МОДАЛКИ */}
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(true)}
-              className="mt-10 relative flex items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
-            >
-              {button}
-            </button>
+            {!isSignedIn ? (
+              <p className="mt-6 text-sm text-gray-400">{loginToReview}</p>
+            ) : (
+              <div className="mt-8 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={openCreateModal}
+                  className="relative flex items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
+                >
+                  {button}
+                </button>
+
+                {myReview && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={openEditModal}
+                      className="relative flex items-center justify-center rounded-md border border-white/10 bg-transparent px-6 py-2 text-sm font-medium text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onDeleteMyReview}
+                      className="relative flex items-center justify-center rounded-md border border-white/10 bg-transparent px-6 py-2 text-sm font-medium text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30"
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
+            {myReview && (
+              <p className="mt-4 text-xs text-gray-500">
+                {myReview.is_published ? "Published" : "Pending moderation"}
+              </p>
+            )}
           </div>
         </div>
 
@@ -165,24 +311,21 @@ export default function CustomerReviews({
               <p className="text-gray-400">No reviews yet.</p>
             ) : (
               <div className="-my-12 divide-y divide-gray-800">
-                {reviews.map((review) => (
-                  <div key={review.id} className="py-12">
-                    {/* REVIEW HEADER */}
+                {reviews.map((r) => (
+                  <div key={r.id} className="py-12">
                     <div className="flex items-center">
                       <div>
                         <h4 className="text-lg text-white font-semibold whitespace-nowrap">
-                          {review.reviewer?.name ?? "Anonymous"}
+                          {r.name ?? "Anonymous"}
                         </h4>
 
                         <div className="mt-1 flex items-center">
-                          {[0, 1, 2, 3, 4].map((rating) => (
+                          {[0, 1, 2, 3, 4].map((i) => (
                             <StarIcon
-                              key={rating}
+                              key={i}
                               aria-hidden="true"
                               className={classNames(
-                                review.rating > rating
-                                  ? "text-yellow-400"
-                                  : "text-gray-600",
+                                r.rating > i ? "text-yellow-400" : "text-gray-600",
                                 "size-5 shrink-0"
                               )}
                             />
@@ -191,24 +334,11 @@ export default function CustomerReviews({
                       </div>
                     </div>
 
-                    {/* REVIEW TEXT */}
                     <div className="mt-6 text-pretty text-base text-gray-300">
-                      {review.body}
+                      {r.text}
                     </div>
 
-                    {/* REVIEW IMAGES */}
-                    {review.pictures && review.pictures.length > 0 && (
-                      <div className="mt-4 flex gap-3">
-                        {review.pictures.map((img) => (
-                          <img
-                            key={img.id}
-                            src={img.url}
-                            className="h-20 w-20 rounded-lg object-cover"
-                            alt=""
-                          />
-                        ))}
-                      </div>
-                    )}
+                    {/* картинки пока убрали: в Supabase схеме их нет */}
                   </div>
                 ))}
               </div>
@@ -217,12 +347,18 @@ export default function CustomerReviews({
         </div>
       </div>
 
-      {/* МОДАЛКА ДЛЯ СОЗДАНИЯ ОТЗЫВА */}
+      {/* МОДАЛКА */}
       <ReviewModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditing(null);
+        }}
         productHandle={productHandle}
         defaultName={defaultName}
+        // новые пропсы для редактирования/refresh
+        editing={editing}
+        onSuccess={handleModalSuccess}
       />
     </div>
   );

@@ -1,5 +1,4 @@
 // app/[lang]/account/page.tsx
-
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { getMessages, Locale } from "../messages";
 import AccountContent from "../../components/AccountContent";
@@ -44,9 +43,9 @@ export type AccountPageMessages = {
 export default async function AccountPage({
   params,
 }: {
-  params: Promise<{ lang: Locale }>;
+  params: { lang: Locale };
 }) {
-  const { lang } = await params;
+  const { lang } = params;
   const messages = await getMessages(lang);
 
   const { userId } = await auth();
@@ -59,8 +58,7 @@ export default async function AccountPage({
       shopifyCustomerId = await getOrCreateShopifyCustomer();
     } catch (error) {
       console.error("Account page: getOrCreateShopifyCustomer error:", error);
-      shopifyError =
-        error instanceof Error ? error.message : "Unknown error";
+      shopifyError = error instanceof Error ? error.message : "Unknown error";
     }
   }
 
