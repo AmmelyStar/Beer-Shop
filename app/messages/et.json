@@ -1,54 +1,47 @@
 {
   "hero": {
-    "title": "Käsitööõlu, väikesed partiid, suur maitse",
-    "subtitle": "Avasta iseseisvate pruulikodade piiratud väljalasked.",
+    "title": "Käsitööõlu. Suur maitse",
+    "subtitle": "Avasta sõltumatute pruulikodade piiratud partiid.",
     "cta": "Osta nüüd"
   },
   "TextBlockCategory": {
     "title": "Avasta uusi maitseid",
-    "subtitle": "Klassika ja piiratud väljaanded, käsitöölemmikud, hooajalised uued tulijad ja haruldused — mugavad kureeritud valikud õlle- ja siidristiilide kaupa ning suupisted kõik ühes kohas."
+    "subtitle": "Klassikud ja piiratud partiid, käsitöölemmikud, hooajalised väljalasked ja haruldused — mugavalt kureeritud valik õlle- ja siidristiilide ning snäkkide kaupa, kõik ühes kohas."
   },
   "ShopCategory": {
-    "title": "Osta kategooria kaupa",
+    "title": "Osta kategooria järgi",
     "browseAll": "Sirvi kõiki kategooriaid",
-
     "names": {
-    "beer": "Õlu",
-    "cider": "Siider",
-    "snacks": "Snäkid",
-    "gifts": "Kingitused ja komplektid",
-    "nonAlcoholic": "Alkohoolivaba"
-  },
-  "alts": {
-    "beer": "Valik käsitööõllesid riiulil.",
-    "cider": "Valik pudelisiidreid.",
-    "snacks": "Maitsvad snäkid puidust alusel.",
-    "gifts": "Kingikarbid ja joogikomplektid.",
-    "nonAlcoholic": "Valik alkoholivabu jooke."
-  }
+      "beer": "Õlu",
+      "cider": "Siider",
+      "snacks": "Snäkid"
+    },
+    "alts": {
+      "beer": "Valik käsitööõllesid riiulil.",
+      "cider": "Valik pudelisi siidreid.",
+      "snacks": "Maitsvad snäkid puidust alusel."
+    }
   },
   "TrendingProducts": {
     "title": "Trendikad tooted",
-    "stars": "5-st tärnist",
+    "stars": "5 tärnist",
     "reviews": "arvustust",
-    "add": "Lisa korvi",
-    "alcohol": "Alkoholi vaba"
+    "add": "Lisa ostukorvi",
+    "alcohol": "Alkoholivaba"
   },
   "AllProducts": {
     "title": "Kõik tooted",
-    "stars": "5-st tärnist",
+    "stars": "5 tärnist",
     "reviews": "arvustust",
-    "add": "Lisa korvi",
-    "alcohol": "Alkoholi vaba",
+    "add": "Lisa ostukorvi",
+    "alcohol": "Alkoholivaba",
     "noProducts": "Tooteid ei leitud",
-    "noProductsDescription": "Selles kategoorias pole veel tooteid. Vaata hiljem uuesti või sirvi teisi kategooriaid.",
+    "noProductsDescription": "Selles kategoorias pole veel tooteid. Tule varsti tagasi või vaata teisi kategooriaid.",
     "categories": {
       "all": "Kõik tooted",
       "beer": "Õlu",
       "cider": "Siider",
-      "snacks": "Suupisted",
-      "gifts-sets": "Kingituskomplektid",
-"alcohol-free": "Alkohoolivaba"
+      "snacks": "Snäkid"
     }
   },
   "OneProduct": {
@@ -61,43 +54,59 @@
     "style": "Stiil",
     "addToCart": "Lisa ostukorvi",
     "reviews": "Arvustused",
-    "outOf5Stars": "5-st tärnist",
+    "outOf5Stars": "5 tärnist",
     "viewAllReviews": "Vaata kõiki arvustusi",
     "leaveAReview": "Jäta arvustus",
     "description": "Kirjeldus",
-    "tastedBestWith": "Sobib hästi koos",
+    "tastedBestWith": "Sobib kõige paremini",
     "allergens": "Allergeenid",
     "ingredients": "Koostisosad"
   },
   "CustomerReviews": {
-    "title": "Kliendiarvustused",
-    "stars": "5-st tärnist",
+    "title": "Klientide arvustused",
+    "stars": "5 tärnist",
     "base1": "Põhineb ",
-    "base2": "arvustustel",
-    "starRew": "{stars}-tärni arvustused",
-    "CTATitle": "Jaga oma mõtteid",
-    "CTASubtitle": "Kui oled seda toodet kasutanud, jaga oma kogemust teiste ostjatega",
+    "base2": "arvustusel",
+    "starRew": "tärni arvustused",
+    "CTATitle": "Jaga oma arvamust",
+    "CTASubtitle": "Kui oled seda toodet proovinud, jaga oma mõtteid teiste klientidega",
     "button": "Kirjuta arvustus",
-    "recentReviews": "Hiljutised arvustused"
+    "loginToReview": "Arvustuse jätmiseks logi sisse",
+    "recentReviews": "Viimased arvustused"
+  },
+  "LeaveReviewModal": {
+    "title": "Jäta arvustus",
+    "loading": "Laadimine...",
+    "mustLogin": "Arvustuse jätmiseks pead sisse logima.",
+    "noEmail": "Me ei saanud sinu e-posti aadressi.",
+    "fillRequired": "Palun täida hinnang ja arvustuse tekst.",
+    "success": "Aitäh arvustuse eest! See kuvatakse pärast modereerimist.",
+    "ratingLabel": "Hinnang",
+    "nameLabel": "Nimi",
+    "emailLabel": "E-post",
+    "reviewLabel": "Sinu arvustus *",
+    "submitLabel": "Saada arvustus",
+    "submittingLabel": "Saatmine...",
+    "cancelLabel": "Tühista"
   },
   "HeaderSearch": {
     "label": "Otsi tooteid",
     "placeholder": "Otsi tooteid…"
   },
   "ShoppingCart": {
-    "ariaLabel": "Shopping cart",
-    "emptyMessage": "Your cart is empty",
-    "checkoutButton": "Proceed to Checkout",
-    "itemsInCart": "items in cart, view bag"
+    "ariaLabel": "Ostukorv",
+    "emptyMessage": "Sinu ostukorv on tühi",
+    "checkoutButton": "Mine kassasse",
+    "itemsInCart": "toodet ostukorvis, vaata korvi"
   },
   "BannerSection": {
-    "title": "Töökoha kollektsioon",
-    "subtitle": "Uuenda oma töölauda esemetega, mis aitavad hoida korda ja selget meelt.",
+    "title": "Töölaua kollektsioon",
+    "subtitle": "Täienda oma töölauda esemetega, mis aitavad sul püsida organiseerituna ja selge peaga.",
     "cta": "Vaata kollektsiooni"
   },
   "LogoSection": {
     "title": "Sinu lemmikbrändid — meie riiulitel",
-    "subtitle": "Oleme uhked, et teeme koostööd juhtivate sõltumatute õlletehaste ja suupistete tarnijatega, et pakkuda sulle parimat valikut käsitööõlut ja seotud tooteid."
+    "subtitle": "Oleme uhked koostöö üle juhtivate sõltumatute pruulikodade ja snäkitarnijatega."
   },
   "common": {
     "home": "Avaleht",
@@ -106,90 +115,153 @@
     "goHome": "Mine avalehele"
   },
   "Footer": {
-    "about": "Meist",
-    "terms": "Tingimused ja reeglid",
-    "delivery": "Tarneinfo",
-    "refunds": "Tagastused",
-    "contact": "Kontakt",
-    "cookiesPolicy": "Küpsiste poliitika",
-    "privacyPolicy": "Privaatsuspoliitika",
-    "followUs": "Jälgi meid",
-    "copyright": "© 2025 Beer Shop. Kõik õigused kaitstud.",
-    "prodused": "Loodud Dvi poolt"
+    "about": " Meist",
+    "terms": " Tingimused",
+    "delivery": " Tarneinfo",
+    "refunds": " Tagastused",
+    "contact": " Kontakt",
+    "cookiesPolicy": " Küpsiste poliitika",
+    "privacyPolicy": " Privaatsuspoliitika",
+    "followUs": " Jälgi meid",
+    "copyright": " © 2025 Craft Beer Shop. Kõik õigused kaitstud.",
+    "prodused": "Tootnud Dvi"
   },
   "CookieBanner": {
-    "text": "Kasutame küpsiseid, et parandada lehe kasutuskogemust, analüüsida liiklust ja isikupärastada sisu. Võid nõustuda mitteoluliste küpsistega või need tagasi lükata.",
-    "accept": "Nõustu kõigiga",
-    "reject": "Lükka kõik tagasi",
-    "policyLink": "Küpsisepoliitika"
+    "text": "Kasutame küpsiseid, et parandada sinu sirvimiskogemust, analüüsida liiklust ja isikupärastada sisu.",
+    "accept": "Nõustu kõigega",
+    "reject": "Keeldu kõigest",
+    "policyLink": "Küpsiste poliitika"
   },
   "AccountPage": {
     "title": "Minu konto",
-    "profileInformation": "Profiili info",
-    "email": "E-posti aadress",
-    "name": "Nimi",
+    "profileInformation": "Profiil",
+    "profileIntro": "Isikuandmed tellimuste ja tarne jaoks.",
+    "email": "E-post",
+    "name": "Eesnimi",
+    "lastName": "Perekonnanimi",
+    "phone": "Telefoninumber",
+    "phonePlaceholder": "+372 ...",
+    "birthday": "Sünnikuupäev",
+    "gender": "Sugu",
     "accountCreated": "Konto loodud",
-    "recentOrders": "Hiljutised tellimused",
-    "recentOrdersDescription": "Sinu tellimused ilmuvad siia pärast esimest ostu.",
+    "recentOrders": "Viimased tellimused",
+    "recentOrdersDescription": "Sinu viimased ostud kuvatakse siin.",
     "viewAllOrders": "Vaata kõiki tellimusi",
     "signingOut": "Logitakse välja...",
-    "signOut": "Logi välja"
+    "signOut": "Logi välja",
+    "profileSaveButton": "Salvesta andmed",
+    "profileSaving": "Salvestamine...",
+    "profileSaveUnknownError": "Andmete salvestamisel tekkis viga. Palun proovi uuesti.",
+    "phoneErrorInvalid": "Vigane telefoninumber",
+    "phoneErrorTooShort": "Telefoninumber on liiga lühike",
+    "phoneErrorTooLong": "Telefoninumber on liiga pikk",
+    "sidebarGreeting": "Tere",
+    "tabProfile": "Profiil",
+    "tabOrders": "Minu tellimused",
+    "tabReviews": "Minu arvustused",
+    "tabAddresses": "Tarneaadressid",
+    "genderLabelNotSet": "Määramata",
+    "genderLabelFemale": "Naine",
+    "genderLabelMale": "Mees",
+    "genderLabelOther": "Muu"
+  },
+  "AccountAddressesPage": {
+    "title": "Tarneaadressid",
+    "intro": "Salvestatud aadress aitab kassas kiiremini vormistada.",
+    "fullName": "Täisnimi",
+    "fullNamePlaceholder": "Täisnimi",
+    "phone": "Telefon",
+    "phonePlaceholder": "+372 ...",
+    "country": "Riik",
+    "countryEE": "Eesti",
+    "countryFI": "Soome",
+    "countryLV": "Läti",
+    "countryLT": "Leedu",
+    "city": "Linn",
+    "cityPlaceholder": "Tallinn",
+    "street": "Tänav, maja, korter",
+    "streetPlaceholder": "Pärnu mnt 1–10",
+    "postalCode": "Postiindeks",
+    "postalCodePlaceholder": "10111",
+    "comment": "Sõnum kullerile",
+    "commentPlaceholder": "Näiteks: helista 10 minutit enne saabumist",
+    "saveButton": "Salvesta aadress",
+    "saving": "Salvestamine...",
+    "saveUnknownError": "Me ei saanud sinu aadressi salvestada. Palun proovi uuesti."
+  },
+  "AccountOrders": {
+    "title": "Tellimuste ajalugu",
+    "intro": "Kontrolli viimaste tellimuste staatust, halda tagastusi ja laadi arveid alla.",
+    "recentOrdersSrOnly": "Viimased tellimused",
+    "orderPlacedOnSrOnly": "Tellimus esitatud",
+    "datePlaced": "Esitamise kuupäev",
+    "orderNumber": "Tellimuse number",
+    "totalAmount": "Kogusumma",
+    "hideDetails": "Peida detailid",
+    "viewDetails": "Vaata detaile",
+    "productsSrOnly": "Tooted",
+    "productHeader": "Toode",
+    "priceHeader": "Hind",
+    "statusHeader": "Staatus",
+    "infoHeader": "Info",
+    "viewProduct": "Vaata toodet",
+    "emptyTitle": "Sul pole veel ühtegi tellimust",
+    "emptyDescription": "Kui teed oma esimese ostu, kuvatakse tellimused siin.",
+    "emptyCta": "Mine poodi"
+  },
+  "AccountReview": {
+    "title": "Minu arvustused",
+    "empty": "Sul ei ole veel arvustusi.",
+    "viewProduct": "Vaata toodet",
+    "editReview": "Muuda arvustust"
   },
   "auth": {
     "signIn": "Logi sisse",
     "signUp": "Loo konto",
-    "welcomeBack": "Tere tulemast tagasi! Palun logi sisse, et jätkata",
+    "welcomeBack": "Tere tulemast tagasi! Jätkamiseks logi sisse",
     "createAccount": "Loo konto, et alustada ostlemist",
     "email": "E-posti aadress",
     "password": "Parool",
     "confirmPassword": "Kinnita parool",
-
     "passwordStrength": "Parooli tugevus",
     "passwordHint": "(vähemalt 8 märki, tähed ja numbrid)",
     "passwordStrengthWeak": "Nõrk",
     "passwordStrengthMedium": "Keskmine",
     "passwordStrengthStrong": "Tugev",
-
     "showPasswordAria": "Näita parooli",
     "hidePasswordAria": "Peida parool",
-
     "forgotPassword": "Unustasid parooli?",
     "submitSignIn": "Logi sisse",
     "submitSignUp": "Loo konto",
-
     "passwordsDontMatch": "Paroolid ei ühti.",
-    "enterEmailFirst": "Sisesta esmalt oma e-posti aadress.",
-    "resetSent": "Kui selline e-posti aadress on olemas, saatsime juhised parooli lähtestamiseks.",
-    "weakPassword": "Parool peab olema vähemalt 8 märki pikk ja sisaldama nii tähti kui numbreid.",
-
+    "enterEmailFirst": "Palun sisesta kõigepealt e-posti aadress.",
+    "resetSent": "Kui see e-post on olemas, oleme saatnud juhised parooli lähtestamiseks.",
+    "weakPassword": "Parool peab olema vähemalt 8 märki ning sisaldama tähti ja numbreid.",
     "accountCreated": "Konto on edukalt loodud!",
-    "signInFlowIncomplete": "Palun lõpeta sisselogimisprotsess.",
-    "signUpFlowIncomplete": "Palun lõpeta registreerimisprotsess.",
+    "signInFlowIncomplete": "Palun lõpeta sisselogimise protsess.",
+    "signUpFlowIncomplete": "Palun lõpeta registreerimise protsess.",
     "somethingWentWrong": "Midagi läks valesti. Palun proovi uuesti.",
-
-    "forgotPasswordDescription": "Sisesta oma e-posti aadress, et saada lähtestuskood.",
+    "forgotPasswordDescription": "Sisesta oma e-post, et saada lähtestuskood.",
     "resetPasswordDescription": "Sisesta e-kirjast saadud kood ja uus parool.",
-    "sendResetCodeButton": "Saada kood",
+    "sendResetCodeButton": "Saada lähtestuskood",
     "resetPasswordButton": "Lähtesta parool"
   },
-
   "ShoppingCardOverviews": {
     "shoppingCart": "Ostukorv",
     "description": "Tooted sinu ostukorvis",
     "orderSummary": "Tellimuse kokkuvõte",
     "subtotal": "Vahesumma",
-    "shippingEstimate": "Tarne hinnang",
-    "shippingEstimateInfo": "Lisateave selle kohta, kuidas tarne arvutatakse",
+    "shippingEstimate": "Tarnehinnang",
+    "shippingEstimateInfo": "Loe lähemalt, kuidas tarne arvestatakse",
     "taxEstimate": "Maksu hinnang",
-    "taxEstimateInfo": "Lisateave selle kohta, kuidas maksud arvutatakse",
+    "taxEstimateInfo": "Loe lähemalt, kuidas maks arvestatakse",
     "total": "Kokku",
-    "checkout": "Mine kassasse",
+    "checkout": "Kassasse",
     "empty": "Sinu ostukorv on tühi",
-    "emptyDescription": "Lisa tooteid, et alustada!",
+    "emptyDescription": "Alustamiseks lisa mõned tooted!",
     "CTAAdd": "Kõik tooted"
   },
-  "AddToCartButton":{
+  "AddToCartButton": {
     "addToCart": "Lisa ostukorvi"
   }
 }
-

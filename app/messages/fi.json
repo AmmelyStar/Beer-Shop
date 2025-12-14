@@ -1,188 +1,262 @@
 {
   "hero": {
-    "title": "Pienpanimo-olutta – pieniä eriä, suuri maku",
-    "subtitle": "Löydä itsenäisten panimoiden rajatut erät.",
+    "title": "Käsityöolutta. Suuri maku",
+    "subtitle": "Tutustu riippumattomien panimoiden rajoitettuihin eriin.",
     "cta": "Osta nyt"
   },
   "TextBlockCategory": {
     "title": "Löydä uusia makuja",
-    "subtitle": "Klassikot ja limited-julkaisut, craft-suosikit, kausiuutuudet ja harvinaisuudet — kätevät kuratoidut valikoimat olut- ja siiderityyleittäin sekä snacksit yhdessä paikassa."
+    "subtitle": "Klassikot ja rajoitetut erät, käsityösuosikit, kausituotteet ja harvinaisuudet — huolella kuratoidut valinnat olut- ja siiderityyleittäin sekä välipalat, kaikki yhdessä paikassa."
   },
   "ShopCategory": {
-    "title": "Osta kategorioittain",
+    "title": "Osta kategorian mukaan",
     "browseAll": "Selaa kaikkia kategorioita",
-"names": {
-    "beer": "Olut",
-    "cider": "Siideri",
-    "snacks": "Snacksit",
-    "gifts": "Lahjat ja setit",
-    "nonAlcoholic": "Alkoholiton"
-  },
-  "alts": {
-    "beer": "Valikoima käsityöoluita hyllyllä.",
-    "cider": "Pullotettujen siidereiden valikoima.",
-    "snacks": "Herkullisia snacks-välipaloja puisella tarjottimella.",
-    "gifts": "Lahjaboksit ja juomasetit.",
-    "nonAlcoholic": "Valikoima alkoholittomia juomia."
-  }
+    "names": {
+      "beer": "Olut",
+      "cider": "Siideri",
+      "snacks": "Välipalat"
+    },
+    "alts": {
+      "beer": "Valikoima käsityöoluita hyllyllä.",
+      "cider": "Valikoima pullotettuja siidereitä.",
+      "snacks": "Herkullisia välipaloja puualustalla."
+    }
   },
   "TrendingProducts": {
-    "title": "Trendaavat tuotteet",
-    "stars": "5:stä tähdestä",
+    "title": "Suositut tuotteet",
+    "stars": "5 tähdestä",
     "reviews": "arvostelua",
     "add": "Lisää ostoskoriin",
-    "alcohol": "Alkoholi vaba"
+    "alcohol": "Alkoholiton"
   },
   "AllProducts": {
     "title": "Kaikki tuotteet",
-    "stars": "5:stä tähdestä",
+    "stars": "5 tähdestä",
     "reviews": "arvostelua",
     "add": "Lisää ostoskoriin",
-    "alcohol": "Alkoholi vaba",
+    "alcohol": "Alkoholiton",
     "noProducts": "Tuotteita ei löytynyt",
-    "noProductsDescription": "Tässä kategoriassa ei vielä ole tuotteita. Tule myöhemmin takaisin tai katso muita kategorioita.",
+    "noProductsDescription": "Tässä kategoriassa ei ole vielä tuotteita. Palaa myöhemmin tai selaa muita kategorioita.",
     "categories": {
       "all": "Kaikki tuotteet",
       "beer": "Olut",
       "cider": "Siideri",
-      "snacks": "Välipalat",
-      "gifts-sets": "Lahjasetit",
-"alcohol-free": "Alkoholiton"
+      "snacks": "Välipalat"
     }
   },
   "OneProduct": {
-    "perUnit": "1 kpl",
+    "perUnit": "per 1 kpl",
     "abv": "ABV",
     "ibu": "IBU",
     "fg": "FG",
     "country": "Maa",
-    "brand": "Merkki",
+    "brand": "Brändi",
     "style": "Tyyli",
     "addToCart": "Lisää ostoskoriin",
     "reviews": "Arvostelut",
-    "outOf5Stars": "viidestä tähdestä",
+    "outOf5Stars": "5 tähdestä",
     "viewAllReviews": "Näytä kaikki arvostelut",
     "leaveAReview": "Jätä arvostelu",
     "description": "Kuvaus",
-    "tastedBestWith": "Parhaiten nautittuna",
+    "tastedBestWith": "Parhaimmillaan yhdessä",
     "allergens": "Allergeenit",
     "ingredients": "Ainesosat"
   },
   "CustomerReviews": {
-    "title": "Asiakasarviot",
-    "stars": "viidestä tähdestä",
+    "title": "Asiakasarvostelut",
+    "stars": "5 tähdestä",
     "base1": "Perustuu ",
-    "base2": "arvioihin",
-    "starRew": "{stars} tähden arviot",
+    "base2": "arvosteluun",
+    "starRew": "tähden arvostelut",
     "CTATitle": "Jaa mielipiteesi",
     "CTASubtitle": "Jos olet käyttänyt tätä tuotetta, jaa kokemuksesi muiden asiakkaiden kanssa",
     "button": "Kirjoita arvostelu",
-    "recentReviews": "Viimeisimmät arviot"
+    "loginToReview": "Kirjaudu sisään jättääksesi arvostelun",
+    "recentReviews": "Uusimmat arvostelut"
+  },
+  "LeaveReviewModal": {
+    "title": "Jätä arvostelu",
+    "loading": "Ladataan...",
+    "mustLogin": "Sinun täytyy kirjautua sisään jättääksesi arvostelun.",
+    "noEmail": "Emme saaneet sähköpostiosoitettasi.",
+    "fillRequired": "Täytäthän arvosanan ja arvostelutekstin.",
+    "success": "Kiitos arvostelustasi! Se julkaistaan moderoinnin jälkeen.",
+    "ratingLabel": "Arvosana",
+    "nameLabel": "Nimi",
+    "emailLabel": "Sähköposti",
+    "reviewLabel": "Arvostelusi *",
+    "submitLabel": "Lähetä arvostelu",
+    "submittingLabel": "Lähetetään...",
+    "cancelLabel": "Peruuta"
   },
   "HeaderSearch": {
     "label": "Hae tuotteita",
     "placeholder": "Hae tuotteita…"
   },
   "ShoppingCart": {
-    "ariaLabel": "Shopping cart",
-    "emptyMessage": "Your cart is empty",
-    "checkoutButton": "Proceed to Checkout",
-    "itemsInCart": "items in cart, view bag"
+    "ariaLabel": "Ostoskori",
+    "emptyMessage": "Ostoskorisi on tyhjä",
+    "checkoutButton": "Siirry kassalle",
+    "itemsInCart": "tuotetta ostoskorissa, näytä kori"
   },
   "BannerSection": {
-    "title": "Työpiste-kokoelma",
-    "subtitle": "Päivitä työpöytäsi esineillä, jotka pitävät sinut järjestyksessä ja ajatukset kirkkaina.",
-    "cta": "Näytä kokoelma"
+    "title": "Työpöytäkokoelma",
+    "subtitle": "Päivitä työpöytäsi esineillä, jotka auttavat pysymään järjestyksessä ja keskittyneenä.",
+    "cta": "Katso kokoelma"
   },
   "LogoSection": {
-    "title": "Suosikkibrändisi — hyllyillämme",
-    "subtitle": "Olemme ylpeitä tehdessämme yhteistyötä johtavien itsenäisten panimoiden ja välipalatoimittajien kanssa tarjotaksemme parhaan valikoiman käsityöoluita ja oheistuotteita."
+    "title": "Suosikkibrändisi — meidän hyllyillämme",
+    "subtitle": "Olemme ylpeitä yhteistyöstä johtavien riippumattomien panimoiden ja välipalatoimittajien kanssa."
   },
   "common": {
     "home": "Etusivu",
     "shop": "Kauppa",
     "pageNotFound": "Sivua ei löytynyt",
-    "goHome": "Palaa etusivulle"
+    "goHome": "Siirry etusivulle"
   },
   "Footer": {
-    "about": "Tietoa meistä",
-    "terms": "Käyttöehdot",
-    "delivery": "Toimitustiedot",
-    "refunds": "Palautukset",
-    "contact": "Yhteystiedot",
-    "cookiesPolicy": "Evästekäytäntö",
-    "privacyPolicy": "Tietosuojakäytäntö",
-    "followUs": "Seuraa meitä",
-    "copyright": "© 2025 Beer Shop. Kaikki oikeudet pidätetään.",
+    "about": " Meistä",
+    "terms": " Käyttöehdot",
+    "delivery": " Toimitustiedot",
+    "refunds": " Palautukset",
+    "contact": " Yhteystiedot",
+    "cookiesPolicy": " Evästekäytäntö",
+    "privacyPolicy": " Tietosuojakäytäntö",
+    "followUs": " Seuraa meitä",
+    "copyright": " © 2025 Craft Beer Shop. Kaikki oikeudet pidätetään.",
     "prodused": "Tuottanut Dvi"
   },
-
-   "CookieBanner": {
-    "text": "Käytämme evästeitä parantaaksemme käyttökokemusta, analysoidaksemme liikennettä ja personoidaksemme sisältöä. Voit hyväksyä tai hylätä ei-välttämättömät evästeet.",
+  "CookieBanner": {
+    "text": "Käytämme evästeitä parantaaksemme käyttökokemustasi, analysoidaksemme liikennettä ja personoidaksemme sisältöä.",
     "accept": "Hyväksy kaikki",
     "reject": "Hylkää kaikki",
     "policyLink": "Evästekäytäntö"
   },
   "AccountPage": {
     "title": "Oma tili",
-    "profileInformation": "Profiilin tiedot",
-    "email": "Sähköpostiosoite",
-    "name": "Nimi",
+    "profileInformation": "Profiili",
+    "profileIntro": "Henkilötiedot tilausta ja toimitusta varten.",
+    "email": "Sähköposti",
+    "name": "Etunimi",
+    "lastName": "Sukunimi",
+    "phone": "Puhelinnumero",
+    "phonePlaceholder": "+372 ...",
+    "birthday": "Syntymäaika",
+    "gender": "Sukupuoli",
     "accountCreated": "Tili luotu",
     "recentOrders": "Viimeisimmät tilaukset",
-    "recentOrdersDescription": "Tilauksesi näkyvät täällä, kun olet tehnyt ensimmäisen ostoksen.",
+    "recentOrdersDescription": "Uusimmat ostoksesi näkyvät täällä.",
     "viewAllOrders": "Näytä kaikki tilaukset",
     "signingOut": "Kirjaudutaan ulos...",
-    "signOut": "Kirjaudu ulos"
+    "signOut": "Kirjaudu ulos",
+    "profileSaveButton": "Tallenna tiedot",
+    "profileSaving": "Tallennetaan...",
+    "profileSaveUnknownError": "Jotain meni pieleen tallennuksen aikana. Yritä uudelleen.",
+    "phoneErrorInvalid": "Virheellinen puhelinnumero",
+    "phoneErrorTooShort": "Puhelinnumero on liian lyhyt",
+    "phoneErrorTooLong": "Puhelinnumero on liian pitkä",
+    "sidebarGreeting": "Hei",
+    "tabProfile": "Profiili",
+    "tabOrders": "Tilaukseni",
+    "tabReviews": "Arvosteluni",
+    "tabAddresses": "Toimitusosoitteet",
+    "genderLabelNotSet": "Ei määritetty",
+    "genderLabelFemale": "Nainen",
+    "genderLabelMale": "Mies",
+    "genderLabelOther": "Muu"
+  },
+  "AccountAddressesPage": {
+    "title": "Toimitusosoitteet",
+    "intro": "Tallennettu osoite nopeuttaa kassalla.",
+    "fullName": "Koko nimi",
+    "fullNamePlaceholder": "Koko nimi",
+    "phone": "Puhelin",
+    "phonePlaceholder": "+372 ...",
+    "country": "Maa",
+    "countryEE": "Viro",
+    "countryFI": "Suomi",
+    "countryLV": "Latvia",
+    "countryLT": "Liettua",
+    "city": "Kaupunki",
+    "cityPlaceholder": "Tallinna",
+    "street": "Katu, talo, asunto",
+    "streetPlaceholder": "Pärnu mnt 1–10",
+    "postalCode": "Postinumero",
+    "postalCodePlaceholder": "10111",
+    "comment": "Viesti kuriirille",
+    "commentPlaceholder": "Esimerkiksi: soita 10 minuuttia ennen saapumista",
+    "saveButton": "Tallenna osoite",
+    "saving": "Tallennetaan...",
+    "saveUnknownError": "Emme voineet tallentaa osoitetta. Yritä uudelleen."
+  },
+  "AccountOrders": {
+    "title": "Tilaushistoria",
+    "intro": "Tarkista viimeisimpien tilausten tila, hallinnoi palautuksia ja lataa laskuja.",
+    "recentOrdersSrOnly": "Viimeisimmät tilaukset",
+    "orderPlacedOnSrOnly": "Tilaus tehty",
+    "datePlaced": "Tilauspäivä",
+    "orderNumber": "Tilausnumero",
+    "totalAmount": "Kokonaissumma",
+    "hideDetails": "Piilota tiedot",
+    "viewDetails": "Näytä tiedot",
+    "productsSrOnly": "Tuotteet",
+    "productHeader": "Tuote",
+    "priceHeader": "Hinta",
+    "statusHeader": "Tila",
+    "infoHeader": "Tiedot",
+    "viewProduct": "Näytä tuote",
+    "emptyTitle": "Sinulla ei ole vielä tilauksia",
+    "emptyDescription": "Kun teet ensimmäisen tilauksesi, se näkyy täällä.",
+    "emptyCta": "Siirry kauppaan"
+  },
+  "AccountReview": {
+    "title": "Omat arvostelusi",
+    "empty": "Sinulla ei ole vielä arvosteluja.",
+    "viewProduct": "Näytä tuote",
+    "editReview": "Muokkaa arvostelua"
   },
   "auth": {
     "signIn": "Kirjaudu sisään",
-    "signUp": "Luo tili",
+    "signUp": "Rekisteröidy",
     "welcomeBack": "Tervetuloa takaisin! Kirjaudu sisään jatkaaksesi",
-    "createAccount": "Luo tili aloittaaksesi ostosten teon",
+    "createAccount": "Luo tili aloittaaksesi ostokset",
     "email": "Sähköpostiosoite",
     "password": "Salasana",
     "confirmPassword": "Vahvista salasana",
-
     "passwordStrength": "Salasanan vahvuus",
-    "passwordHint": "(vähintään 8 merkkiä, kirjaimia ja numeroita)",
+    "passwordHint": "(väh. 8 merkkiä, kirjaimia ja numeroita)",
     "passwordStrengthWeak": "Heikko",
     "passwordStrengthMedium": "Keskitaso",
     "passwordStrengthStrong": "Vahva",
-
     "showPasswordAria": "Näytä salasana",
     "hidePasswordAria": "Piilota salasana",
-
     "forgotPassword": "Unohditko salasanan?",
     "submitSignIn": "Kirjaudu sisään",
-    "submitSignUp": "Luo tili",
-
+    "submitSignUp": "Rekisteröidy",
     "passwordsDontMatch": "Salasanat eivät täsmää.",
-    "enterEmailFirst": "Anna ensin sähköpostiosoitteesi.",
-    "resetSent": "Jos tällainen sähköpostiosoite on olemassa, lähetimme ohjeet salasanan palauttamiseksi.",
-    "weakPassword": "Salasanassa on oltava vähintään 8 merkkiä ja sen tulee sisältää sekä kirjaimia että numeroita.",
-
-    "accountCreated": "Tili on luotu onnistuneesti!",
+    "enterEmailFirst": "Syötä ensin sähköpostiosoitteesi.",
+    "resetSent": "Jos sähköposti on olemassa, lähetimme ohjeet salasanan palauttamiseksi.",
+    "weakPassword": "Salasanan tulee olla vähintään 8 merkkiä ja sisältää kirjaimia ja numeroita.",
+    "accountCreated": "Tili luotu onnistuneesti!",
     "signInFlowIncomplete": "Viimeistele kirjautumisprosessi.",
     "signUpFlowIncomplete": "Viimeistele rekisteröitymisprosessi.",
-    "somethingWentWrong": "Jotain meni vikaan. Yritä uudelleen.",
-
-    "forgotPasswordDescription": "Anna sähköpostiosoitteesi saadaksesi palautuskoodin.",
-    "resetPasswordDescription": "Syötä sähköpostiin tullut koodi ja uusi salasana.",
-    "sendResetCodeButton": "Lähetä koodi",
-    "resetPasswordButton": "Vaihda salasana"
+    "somethingWentWrong": "Jotain meni pieleen. Yritä uudelleen.",
+    "forgotPasswordDescription": "Syötä sähköpostiosoitteesi saadaksesi palautuskoodin.",
+    "resetPasswordDescription": "Syötä sähköpostissa saamasi koodi ja uusi salasana.",
+    "sendResetCodeButton": "Lähetä palautuskoodi",
+    "resetPasswordButton": "Palauta salasana"
   },
   "ShoppingCardOverviews": {
     "shoppingCart": "Ostoskori",
     "description": "Tuotteet ostoskorissasi",
-    "orderSummary": "Tilausyhteenveto",
+    "orderSummary": "Tilauksen yhteenveto",
     "subtotal": "Välisumma",
     "shippingEstimate": "Toimitusarvio",
-    "shippingEstimateInfo": "Lue lisää, miten toimituskulut lasketaan",
-    "taxEstimate": "Veroarvio",
-    "taxEstimateInfo": "Lue lisää, miten verot lasketaan",
+    "shippingEstimateInfo": "Lue lisää toimituskulujen laskennasta",
+    "taxEstimate": "Veron arvio",
+    "taxEstimateInfo": "Lue lisää verojen laskennasta",
     "total": "Yhteensä",
-    "checkout": "Siirry kassalle",
+    "checkout": "Kassalle",
     "empty": "Ostoskorisi on tyhjä",
     "emptyDescription": "Lisää tuotteita aloittaaksesi!",
     "CTAAdd": "Kaikki tuotteet"
