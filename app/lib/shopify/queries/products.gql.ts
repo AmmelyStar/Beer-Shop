@@ -19,21 +19,13 @@ export const PRODUCTS_ALL_WITH_METAFIELDS = /* GraphQL */ `
             url
             altText
           }
-          images(first: 10) {
-            edges {
-              node {
-                url
-                altText
-              }
-            }
-          }
           priceRange {
             minVariantPrice {
               amount
               currencyCode
             }
           }
-          # ⬇️ ВАРИАНТЫ ТОВАРА — ОТСЮДА БЕРЁМ variantId
+          # ДОБАВЛЕНО: variants для корзины
           variants(first: 20) {
             edges {
               node {
@@ -42,6 +34,16 @@ export const PRODUCTS_ALL_WITH_METAFIELDS = /* GraphQL */ `
                 price {
                   amount
                   currencyCode
+                }
+                compareAtPrice {
+                  amount
+                  currencyCode
+                }
+                availableForSale
+                quantityAvailable
+                selectedOptions {
+                  name
+                  value
                 }
               }
             }
@@ -56,34 +58,20 @@ export const PRODUCTS_ALL_WITH_METAFIELDS = /* GraphQL */ `
           }
           metafields(
             identifiers: [
-              # ---- specs (старые/основные) ----
               { namespace: "specs", key: "abv" }
               { namespace: "specs", key: "ibu" }
               { namespace: "specs", key: "fg" }
+              { namespace: "specs", key: "allergens" }
+              { namespace: "specs", key: "brand" }
+              { namespace: "specs", key: "country" }
               { namespace: "specs", key: "gtin" }
+              { namespace: "specs", key: "ingredients" }
               { namespace: "specs", key: "pack_size_l" }
               { namespace: "specs", key: "pack_type" }
               { namespace: "specs", key: "pairing" }
               { namespace: "specs", key: "shelf_life_days" }
-              { namespace: "specs", key: "country" }
-              { namespace: "specs", key: "brand" }
-              { namespace: "specs", key: "ingredients" }
-              { namespace: "specs", key: "allergens" }
-
-              # ---- custom (то, что ты заливаешь из CSV через /api/metafields) ----
-              { namespace: "custom", key: "tasted_best_with" }
-              { namespace: "custom", key: "pack_type" }
-              { namespace: "custom", key: "shelf_life_days" }
-              { namespace: "custom", key: "country" }
-              { namespace: "custom", key: "ingredients" }
-              { namespace: "custom", key: "allergens" }
-              { namespace: "custom", key: "bottle_in_boxes" }
-
-              # ---- Shopify служебные ----
               { namespace: "shopify", key: "beer-style" }
               { namespace: "shopify", key: "package-type" }
-
-              # ---- маркетинг ----
               { namespace: "marketing", key: "trending" }
             ]
           ) {
@@ -131,7 +119,7 @@ export const PRODUCT_BY_HANDLE = /* GraphQL */ `
           currencyCode
         }
       }
-      # ⬇️ ВАРИАНТЫ ДЛЯ КОНКРЕТНОГО ПРОДУКТА (страница товара)
+      # ДОБАВЛЕНО: variants для корзины
       variants(first: 20) {
         edges {
           node {
@@ -140,6 +128,16 @@ export const PRODUCT_BY_HANDLE = /* GraphQL */ `
             price {
               amount
               currencyCode
+            }
+            compareAtPrice {
+              amount
+              currencyCode
+            }
+            availableForSale
+            quantityAvailable
+            selectedOptions {
+              name
+              value
             }
           }
         }
@@ -154,7 +152,6 @@ export const PRODUCT_BY_HANDLE = /* GraphQL */ `
       }
       metafields(
         identifiers: [
-          # ---- specs ----
           { namespace: "specs", key: "abv" }
           { namespace: "specs", key: "ibu" }
           { namespace: "specs", key: "fg" }
@@ -164,25 +161,8 @@ export const PRODUCT_BY_HANDLE = /* GraphQL */ `
           { namespace: "specs", key: "ingredients" }
           { namespace: "specs", key: "allergens" }
           { namespace: "specs", key: "pairing" }
-          { namespace: "specs", key: "shelf_life_days" }
-          { namespace: "specs", key: "pack_type" }
-          { namespace: "specs", key: "gtin" }
-
-          # ---- custom ----
-          { namespace: "custom", key: "tasted_best_with" }
-          { namespace: "custom", key: "pack_type" }
-          { namespace: "custom", key: "shelf_life_days" }
-          { namespace: "custom", key: "country" }
-          { namespace: "custom", key: "brand" }
-          { namespace: "custom", key: "ingredients" }
-          { namespace: "custom", key: "allergens" }
-          { namespace: "custom", key: "bottle_in_boxes" }
-
-          # ---- Shopify ----
           { namespace: "shopify", key: "beer-style" }
           { namespace: "shopify", key: "package-type" }
-
-          # ---- маркетинг ----
           { namespace: "marketing", key: "trending" }
         ]
       ) {
@@ -248,21 +228,13 @@ export const PRODUCTS_BY_COLLECTION = /* GraphQL */ `
               url
               altText
             }
-            images(first: 10) {
-              edges {
-                node {
-                  url
-                  altText
-                }
-              }
-            }
             priceRange {
               minVariantPrice {
                 amount
                 currencyCode
               }
             }
-            # ⬇️ ВАРИАНТЫ ДЛЯ ПРОДУКТОВ В КОЛЛЕКЦИИ
+            # ДОБАВЛЕНО: variants для корзины
             variants(first: 20) {
               edges {
                 node {
@@ -271,6 +243,16 @@ export const PRODUCTS_BY_COLLECTION = /* GraphQL */ `
                   price {
                     amount
                     currencyCode
+                  }
+                  compareAtPrice {
+                    amount
+                    currencyCode
+                  }
+                  availableForSale
+                  quantityAvailable
+                  selectedOptions {
+                    name
+                    value
                   }
                 }
               }
@@ -285,7 +267,6 @@ export const PRODUCTS_BY_COLLECTION = /* GraphQL */ `
             }
             metafields(
               identifiers: [
-                # ---- specs ----
                 { namespace: "specs", key: "abv" }
                 { namespace: "specs", key: "ibu" }
                 { namespace: "specs", key: "fg" }
@@ -294,24 +275,8 @@ export const PRODUCTS_BY_COLLECTION = /* GraphQL */ `
                 { namespace: "specs", key: "brand" }
                 { namespace: "specs", key: "ingredients" }
                 { namespace: "specs", key: "allergens" }
-                { namespace: "specs", key: "shelf_life_days" }
-                { namespace: "specs", key: "pack_type" }
-
-                # ---- custom ----
-                { namespace: "custom", key: "tasted_best_with" }
-                { namespace: "custom", key: "pack_type" }
-                { namespace: "custom", key: "shelf_life_days" }
-                { namespace: "custom", key: "country" }
-                { namespace: "custom", key: "brand" }
-                { namespace: "custom", key: "ingredients" }
-                { namespace: "custom", key: "allergens" }
-                { namespace: "custom", key: "bottle_in_boxes" }
-
-                # ---- Shopify ----
                 { namespace: "shopify", key: "beer-style" }
                 { namespace: "shopify", key: "package-type" }
-
-                # ---- маркетинг ----
                 { namespace: "marketing", key: "trending" }
               ]
             ) {
@@ -325,6 +290,116 @@ export const PRODUCTS_BY_COLLECTION = /* GraphQL */ `
         pageInfo {
           hasNextPage
           endCursor
+        }
+      }
+    }
+  }
+`;
+
+export const PRODUCT_BY_ID = /* GraphQL */ `
+  query ProductById($id: ID!, $language: LanguageCode, $country: CountryCode)
+  @inContext(language: $language, country: $country) {
+    product(id: $id) {
+      id
+      title
+      handle
+      descriptionHtml
+      featuredImage {
+        url
+        altText
+      }
+      images(first: 10) {
+        edges {
+          node {
+            url
+            altText
+          }
+        }
+      }
+      priceRange {
+        minVariantPrice {
+          amount
+          currencyCode
+        }
+      }
+      variants(first: 20) {
+        edges {
+          node {
+            id
+            title
+            price {
+              amount
+              currencyCode
+            }
+            compareAtPrice {
+              amount
+              currencyCode
+            }
+            availableForSale
+            quantityAvailable
+            selectedOptions {
+              name
+              value
+            }
+          }
+        }
+      }
+      collections(first: 20) {
+        edges {
+          node {
+            handle
+            title
+          }
+        }
+      }
+      metafields(
+        identifiers: [
+          { namespace: "specs", key: "abv" }
+          { namespace: "specs", key: "ibu" }
+          { namespace: "specs", key: "fg" }
+          { namespace: "specs", key: "pack_size_l" }
+          { namespace: "specs", key: "country" }
+          { namespace: "specs", key: "brand" }
+          { namespace: "specs", key: "ingredients" }
+          { namespace: "specs", key: "allergens" }
+          { namespace: "specs", key: "pairing" }
+          { namespace: "shopify", key: "beer-style" }
+          { namespace: "shopify", key: "package-type" }
+          { namespace: "marketing", key: "trending" }
+        ]
+      ) {
+        namespace
+        key
+        type
+        value
+        references(first: 10) {
+          edges {
+            node {
+              ... on Metaobject {
+                id
+                handle
+                type
+                fields {
+                  key
+                  value
+                  type
+                  references(first: 5) {
+                    edges {
+                      node {
+                        ... on Metaobject {
+                          handle
+                          fields {
+                            key
+                            value
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }

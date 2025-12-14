@@ -152,7 +152,8 @@
     "tabProfile": "Profile",
     "tabOrders": "My orders",
     "tabReviews": "My reviews",
-    "genderLabelNotSet": "Not specified",
+    "tabAddresses":"My",
+        "genderLabelNotSet": "Not specified",
     "genderLabelFemale": "Female",
     "genderLabelMale": "Male",
     "genderLabelOther": "Other"

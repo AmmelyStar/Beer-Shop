@@ -25,21 +25,57 @@ function getCategoryFromProduct(
   return undefined;
 }
 
+// Shopify product.id обычно: gid://shopify/Product/1234567890
+function gidToNumericProductId(gid: string | null | undefined): string {
+  if (!gid) return "";
+  const m = gid.match(/\/Product\/(\d+)$/);
+  return m?.[1] ?? "";
+}
+
+// Минимальный тип — чтобы НЕ использовать any и пройти строгий ESLint
+type ShopifyProductWithIds = {
+  id?: string | null;
+  legacyResourceId?: string | number | null;
+  title: string;
+  handle: string;
+  collections?: string[];
+};
+
 export default async function ProductPage({
   params,
 }: {
+  // ✅ В этом проекте params приходит Promise — и Next просит await
   params: Promise<{ lang: Locale; handle: string }>;
 }) {
   const { lang, handle } = await params;
 
   const t = await getMessages(lang);
-  const product = await fetchProductByHandleFlattened(handle, lang);
 
-  if (!product) {
-    notFound();
-  }
+  const rawProduct = await fetchProductByHandleFlattened(handle, lang);
+  if (!rawProduct) notFound();
+
+  const product = rawProduct as ShopifyProductWithIds;
 
   const productCategory = getCategoryFromProduct(product.collections);
+
+  // ✅ numeric product id для Supabase reviews
+  const productExternalId =
+    (product.legacyResourceId != null ? String(product.legacyResourceId) : "") ||
+    gidToNumericProductId(product.id);
+
+  // ✅ тексты модалки (без зависимости от translations)
+  const leaveReviewModalTexts = {
+    title: "Leave a review",
+    subtitle: "Share your experience with this product",
+    ratingLabel: "Rating",
+    commentLabel: "Your review",
+    commentPlaceholder: "Write your review here...",
+    submitButton: "Submit",
+    cancelButton: "Cancel",
+    submitting: "Submitting...",
+    successMessage: "Thanks! Your review was sent.",
+    errorMessage: "Something went wrong. Please try again.",
+  };
 
   return (
     <main className="mx-auto max-w-7xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
@@ -56,7 +92,7 @@ export default async function ProductPage({
 
       {/* Карточка товара */}
       <ProductOverviews
-        product={product}
+        product={rawProduct}
         perUnit={t.OneProduct.perUnit}
         abv={t.OneProduct.abv}
         ibu={t.OneProduct.ibu}
@@ -77,6 +113,7 @@ export default async function ProductPage({
 
       {/* Блок отзывов под товаром */}
       <CustomerReviews
+        lang={lang}
         title={t.CustomerReviews.title}
         stars={t.CustomerReviews.stars}
         base1={t.CustomerReviews.base1}
@@ -86,8 +123,10 @@ export default async function ProductPage({
         CTASubtitle={t.CustomerReviews.CTASubtitle}
         button={t.CustomerReviews.button}
         recentReviews={t.CustomerReviews.recentReviews}
-         productHandle={product.handle} 
-        
+        reviews={null}
+        productExternalId={productExternalId}
+        loginToReview={"Log in to leave a review"}
+        modalTexts={leaveReviewModalTexts}
       />
     </main>
   );

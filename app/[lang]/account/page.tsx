@@ -43,9 +43,9 @@ export type AccountPageMessages = {
 export default async function AccountPage({
   params,
 }: {
-  params: { lang: Locale };
+  params: Promise<{ lang: Locale }>;
 }) {
-  const { lang } = params;
+  const { lang } = await params;
   const messages = await getMessages(lang);
 
   const { userId } = await auth();
