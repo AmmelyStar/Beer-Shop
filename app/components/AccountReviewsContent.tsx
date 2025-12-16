@@ -341,7 +341,7 @@ export default function AccountReviewsContent({ messages }: AccountReviewsConten
         </div>
 
         {/* контент справа */}
-        <div className="w-full flex-1">
+        <div className="w-full flex-1 mt-30">
           <div className="mb-6">
             <h1 className="text-2xl font-semibold">{messagesSafe.tabReviews}</h1>
             <p className="mt-1 text-sm text-white/60">Here you can edit or delete your reviews.</p>
