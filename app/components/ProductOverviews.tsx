@@ -1,7 +1,7 @@
 // components/ProductOverviews.tsx
 import Image from "next/image";
 import { StarIcon } from "@heroicons/react/20/solid";
-import { FlattenedProduct } from "../data/mappers";
+import type { FlattenedProduct } from "../data/mappers";
 import AddToCartButton from "./ui/AddToCartButton";
 
 type ProductOverviewsProps = {
@@ -26,6 +26,37 @@ type ProductOverviewsProps = {
 
 function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(" ");
+}
+
+// ✅ расширяем тип продукта ровно тем, что нам нужно для кнопки
+type ProductWithVariantId = FlattenedProduct & {
+  variantId: string;
+};
+
+// ✅ type-guard без any
+function hasVariantId(p: FlattenedProduct): p is ProductWithVariantId {
+  return typeof (p as { variantId?: unknown }).variantId === "string";
+}
+
+// ✅ аккуратно пытаемся получить variantId из разных мест
+function getVariantId(product: FlattenedProduct): string | null {
+  if (hasVariantId(product)) return product.variantId;
+
+  const shopifyVariantId =
+    typeof (product as { shopify?: { variantId?: unknown } }).shopify?.variantId ===
+    "string"
+      ? (product as { shopify?: { variantId?: string } }).shopify!.variantId!
+      : null;
+
+  if (shopifyVariantId) return shopifyVariantId;
+
+  const firstVariantId =
+    typeof (product as { variants?: Array<{ id?: unknown }> }).variants?.[0]?.id ===
+    "string"
+      ? (product as { variants?: Array<{ id: string }> }).variants![0].id
+      : null;
+
+  return firstVariantId ?? null;
 }
 
 export default function ProductOverviews({
@@ -75,7 +106,7 @@ export default function ProductOverviews({
   const rating = product.rating ?? 0;
   const reviewCount = product.reviewCount ?? 0;
 
-  // ✅ парсим tasted_best_with из метаполя (custom/specs).tasted_best_with
+  // ✅ парсим tasted_best_with
   const tastedBestWithList = productTastedBestWith
     ? productTastedBestWith
         .split(",")
@@ -83,9 +114,11 @@ export default function ProductOverviews({
         .filter(Boolean)
     : [];
 
-  // маленький лог, чтобы ты могла посмотреть, что реально приходит
-  // (если надо, потом просто удали)
-  console.log("Product specs on PDP:", product.handle, product.specs);
+  // ✅ достаём variantId и готовим продукт для AddToCartButton
+  const variantId = getVariantId(product);
+  const productForCart: ProductWithVariantId | null = variantId
+    ? { ...product, variantId }
+    : null;
 
   return (
     <div>
@@ -98,9 +131,7 @@ export default function ProductOverviews({
                 <h1 className="text-3xl tracking-tight font-semibold text-yellow-400 max-w-md">
                   {product.title}
                   {packSize && (
-                    <span className="ml-3 text-white text-xl">
-                      {packSize} L
-                    </span>
+                    <span className="ml-3 text-white text-xl">{packSize} L</span>
                   )}
                 </h1>
 
@@ -122,9 +153,7 @@ export default function ProductOverviews({
                       <span className="text-lg text-white font-semibold whitespace-nowrap">
                         {abv}:
                       </span>
-                      <span className="text-base text-gray-300">
-                        {productAbv}%
-                      </span>
+                      <span className="text-base text-gray-300">{productAbv}%</span>
                     </div>
                     {(productIbu || productFg) && "|"}
                   </>
@@ -136,9 +165,7 @@ export default function ProductOverviews({
                       <span className="text-lg text-white font-semibold whitespace-nowrap">
                         {ibu}:
                       </span>
-                      <span className="text-base text-gray-300">
-                        {productIbu}
-                      </span>
+                      <span className="text-base text-gray-300">{productIbu}</span>
                     </div>
                     {productFg && "|"}
                   </>
@@ -149,9 +176,7 @@ export default function ProductOverviews({
                     <span className="text-lg text-white font-semibold whitespace-nowrap">
                       {fg}:
                     </span>
-                    <span className="text-base text-gray-300">
-                      {productFg}°
-                    </span>
+                    <span className="text-base text-gray-300">{productFg}°</span>
                   </div>
                 )}
               </div>
@@ -162,9 +187,7 @@ export default function ProductOverviews({
                   <span className="text-lg text-white font-semibold whitespace-nowrap">
                     {country}:
                   </span>
-                  <span className="text-base text-gray-300">
-                    {productCountry}
-                  </span>
+                  <span className="text-base text-gray-300">{productCountry}</span>
                 </div>
               )}
 
@@ -174,13 +197,11 @@ export default function ProductOverviews({
                   <span className="text-lg text-white font-semibold whitespace-nowrap">
                     {brand}:
                   </span>
-                  <span className="text-base text-gray-300">
-                    {productBrand}
-                  </span>
+                  <span className="text-base text-gray-300">{productBrand}</span>
                 </div>
               )}
 
-              {/* Доп. инфа из CSV: тип упаковки, сколько бутылок, срок годности */}
+              {/* Extra CSV info */}
               {(productPackType || productBottleInBoxes || productShelfLifeDays) && (
                 <div className="mt-4 space-y-1">
                   {productPackType && (
@@ -188,9 +209,7 @@ export default function ProductOverviews({
                       <span className="text-sm text-white font-semibold whitespace-nowrap">
                         Pack type:
                       </span>
-                      <span className="text-sm text-gray-300">
-                        {productPackType}
-                      </span>
+                      <span className="text-sm text-gray-300">{productPackType}</span>
                     </div>
                   )}
 
@@ -199,9 +218,7 @@ export default function ProductOverviews({
                       <span className="text-sm text-white font-semibold whitespace-nowrap">
                         Bottles in box:
                       </span>
-                      <span className="text-sm text-gray-300">
-                        {productBottleInBoxes}
-                      </span>
+                      <span className="text-sm text-gray-300">{productBottleInBoxes}</span>
                     </div>
                   )}
 
@@ -210,9 +227,7 @@ export default function ProductOverviews({
                       <span className="text-sm text-white font-semibold whitespace-nowrap">
                         Shelf life:
                       </span>
-                      <span className="text-sm text-gray-300">
-                        {productShelfLifeDays} days
-                      </span>
+                      <span className="text-sm text-gray-300">{productShelfLifeDays} days</span>
                     </div>
                   )}
                 </div>
@@ -224,9 +239,7 @@ export default function ProductOverviews({
                   <span className="text-lg text-white font-semibold whitespace-nowrap">
                     {style}:
                   </span>
-                  <span className="text-base text-gray-300">
-                    {productStyle}
-                  </span>
+                  <span className="text-base text-gray-300">{productStyle}</span>
                 </div>
               )}
 
@@ -241,9 +254,7 @@ export default function ProductOverviews({
                           key={ratingValue}
                           aria-hidden="true"
                           className={classNames(
-                            rating > ratingValue
-                              ? "text-yellow-400"
-                              : "text-gray-500",
+                            rating > ratingValue ? "text-yellow-400" : "text-gray-500",
                             "size-5 shrink-0"
                           )}
                         />
@@ -270,9 +281,7 @@ export default function ProductOverviews({
                     <div
                       key={image.id}
                       className={classNames(
-                        image.primary
-                          ? "lg:col-span-2 lg:row-span-2"
-                          : "hidden lg:block",
+                        image.primary ? "lg:col-span-2 lg:row-span-2" : "hidden lg:block",
                         "relative aspect-square w-full overflow-hidden rounded-lg bg-stone-200 transition-colors duration-300"
                       )}
                     >
@@ -294,11 +303,16 @@ export default function ProductOverviews({
               </div>
             </div>
 
-             {/* button and right side under*/}
+            {/* button and right side under */}
             <div className="mt-16 lg:col-span-5">
-             
-              <AddToCartButton product={product} addToCart={addToCart} />
-
+              {/* ✅ counter + button (label) */}
+              {productForCart ? (
+                <AddToCartButton product={productForCart} label={addToCart} />
+              ) : (
+                <div className="mt-8 text-sm text-red-300">
+                  Missing variantId — cannot add this product to cart.
+                </div>
+              )}
 
               {/* Product Description */}
               {product.descriptionHtml && (
@@ -308,15 +322,13 @@ export default function ProductOverviews({
                   </h2>
 
                   <div
-                    dangerouslySetInnerHTML={{
-                      __html: product.descriptionHtml,
-                    }}
+                    dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
                     className="mx-auto mt-6 max-w-xl text-pretty text-base text-gray-300"
                   />
                 </div>
               )}
 
-              {/* ✅ Tasted best with — из tasted_best_with */}
+              {/* Tasted best with */}
               {tastedBestWithList.length > 0 && (
                 <div className="mt-8 border-t border-gray-200 pt-8">
                   <h2 className="mx-auto mt-6 max-w-lg text-pretty text-lg text-white font-semibold">
@@ -343,9 +355,7 @@ export default function ProductOverviews({
                   <span className="text-lg text-white font-semibold whitespace-nowrap">
                     {allergens}:
                   </span>
-                  <span className="text-base text-gray-300">
-                    {productAllergens}
-                  </span>
+                  <span className="text-base text-gray-300">{productAllergens}</span>
                 </div>
               )}
 
@@ -355,9 +365,7 @@ export default function ProductOverviews({
                   <span className="text-lg text-white font-semibold whitespace-nowrap">
                     {ingredients}:
                   </span>
-                  <span className="text-base text-gray-300">
-                    {productIngredients}
-                  </span>
+                  <span className="text-base text-gray-300">{productIngredients}</span>
                 </div>
               )}
             </div>

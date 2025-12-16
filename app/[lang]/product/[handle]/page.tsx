@@ -1,38 +1,27 @@
-// app/[lang]/product/[handle]/page.tsx
 import { fetchProductByHandleFlattened } from "../../../data/repo";
 import { getMessages } from "../../messages";
 import type { Locale } from "../../../lib/locale";
 import ProductOverviews from "../../../components/ProductOverviews";
-import CustomerReviews from "../../../components/CustomerReviews";
+import CustomerReviews, { type ReviewsData } from "../../../components/CustomerReviews";
 import { notFound } from "next/navigation";
 import Breadcrumbs from "@/app/components/ui/Breadcrumbs";
+import { getSupabaseServerClient } from "@/app/lib/supabase";
 
-// Функция для определения категории из коллекций
-function getCategoryFromProduct(
-  collections: string[] | undefined
-): string | undefined {
+function getCategoryFromProduct(collections: string[] | undefined): string | undefined {
   if (!collections || collections.length === 0) return undefined;
-
-  const lowerCollections = collections.map((c) => c.toLowerCase());
-
-  if (lowerCollections.some((c) => c.includes("beer") || c.includes("пиво")))
-    return "beer";
-  if (lowerCollections.some((c) => c.includes("cider") || c.includes("сидр")))
-    return "cider";
-  if (lowerCollections.some((c) => c.includes("snack") || c.includes("снек")))
-    return "snacks";
-
+  const lower = collections.map((c) => c.toLowerCase());
+  if (lower.some((c) => c.includes("beer") || c.includes("пиво"))) return "beer";
+  if (lower.some((c) => c.includes("cider") || c.includes("сидр"))) return "cider";
+  if (lower.some((c) => c.includes("snack") || c.includes("снек"))) return "snacks";
   return undefined;
 }
 
-// Shopify product.id обычно: gid://shopify/Product/1234567890
 function gidToNumericProductId(gid: string | null | undefined): string {
   if (!gid) return "";
   const m = gid.match(/\/Product\/(\d+)$/);
   return m?.[1] ?? "";
 }
 
-// Минимальный тип — чтобы НЕ использовать any и пройти строгий ESLint
 type ShopifyProductWithIds = {
   id?: string | null;
   legacyResourceId?: string | number | null;
@@ -41,10 +30,17 @@ type ShopifyProductWithIds = {
   collections?: string[];
 };
 
+type ReviewRow = {
+  id: string;
+  rating: number | null;
+  text: string;
+  name: string;
+  created_at: string;
+};
+
 export default async function ProductPage({
   params,
 }: {
-  // ✅ В этом проекте params приходит Promise — и Next просит await
   params: Promise<{ lang: Locale; handle: string }>;
 }) {
   const { lang, handle } = await params;
@@ -55,15 +51,53 @@ export default async function ProductPage({
   if (!rawProduct) notFound();
 
   const product = rawProduct as ShopifyProductWithIds;
-
   const productCategory = getCategoryFromProduct(product.collections);
 
-  // ✅ numeric product id для Supabase reviews
   const productExternalId =
     (product.legacyResourceId != null ? String(product.legacyResourceId) : "") ||
     gidToNumericProductId(product.id);
 
-  // ✅ тексты модалки (без зависимости от translations)
+  const supabase = getSupabaseServerClient();
+
+  // ✅ Подтягиваем отзывы по handle
+  const { data: rows, error } = await supabase
+    .from("reviews")
+    .select("id, rating, text, name, created_at")
+    .eq("product_handle", product.handle)
+    .eq("is_published", true)
+    .order("created_at", { ascending: false });
+
+  if (error) console.error("Supabase error (product reviews):", error);
+
+  const list: ReviewRow[] = (rows ?? []) as ReviewRow[];
+
+  const totalCount = list.length;
+
+  const sum = list.reduce((s, r) => s + (Number(r.rating) || 0), 0);
+  const average =
+    totalCount > 0 ? Math.round((sum / totalCount) * 10) / 10 : 0;
+
+  const counts = ([5, 4, 3, 2, 1] as const).map((r) => ({
+    rating: r,
+    count: list.filter((x) => Number(x.rating) === r).length,
+  }));
+
+  // ✅ ВАЖНО: прокидываем createdAt, чтобы в UI была дата
+  const featured = list.map((r) => ({
+    id: r.id,
+    rating: Number(r.rating) || 0,
+    content: r.text,
+    author: r.name,
+    createdAt: r.created_at,
+  }));
+
+  const reviewsData: ReviewsData = {
+    average,
+    totalCount,
+    counts,
+    featured, // показываем все отзывы (можешь ограничить slice(0, N))
+  };
+
   const leaveReviewModalTexts = {
     title: "Leave a review",
     subtitle: "Share your experience with this product",
@@ -90,7 +124,6 @@ export default async function ProductPage({
         currentLabel={product.title}
       />
 
-      {/* Карточка товара */}
       <ProductOverviews
         product={rawProduct}
         perUnit={t.OneProduct.perUnit}
@@ -111,7 +144,6 @@ export default async function ProductPage({
         ingredients={t.OneProduct.ingredients}
       />
 
-      {/* Блок отзывов под товаром */}
       <CustomerReviews
         lang={lang}
         title={t.CustomerReviews.title}
@@ -122,9 +154,15 @@ export default async function ProductPage({
         CTATitle={t.CustomerReviews.CTATitle}
         CTASubtitle={t.CustomerReviews.CTASubtitle}
         button={t.CustomerReviews.button}
-        recentReviews={t.CustomerReviews.recentReviews}
-        reviews={null}
+
+        // ✅ ВОТ ТУТ FIX: больше не recentReviews, а recentReviewsLabel
+        recentReviewsLabel={t.CustomerReviews.recentReviews}
+        // optional:
+        // emptyReviewsText={t.CustomerReviews.emptyReviews ?? "No reviews yet"}
+
+        reviews={reviewsData}
         productExternalId={productExternalId}
+        productHandle={product.handle}
         loginToReview={"Log in to leave a review"}
         modalTexts={leaveReviewModalTexts}
       />

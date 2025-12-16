@@ -7,7 +7,6 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
-
     if (!userId) {
       return NextResponse.json(
         { error: "You must be logged in to leave a review" },
@@ -19,21 +18,21 @@ export async function POST(req: Request) {
 
     const rating = Number(body?.rating);
     const shopify_product_id =
-      body?.shopify_product_id != null
-        ? String(body.shopify_product_id)
-        : "";
+      body?.shopify_product_id != null ? String(body.shopify_product_id) : "";
+    const product_handle =
+      body?.product_handle != null ? String(body.product_handle) : "";
 
-    // ✅ В БД колонка называется text
+    // В БД колонка называется text
     const text = String(body?.comment ?? body?.text ?? "").trim();
 
-    if (!shopify_product_id || !Number.isFinite(rating) || !text) {
+    if (!product_handle) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Missing product_handle" },
         { status: 400 }
       );
     }
 
-    if (rating < 1 || rating > 5) {
+    if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
       return NextResponse.json(
         { error: "Rating must be between 1 and 5" },
         { status: 400 }
@@ -48,11 +47,10 @@ export async function POST(req: Request) {
     }
 
     const user = await currentUser();
-
     const email =
       user?.emailAddresses?.[0]?.emailAddress ?? "unknown@example.com";
 
-    // ✅ В БД колонка называется name (NOT NULL)
+    // В БД колонка называется name (NOT NULL)
     const name =
       [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
       user?.username ||
@@ -61,13 +59,17 @@ export async function POST(req: Request) {
 
     const supabase = getSupabaseServerClient();
 
-    // ❌ запрет повторных отзывов
-    const { data: existing } = await supabase
+    // 1 отзыв на товар от 1 пользователя — по product_handle (надёжно)
+    const { data: existing, error: existingError } = await supabase
       .from("reviews")
       .select("id")
-      .eq("shopify_product_id", shopify_product_id)
+      .eq("product_handle", product_handle)
       .eq("clerk_user_id", userId)
       .limit(1);
+
+    if (existingError) {
+      console.error("Supabase error (check existing):", existingError);
+    }
 
     if (existing && existing.length > 0) {
       return NextResponse.json(
@@ -76,18 +78,18 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ INSERT строго под схему таблицы
     const { data, error } = await supabase
       .from("reviews")
       .insert({
-        shopify_product_id,
+        product_handle, // ✅ ключ для страницы товара
+        shopify_product_id: shopify_product_id || null, // опционально
         clerk_user_id: userId,
         rating,
-        text,        // ✅ NOT NULL
-        name,        // ✅ NOT NULL
+        text, // ✅ NOT NULL
+        name, // ✅ NOT NULL
         user_email: email,
-        status: "pending",
-        is_published: false,
+        status: "approved",
+        is_published: true,
       })
       .select()
       .single();

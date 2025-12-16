@@ -1,49 +1,58 @@
-// app/components/ui/QuantityCounter.tsx
 "use client";
 
+import { useState } from "react";
 import { useCart } from "@/app/context/CartContext";
 
-export type QuantityCounterProps = {
-  lineId: string;   // id строки корзины (CartLine.id)
-  quantity: number; // текущее количество
+type Props = {
+  lineId: string;
+  quantity: number;
 };
 
-export default function QuantityCounter({ lineId, quantity }: QuantityCounterProps) {
-  const { updateQuantity, isLoading } = useCart();
+export default function QuantityCounter({ lineId, quantity }: Props) {
+  const { updateLineQuantity, removeLine } = useCart();
+  const [busy, setBusy] = useState(false);
 
-  const handleDecrement = async () => {
-    if (isLoading) return;
+  async function inc() {
+    try {
+      setBusy(true);
+      await updateLineQuantity(lineId, quantity + 1);
+    } finally {
+      setBusy(false);
+    }
+  }
 
-    const next = quantity - 1;
-    // не даём уйти ниже 1 (если хочешь при 0 удалять строку — скажи, переделаем)
-    if (next < 1) return;
-
-    await updateQuantity(lineId, next);
-  };
-
-  const handleIncrement = async () => {
-    if (isLoading) return;
-
-    const next = quantity + 1;
-    await updateQuantity(lineId, next);
-  };
+  async function dec() {
+    try {
+      setBusy(true);
+      const next = quantity - 1;
+      if (next <= 0) {
+        await removeLine(lineId);
+      } else {
+        await updateLineQuantity(lineId, next);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
-    <div className="inline-flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm sm:w-auto lg:w-full">
+    <div className="mt-8 inline-flex items-center gap-3 rounded-md border border-white/15 bg-white/5 px-3 py-2">
       <button
-        type="button"
-        onClick={handleDecrement}
-        className="px-2 text-lg leading-none"
-        disabled={isLoading}
+        onClick={dec}
+        disabled={busy}
+        className="h-10 w-10 rounded-md bg-white/10 text-white hover:bg-white/15 disabled:opacity-50"
       >
         –
       </button>
-      <span className="px-3 text-base font-medium">{quantity}</span>
+
+      <div className="min-w-10 text-center text-lg font-semibold text-white">
+        {quantity}
+      </div>
+
       <button
-        type="button"
-        onClick={handleIncrement}
-        className="px-2 text-lg leading-none"
-        disabled={isLoading}
+        onClick={inc}
+        disabled={busy}
+        className="h-10 w-10 rounded-md bg-white/10 text-white hover:bg-white/15 disabled:opacity-50"
       >
         +
       </button>

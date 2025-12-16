@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import LeaveReviewModal, { type LeaveReviewModalText } from "./LeaveReviewModal";
 import type { Locale } from "@/app/lib/locale";
 
-function classNames(...classes: (string | undefined | null | false)[]): string {
+function classNames(...classes: (string | undefined | null | false)[]) {
   return classes.filter(Boolean).join(" ");
 }
 
@@ -19,8 +19,9 @@ type RatingCount = {
 type FeaturedReview = {
   id: string | number;
   rating: number;
-  content: string;
-  author: string;
+  content: string; // текст отзыва
+  author: string; // имя/фамилия
+  createdAt?: string | null; // ISO
 };
 
 export type ReviewsData = {
@@ -32,22 +33,31 @@ export type ReviewsData = {
 
 type CustomerReviewsProps = {
   lang: Locale;
+
   title: string;
   stars: string;
   base1: string;
   base2: string;
   starRew: string;
+
   CTATitle: string;
   CTASubtitle: string;
   button: string;
-  recentReviews: string;
+
+  recentReviewsLabel?: string;
+  emptyReviewsText?: string;
+
   reviews?: ReviewsData | null;
+
+  // ✅ нужно для отправки отзыва
   productExternalId: string; // Shopify numeric id
+  productHandle: string; // handle товара
+
   loginToReview: string;
   modalTexts: LeaveReviewModalText;
 };
 
-const DEFAULT_REVIEWS: ReviewsData = {
+const EMPTY_REVIEWS: ReviewsData = {
   average: 0,
   totalCount: 0,
   counts: [
@@ -60,6 +70,25 @@ const DEFAULT_REVIEWS: ReviewsData = {
   featured: [],
 };
 
+function formatDate(dateIso: string, lang: Locale) {
+  const d = new Date(dateIso);
+  if (Number.isNaN(d.getTime())) return "";
+
+  const localeMap: Record<Locale, string> = {
+    en: "en-CH",
+    ru: "ru-RU",
+    uk: "uk-UA",
+    et: "et-EE",
+    fi: "fi-FI",
+  };
+
+  return new Intl.DateTimeFormat(localeMap[lang], {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+}
+
 export default function CustomerReviews({
   lang,
   title,
@@ -70,238 +99,168 @@ export default function CustomerReviews({
   CTATitle,
   CTASubtitle,
   button,
-  recentReviews,
+  recentReviewsLabel = "Recent reviews",
+  emptyReviewsText = "Пока нет отзывов. Будь первым 😉",
   reviews,
   productExternalId,
+  productHandle,
   loginToReview,
   modalTexts,
 }: CustomerReviewsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
-  const safeReviews = useMemo<ReviewsData>(() => {
-    const r = reviews ?? DEFAULT_REVIEWS;
+  const data = useMemo<ReviewsData>(() => {
+    if (!reviews) return EMPTY_REVIEWS;
+
     return {
-      average: Number.isFinite(r.average) ? r.average : 0,
-      totalCount: Number.isFinite(r.totalCount) ? r.totalCount : 0,
-      counts:
-        Array.isArray(r.counts) && r.counts.length > 0
-          ? r.counts
-          : DEFAULT_REVIEWS.counts,
-      featured: Array.isArray(r.featured) ? r.featured : [],
+      average: Number.isFinite(reviews.average) ? reviews.average : 0,
+      totalCount: Number.isFinite(reviews.totalCount) ? reviews.totalCount : 0,
+      counts: reviews.counts?.length ? reviews.counts : EMPTY_REVIEWS.counts,
+      featured: Array.isArray(reviews.featured) ? reviews.featured : [],
     };
   }, [reviews]);
 
-  const writeReviewLabel =
-    button && button.trim().length > 0 ? button : "Написать отзыв";
-
-  const canReview = Boolean(productExternalId && productExternalId.trim().length > 0);
-
-  const handleSignInClick = () => {
-    router.push(`/${lang}/account`);
-  };
-
-  const openModalSafely = () => {
-    if (!canReview) return;
-    setIsModalOpen(true);
-  };
-
   return (
-    <div>
-      <div className="border-t border-gray-400 pt-12 mx-auto max-w-2xl lg:grid lg:max-w-7xl lg:grid-cols-12 lg:gap-x-8">
-        {/* left */}
-        <div className="lg:col-span-4">
-          <h2 className="text-2xl font-bold tracking-tight text-white">{title}</h2>
+    <section className="border-t border-gray-400 pt-12 mx-auto max-w-4xl">
+      <h2 className="text-2xl font-bold tracking-tight text-white">{title}</h2>
 
-          <div className="mt-3 flex items-center">
-            <div>
-              <div className="flex items-center">
-                {[0, 1, 2, 3, 4].map((r) => (
-                  <StarIcon
-                    key={r}
-                    aria-hidden="true"
-                    className={classNames(
-                      safeReviews.average > r ? "text-yellow-400" : "text-gray-500",
-                      "size-5 shrink-0"
-                    )}
-                  />
-                ))}
-              </div>
-              <p className="sr-only">
-                {safeReviews.average} out of 5 {stars}
-              </p>
-            </div>
-
-            <p className="ml-2 text-sm text-gray-400">
-              {base1} {safeReviews.totalCount} {base2}
-            </p>
-          </div>
-
-          <div className="mt-6">
-            <h3 className="sr-only">Review data</h3>
-            <dl className="space-y-3">
-              {safeReviews.counts.map((count) => {
-                const percent =
-                  safeReviews.totalCount > 0
-                    ? Math.round((count.count / safeReviews.totalCount) * 100)
-                    : 0;
-
-                return (
-                  <div key={count.rating} className="flex items-center text-sm">
-                    <dt className="flex flex-1 items-center">
-                      <p className="w-3 font-medium text-white">
-                        {count.rating}
-                        <span className="sr-only"> {starRew}</span>
-                      </p>
-
-                      <div aria-hidden="true" className="ml-1 flex flex-1 items-center">
-                        <StarIcon
-                          aria-hidden="true"
-                          className={classNames(
-                            count.count > 0 ? "text-yellow-400" : "text-gray-500",
-                            "size-5 shrink-0"
-                          )}
-                        />
-
-                        <div className="relative ml-3 flex-1">
-                          {count.count > 0 ? (
-                            <div className="h-3 rounded-full border border-gray-700 bg-gray-800">
-                              <div
-                                style={{ width: `${percent}%` }}
-                                className="h-3 rounded-full border border-yellow-400 bg-yellow-400"
-                              />
-                            </div>
-                          ) : (
-                            <div className="h-3 rounded-full border border-gray-700 bg-gray-800 opacity-40" />
-                          )}
-                        </div>
-                      </div>
-                    </dt>
-
-                    <dd className="ml-3 w-10 text-right text-sm tabular-nums text-gray-400">
-                      {percent}%
-                    </dd>
-                  </div>
-                );
-              })}
-            </dl>
-          </div>
-
-          {/* CTA слева */}
-          <div className="mt-10">
-            <h3 className="text-lg font-medium text-white">{CTATitle}</h3>
-            <p className="mt-1 text-sm text-gray-400">{CTASubtitle}</p>
-
-            <SignedOut>
-              <button
-                onClick={handleSignInClick}
-                className="mt-6 relative flex items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30 w-full"
-              >
-                {loginToReview}
-              </button>
-            </SignedOut>
-
-            <SignedIn>
-              <button
-                onClick={openModalSafely}
-                disabled={!canReview}
-                className={classNames(
-                  "mt-6 relative flex items-center justify-center rounded-md border px-8 py-2 text-sm font-medium w-full focus:outline-none focus:ring-2",
-                  canReview
-                    ? "border-white/10 bg-yellow-400/20 text-white hover:bg-yellow-400/30 focus:ring-yellow-400/40"
-                    : "border-white/10 bg-white/5 text-gray-400 cursor-not-allowed opacity-60"
-                )}
-              >
-                {writeReviewLabel}
-              </button>
-
-              {!canReview ? (
-                <p className="mt-2 text-xs text-red-300">
-                  Product ID is missing — reviews are temporarily unavailable.
-                </p>
-              ) : null}
-            </SignedIn>
-          </div>
-        </div>
-
-        {/* right */}
-        <div className="mt-16 lg:col-span-7 lg:col-start-6 lg:mt-0">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium text-white">{recentReviews}</h3>
-
-            <SignedOut>
-              <button
-                onClick={handleSignInClick}
-                className="rounded-md border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/20"
-              >
-                {loginToReview}
-              </button>
-            </SignedOut>
-
-            <SignedIn>
-              <button
-                onClick={openModalSafely}
-                disabled={!canReview}
-                className={classNames(
-                  "rounded-md border px-4 py-2 text-sm font-medium",
-                  canReview
-                    ? "border-white/10 bg-yellow-400/20 text-white hover:bg-yellow-400/30"
-                    : "border-white/10 bg-white/5 text-gray-400 cursor-not-allowed opacity-60"
-                )}
-              >
-                {writeReviewLabel}
-              </button>
-            </SignedIn>
-          </div>
-
-          <div className="mt-6 flow-root">
-            <div className="-my-12 divide-y divide-gray-700">
-              {safeReviews.featured.length === 0 ? (
-                <div className="py-10 text-sm text-gray-400">
-                  Пока нет отзывов. Будь первым 😉
-                </div>
-              ) : (
-                safeReviews.featured.map((review) => (
-                  <div key={review.id} className="py-12">
-                    <div className="flex items-center">
-                      <div className="flex items-center">
-                        {[0, 1, 2, 3, 4].map((r) => (
-                          <StarIcon
-                            key={r}
-                            aria-hidden="true"
-                            className={classNames(
-                              review.rating > r ? "text-yellow-400" : "text-gray-500",
-                              "size-5 shrink-0"
-                            )}
-                          />
-                        ))}
-                      </div>
-                      <p className="sr-only">{review.rating} out of 5 stars</p>
-                    </div>
-
-                    <div className="mt-4 space-y-6 text-base/7 text-gray-300">
-                      {review.content}
-                    </div>
-
-                    <h4 className="mt-3 font-bold text-white w-full text-right pr-6">
-                      {review.author}
-                    </h4>
-                  </div>
-                ))
+      {/* ⭐ Average rating */}
+      <div className="mt-3 flex items-center">
+        <div className="flex items-center">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <StarIcon
+              key={i}
+              className={classNames(
+                data.average > i ? "text-yellow-400" : "text-gray-500",
+                "size-5"
               )}
-            </div>
-          </div>
+            />
+          ))}
         </div>
+
+        <p className="ml-2 text-sm text-gray-400">
+          {base1} {data.totalCount} {base2}
+        </p>
       </div>
 
-      {canReview ? (
-        <LeaveReviewModal
-          open={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          productExternalId={productExternalId}
-          texts={modalTexts}
-        />
-      ) : null}
-    </div>
+      {/* ⭐ Breakdown */}
+      <dl className="mt-6 space-y-3">
+        {data.counts.map((row) => {
+          const percent =
+            data.totalCount > 0
+              ? Math.round((row.count / data.totalCount) * 100)
+              : 0;
+
+          return (
+            <div key={row.rating} className="flex items-center text-sm">
+              <dt className="flex flex-1 items-center">
+                <span className="w-3 text-white">
+                  {row.rating}
+                  <span className="sr-only"> {starRew}</span>
+                </span>
+
+                <StarIcon className="ml-1 size-4 text-gray-400" />
+
+                <div className="ml-3 flex-1">
+                  <div className="h-3 rounded-full bg-gray-800">
+                    <div
+                      className="h-3 rounded-full bg-yellow-400"
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                </div>
+              </dt>
+
+              <dd className="ml-3 w-10 text-right text-gray-400">{percent}%</dd>
+            </div>
+          );
+        })}
+      </dl>
+
+      {/* CTA */}
+      <div className="mt-10">
+        <h3 className="text-lg font-medium text-white">{CTATitle}</h3>
+        <p className="mt-1 text-sm text-gray-400">{CTASubtitle}</p>
+
+        <SignedOut>
+          <button
+            onClick={() => router.push(`/${lang}/account`)}
+            className="mt-6 w-full rounded-md border border-white/10 bg-white/10 px-6 py-2 text-white hover:bg-white/20"
+          >
+            {loginToReview}
+          </button>
+        </SignedOut>
+
+        <SignedIn>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="mt-6 w-full rounded-md border border-yellow-400/40 bg-yellow-400/20 px-6 py-2 text-white hover:bg-yellow-400/30"
+          >
+            {button}
+          </button>
+        </SignedIn>
+      </div>
+
+      {/* ✅ Лента отзывов */}
+      <div className="mt-12">
+        <h3 className="text-lg font-semibold text-white">{recentReviewsLabel}</h3>
+
+        {data.featured.length === 0 ? (
+          <p className="mt-3 text-sm text-gray-400">{emptyReviewsText}</p>
+        ) : (
+          <div className="mt-6 space-y-8 border-t border-gray-700 pt-6">
+            {data.featured.map((r) => {
+              const dateLabel =
+                r.createdAt && r.createdAt.trim().length > 0
+                  ? formatDate(r.createdAt, lang)
+                  : "";
+
+              return (
+                <article key={r.id} className="space-y-2">
+                  {/* дата + имя */}
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="text-sm text-gray-400">{dateLabel}</div>
+                    <div className="text-sm font-semibold text-white">
+                      {r.author}
+                    </div>
+                  </div>
+
+                  {/* звезды */}
+                  <div className="flex items-center gap-1">
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <StarIcon
+                        key={i}
+                        className={classNames(
+                          r.rating > i ? "text-yellow-400" : "text-gray-600",
+                          "size-5"
+                        )}
+                      />
+                    ))}
+                    <span className="sr-only">
+                      {r.rating} out of 5 {stars}
+                    </span>
+                  </div>
+
+                  {/* текст */}
+                  <p className="text-base text-gray-200 whitespace-pre-line">
+                    {r.content}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Modal */}
+      <LeaveReviewModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        productExternalId={productExternalId}
+        productHandle={productHandle}
+        texts={modalTexts}
+      />
+    </section>
   );
 }

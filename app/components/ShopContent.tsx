@@ -1,112 +1,128 @@
-// app/components/ShopContent.tsx
 "use client";
 
 import { useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import Tabs from "./ui/Tabs";
-import AllProducts, { LeafCategory } from "./AllProducts";
 import type { FlattenedProduct } from "@/app/data/mappers";
 import type { Locale } from "@/app/[lang]/messages";
+import AllProducts from "@/app/components/AllProducts";
+import type { ReviewSummary } from "@/app/lib/reviews/getReviewSummaryByHandle";
 
-type CategoryKey = "all" | LeafCategory;
+type CategoryKey = "beer" | "cider" | "snacks" | "gifts-sets" | "alcohol-free";
 
-interface ShopContentProps {
+type ShopTranslations = {
+  title: string;
+  stars: string;
+  reviews: string;
+  add: string;
+  alcohol: string;
+  noProducts: string;
+  noProductsDescription: string;
+  categories: Record<CategoryKey, string>;
+};
+
+export type ShopContentProps = {
   products: FlattenedProduct[];
-  translations: {
-    title: string;
-    stars: string;
-    reviews: string;
-    add: string;
-    alcohol: string;
-    noProducts: string;
-    noProductsDescription: string;
-    categories: Record<CategoryKey, string>;
-  };
+  translations: ShopTranslations;
   lang: Locale;
-}
 
-const CATEGORIES: CategoryKey[] = [
-  "all",
-  "beer",
-  "cider",
-  "snacks",
-  "gifts-sets",
-  "alcohol-free",
-];
+  // ✅ NEW
+  reviewSummaries: Record<string, ReviewSummary>;
+};
 
 export default function ShopContent({
   products,
   translations,
   lang,
+  reviewSummaries,
 }: ShopContentProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  // Если у тебя есть фильтры по категориям — они могут быть тут.
+  // Я оставляю минимально безопасно: если фильтров нет — просто рендерим все.
+  const [activeCategory, setActiveCategory] = useState<CategoryKey | undefined>(
+    undefined
+  );
 
-  const tabFromUrl = (searchParams.get("category") ?? "all") as string;
-  const initialTab: CategoryKey = CATEGORIES.includes(tabFromUrl as CategoryKey)
-    ? (tabFromUrl as CategoryKey)
-    : "all";
+  const filtered = useMemo(() => {
+    // Если у тебя реально есть логика фильтрации по category — вставь сюда.
+    // Сейчас: если category не выбрана — показываем все.
+    if (!activeCategory) return products;
 
-  const [activeTab, setActiveTab] = useState<CategoryKey>(initialTab);
+    // Пытаемся отфильтровать по коллекциям/тегам если они есть
+    return products.filter((p) => {
+      const collections = (p.collections ?? []).map((c) => c.toLowerCase());
 
-  const handleTabChange = (tab: CategoryKey) => {
-    setActiveTab(tab);
+      if (activeCategory === "beer")
+        return collections.some((c) => c.includes("beer") || c.includes("пиво"));
 
-    const params = new URLSearchParams(searchParams.toString());
+      if (activeCategory === "cider")
+        return collections.some((c) => c.includes("cider") || c.includes("сидр"));
 
-    if (tab === "all") {
-      params.delete("category");
-    } else {
-      params.set("category", tab);
-    }
+      if (activeCategory === "snacks")
+        return collections.some((c) => c.includes("snack") || c.includes("снек"));
 
-    const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  };
+      if (activeCategory === "gifts-sets")
+        return collections.some(
+          (c) => c.includes("gift") || c.includes("set") || c.includes("набор")
+        );
 
-  const filteredProducts = useMemo(() => {
-    if (activeTab === "all") return products;
-    return products.filter((p) => p.collections?.includes(activeTab));
-  }, [products, activeTab]);
+      if (activeCategory === "alcohol-free")
+        return (
+          String(p.specs?.abv ?? "").trim() === "0" ||
+          String(p.specs?.abv ?? "").trim() === "0.0"
+        );
 
-  const categoryTitle =
-    translations.categories[activeTab] ?? translations.categories.all;
+      return true;
+    });
+  }, [products, activeCategory]);
 
-  const currentCategory: LeafCategory | undefined =
-    activeTab !== "all" ? activeTab : undefined;
+  const hasProducts = filtered.length > 0;
 
   return (
-    <>
-      <Tabs<CategoryKey>
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        labels={translations.categories}
-        keys={CATEGORIES}
-      />
+    <section className="mt-6">
+      {/* Если у тебя есть UI категорий — вот место.
+          Сейчас оставляю минимально: можно включить позже. */}
+      {/* <div className="flex flex-wrap gap-2">
+        {(
+          Object.keys(translations.categories) as CategoryKey[]
+        ).map((key) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setActiveCategory(key)}
+            className="rounded-md border border-white/10 bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20"
+          >
+            {translations.categories[key]}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => setActiveCategory(undefined)}
+          className="rounded-md border border-white/10 bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20"
+        >
+          All
+        </button>
+      </div> */}
 
-      {filteredProducts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div className="text-6xl mb-4">🍺</div>
-          <h3 className="text-2xl font-bold text-white mb-2">
+      {!hasProducts ? (
+        <div className="mt-10 rounded-xl border border-white/10 bg-white/5 p-6">
+          <h3 className="text-lg font-semibold text-white">
             {translations.noProducts}
           </h3>
-          <p className="text-gray-400 text-center max-w-md">
+          <p className="mt-2 text-sm text-gray-300">
             {translations.noProductsDescription}
           </p>
         </div>
       ) : (
         <AllProducts
-          title={categoryTitle}
+          title={translations.title}
           stars={translations.stars}
           reviews={translations.reviews}
           add={translations.add}
           alcohol={translations.alcohol}
           lang={lang}
-          products={filteredProducts}
-          category={currentCategory}
+          products={filtered}
+          category={activeCategory}
+          reviewSummaries={reviewSummaries} // ✅ ключевое
         />
       )}
-    </>
+    </section>
   );
 }

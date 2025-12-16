@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { StarIcon } from "@heroicons/react/20/solid";
 
 export type LeaveReviewModalText = {
-  // leave modal (обязательные)
   title: string;
   subtitle?: string;
   ratingLabel: string;
@@ -15,21 +14,6 @@ export type LeaveReviewModalText = {
   submitting: string;
   successMessage: string;
   errorMessage: string;
-
-  // edit/shared (optional — чтобы не падал EditReviewModal по TS)
-  loading?: string;
-  mustLogin?: string;
-  noEmail?: string;
-  fillRequired?: string;
-
-  success?: string;
-  nameLabel?: string;
-  emailLabel?: string;
-  reviewLabel?: string;
-
-  submittingLabel?: string;
-  submitLabel?: string;
-  cancelLabel?: string;
 };
 
 const DEFAULT_TEXTS: LeaveReviewModalText = {
@@ -43,18 +27,6 @@ const DEFAULT_TEXTS: LeaveReviewModalText = {
   submitting: "Submitting...",
   successMessage: "Thanks! Your review was sent.",
   errorMessage: "Something went wrong. Please try again.",
-
-  loading: "Loading...",
-  mustLogin: "You must be logged in",
-  noEmail: "Email is required",
-  fillRequired: "Please fill all required fields",
-  success: "Review updated successfully!",
-  nameLabel: "Name",
-  emailLabel: "Email",
-  reviewLabel: "Your Review",
-  submittingLabel: "Saving...",
-  submitLabel: "Save Changes",
-  cancelLabel: "Cancel",
 };
 
 function classNames(...classes: Array<string | false | null | undefined>) {
@@ -65,11 +37,13 @@ export default function LeaveReviewModal({
   open,
   onClose,
   productExternalId,
+  productHandle,
   texts,
 }: {
   open: boolean;
   onClose: () => void;
-  productExternalId: string;
+  productExternalId: string; // numeric id (optional but nice)
+  productHandle: string; // ✅ обязательно
   texts?: LeaveReviewModalText | null;
 }) {
   const t = useMemo<LeaveReviewModalText>(() => {
@@ -91,9 +65,9 @@ export default function LeaveReviewModal({
 
     const trimmed = comment.trim();
 
-    if (!productExternalId) {
+    if (!productHandle) {
       setStatus("error");
-      setErrorText("Missing product id");
+      setErrorText("Missing product handle");
       return;
     }
 
@@ -118,7 +92,8 @@ export default function LeaveReviewModal({
         body: JSON.stringify({
           rating,
           comment: trimmed,
-          shopify_product_id: productExternalId,
+          shopify_product_id: productExternalId, // может быть пустым — ок
+          product_handle: productHandle, // ✅ ключевой
         }),
       });
 
@@ -175,7 +150,6 @@ export default function LeaveReviewModal({
         </div>
 
         <div className="mt-6 space-y-4">
-          {/* ⭐ Rating */}
           <div>
             <label className="block text-sm font-medium text-white">
               {t.ratingLabel}
@@ -206,14 +180,12 @@ export default function LeaveReviewModal({
                   </button>
                 ))}
               </div>
-
               <span className="text-sm text-gray-300 tabular-nums">
                 {rating}/5
               </span>
             </div>
           </div>
 
-          {/* Comment */}
           <div>
             <label className="block text-sm font-medium text-white">
               {t.commentLabel}
@@ -231,7 +203,6 @@ export default function LeaveReviewModal({
           {status === "success" ? (
             <p className="text-sm text-green-400">{t.successMessage}</p>
           ) : null}
-
           {status === "error" ? (
             <p className="text-sm text-red-400">{errorText || t.errorMessage}</p>
           ) : null}

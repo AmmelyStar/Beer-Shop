@@ -79,7 +79,8 @@
     "CTATitle": "Share your thoughts",
     "CTASubtitle": "If you’ve used this product, share your thoughts with other customers",
     "button": "Write a review",
-    "recentReviews": "Recent reviews"
+    "recentReviews": "Recent reviews",
+    "loginToReview": "Log in to leave a review"
   },
 
   "HeaderSearch": {
