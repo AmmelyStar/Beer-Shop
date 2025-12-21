@@ -19,9 +19,9 @@ type RatingCount = {
 type FeaturedReview = {
   id: string | number;
   rating: number;
-  content: string; // текст отзыва
-  author: string; // имя/фамилия
-  createdAt?: string | null; // ISO
+  content: string;
+  author: string;
+  createdAt?: string | null;
 };
 
 export type ReviewsData = {
@@ -44,14 +44,15 @@ type CustomerReviewsProps = {
   CTASubtitle: string;
   button: string;
 
-  recentReviewsLabel?: string;
-  emptyReviewsText?: string;
+  /** ✅ из messages.customerReviews.recentReviewsLabel */
+  recentReviewsLabel: string;
+  /** ✅ из messages.customerReviews.emptyReviewsText */
+  emptyReviewsText: string;
 
   reviews?: ReviewsData | null;
 
-  // ✅ нужно для отправки отзыва
-  productExternalId: string; // Shopify numeric id
-  productHandle: string; // handle товара
+  productExternalId: string;
+  productHandle: string;
 
   loginToReview: string;
   modalTexts: LeaveReviewModalText;
@@ -99,8 +100,8 @@ export default function CustomerReviews({
   CTATitle,
   CTASubtitle,
   button,
-  recentReviewsLabel = "Recent reviews",
-  emptyReviewsText = "Пока нет отзывов. Будь первым 😉",
+  recentReviewsLabel,
+  emptyReviewsText,
   reviews,
   productExternalId,
   productHandle,
@@ -122,7 +123,7 @@ export default function CustomerReviews({
   }, [reviews]);
 
   return (
-    <section className="border-t border-gray-400 pt-12 mx-auto max-w-4xl">
+    <section className="mx-auto max-w-4xl border-t border-gray-400 pt-12">
       <h2 className="text-2xl font-bold tracking-tight text-white">{title}</h2>
 
       {/* ⭐ Average rating */}
@@ -202,7 +203,7 @@ export default function CustomerReviews({
         </SignedIn>
       </div>
 
-      {/* ✅ Лента отзывов */}
+      {/* ✅ Reviews list */}
       <div className="mt-12">
         <h3 className="text-lg font-semibold text-white">{recentReviewsLabel}</h3>
 
@@ -218,7 +219,6 @@ export default function CustomerReviews({
 
               return (
                 <article key={r.id} className="space-y-2">
-                  {/* дата + имя */}
                   <div className="flex items-center justify-between gap-4">
                     <div className="text-sm text-gray-400">{dateLabel}</div>
                     <div className="text-sm font-semibold text-white">
@@ -226,7 +226,6 @@ export default function CustomerReviews({
                     </div>
                   </div>
 
-                  {/* звезды */}
                   <div className="flex items-center gap-1">
                     {[0, 1, 2, 3, 4].map((i) => (
                       <StarIcon
@@ -242,8 +241,7 @@ export default function CustomerReviews({
                     </span>
                   </div>
 
-                  {/* текст */}
-                  <p className="text-base text-gray-200 whitespace-pre-line">
+                  <p className="whitespace-pre-line text-base text-gray-200">
                     {r.content}
                   </p>
                 </article>

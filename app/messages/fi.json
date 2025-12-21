@@ -263,6 +263,77 @@
   },
   "AddToCartButton":{
     "addToCart": "Lisää koriin"
+  },
+  "Contact": {
+    "title": "Tehdään yhteistyötä",
+    "subtitle": "Kuulemme mielellämme sinusta! Olipa sinulla kysyttävää tuotteistamme, tarvetta apuun tilauksen kanssa tai haluat vain jakaa palautetta — tiimimme auttaa mielellään.",
+    "firstname": "Etunimi",
+    "lastname": "Sukunimi",
+    "emailLabel": "Sähköposti",
+    "company": "Yritys",
+    "phone": "Puhelin",
+    "optional": "Valinnainen",
+    "message": "Miten voimme auttaa?",
+    "messageLimit": "Enintään 500 merkkiä",
+    "submit": "Lähetä viesti",
+    "submitting": "Lähetetään...",
+    "success": "Kiitos yhteydenotostasi! Olemme vastaanottaneet viestisi ja palaamme asiaan mahdollisimman pian.",
+    "error": "Hups! Viestin lähettämisessä tapahtui virhe. Yritä myöhemmin uudelleen."
+  },
+ "Questions": {
+    "title": "Usein kysytyt kysymykset",
+    "empty": "Kysymyksiä ei ole vielä"
+  },
+   "reviewModal": {
+    "titleCreate": "Jätä arvostelu",
+    "titleEdit": "Muokkaa arvostelua",
+    "subtitleCreate": "Kerro meille, mitä mieltä olet tästä tuotteesta.",
+    "subtitleEdit": "Päivitä arvosana ja teksti. Muokkauksen jälkeen arvostelu voidaan tarkistaa uudelleen.",
+
+    "nameLabel": "Nimi",
+    "ratingLabel": "Arvosana",
+    "textLabel": "Arvostelusi",
+
+    "namePlaceholder": "Nimesi",
+    "textPlaceholder": "Kirjoita vähintään 10 merkkiä...",
+
+    "helperMinMax": "Min 10, max 200 merkkiä",
+    "helperChars": "{count}/200",
+
+    "cancel": "Peruuta",
+    "submit": "Lähetä arvostelu",
+    "saveChanges": "Tallenna",
+    "sending": "Lähetetään...",
+
+    "validationName": "Ole hyvä ja kirjoita nimesi.",
+    "validationMin": "Arvostelutekstin on oltava vähintään 10 merkkiä.",
+    "validationMax": "Arvosteluteksti saa olla enintään 200 merkkiä.",
+    "validationRating": "Valitse arvosana 1–5 tähteä.",
+    "validationMissingHandle": "Tuotteen handle puuttuu.",
+
+    "errorSubmit": "Arvostelun lähetys epäonnistui.",
+    "errorUpdate": "Arvostelun päivitys epäonnistui.",
+
+    "successSubmit": "Kiitos! Arvostelusi on lähetetty.",
+    "successUpdate": "Arvostelusi on päivitetty.",
+
+    "closeAria": "Sulje"
+  },
+   "customerReviews": {
+    "recentReviewsLabel": "Uusimmat arvostelut",
+    "emptyReviewsText": "Arvosteluja ei vielä ole. Ole ensimmäinen, joka jättää arvostelun."
+  },
+  "leaveReviewModal": {
+    "title": "Jätä arvostelu",
+    "subtitle": "Kerro kokemuksestasi tämän tuotteen kanssa.",
+    "ratingLabel": "Arvosana",
+    "commentLabel": "Arvostelusi",
+    "commentPlaceholder": "Kirjoita arvostelusi tähän...",
+    "submitButton": "Lähetä",
+    "cancelButton": "Peruuta",
+    "submitting": "Lähetetään...",
+    "successMessage": "Kiitos! Arvostelusi on lähetetty.",
+    "errorMessage": "Jokin meni pieleen. Yritä uudelleen."
   }
 
 }

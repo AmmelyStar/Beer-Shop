@@ -263,5 +263,77 @@
   },
   "AddToCartButton": {
     "addToCart": "Lisa ostukorvi"
+  },
+  "Contact": {
+    "title": "Teeme koostööd",
+    "subtitle": "Meil on hea meel sinust kuulda! Kui sul on küsimusi meie toodete kohta, vajad abi tellimusega või soovid lihtsalt tagasisidet jagada — meie meeskond on siin, et aidata.",
+    "firstname": "Eesnimi",
+    "lastname": "Perekonnanimi",
+    "emailLabel": "E-post",
+    "company": "Ettevõte",
+    "phone": "Telefon",
+    "optional": "Valikuline",
+    "message": "Kuidas saame sind aidata?",
+    "messageLimit": "Maksimaalselt 500 tähemärki",
+    "submit": "Saada sõnum",
+    "submitting": "Saatmine...",
+    "success": "Aitäh, et meiega ühendust võtsid! Oleme sinu sõnumi kätte saanud ja võtame sinuga peagi ühendust.",
+    "error": "Ups! Sõnumi saatmisel tekkis viga. Palun proovi hiljem uuesti."
+  },
+ "Questions": {
+    "title": "Korduma kippuvad küsimused",
+    "empty": "Küsimusi veel pole"
+  },
+  "reviewModal": {
+    "titleCreate": "Jäta arvustus",
+    "titleEdit": "Muuda arvustust",
+    "subtitleCreate": "Räägi meile, mida sa sellest tootest arvad.",
+    "subtitleEdit": "Uuenda hinnangut ja teksti. Pärast muutmist võib arvustus minna uuesti modereerimisele.",
+
+    "nameLabel": "Nimi",
+    "ratingLabel": "Hinnang",
+    "textLabel": "Sinu arvustus",
+
+    "namePlaceholder": "Sinu nimi",
+    "textPlaceholder": "Kirjuta vähemalt 10 tähemärki...",
+
+    "helperMinMax": "Min 10, max 200 tähemärki",
+    "helperChars": "{count}/200",
+
+    "cancel": "Tühista",
+    "submit": "Saada arvustus",
+    "saveChanges": "Salvesta",
+    "sending": "Saadan...",
+
+    "validationName": "Palun sisesta oma nimi.",
+    "validationMin": "Arvustuse tekst peab olema vähemalt 10 tähemärki.",
+    "validationMax": "Arvustuse tekst võib olla maksimaalselt 200 tähemärki.",
+    "validationRating": "Palun vali hinnang 1 kuni 5 tärni.",
+    "validationMissingHandle": "Toote handle puudub.",
+
+    "errorSubmit": "Arvustuse saatmine ebaõnnestus.",
+    "errorUpdate": "Arvustuse uuendamine ebaõnnestus.",
+
+    "successSubmit": "Aitäh! Sinu arvustus on saadetud.",
+    "successUpdate": "Sinu arvustus on uuendatud.",
+
+    "closeAria": "Sulge"
+  },
+  "customerReviews": {
+    "recentReviewsLabel": "Värsked arvustused",
+    "emptyReviewsText": "Arvustusi veel pole. Ole esimene, kes jätab arvustuse."
+  },
+  "leaveReviewModal": {
+    "title": "Jäta arvustus",
+    "subtitle": "Jaga oma kogemust selle tootega.",
+    "ratingLabel": "Hinnang",
+    "commentLabel": "Sinu arvustus",
+    "commentPlaceholder": "Kirjuta oma arvustus siia...",
+    "submitButton": "Saada",
+    "cancelButton": "Tühista",
+    "submitting": "Saadan...",
+    "successMessage": "Aitäh! Sinu arvustus on saadetud.",
+    "errorMessage": "Midagi läks valesti. Palun proovi uuesti."
   }
 }
+

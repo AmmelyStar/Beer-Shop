@@ -59,7 +59,6 @@ export default async function ProductPage({
 
   const supabase = getSupabaseServerClient();
 
-  // ✅ Подтягиваем отзывы по handle
   const { data: rows, error } = await supabase
     .from("reviews")
     .select("id, rating, text, name, created_at")
@@ -72,17 +71,14 @@ export default async function ProductPage({
   const list: ReviewRow[] = (rows ?? []) as ReviewRow[];
 
   const totalCount = list.length;
-
   const sum = list.reduce((s, r) => s + (Number(r.rating) || 0), 0);
-  const average =
-    totalCount > 0 ? Math.round((sum / totalCount) * 10) / 10 : 0;
+  const average = totalCount > 0 ? Math.round((sum / totalCount) * 10) / 10 : 0;
 
   const counts = ([5, 4, 3, 2, 1] as const).map((r) => ({
     rating: r,
     count: list.filter((x) => Number(x.rating) === r).length,
   }));
 
-  // ✅ ВАЖНО: прокидываем createdAt, чтобы в UI была дата
   const featured = list.map((r) => ({
     id: r.id,
     rating: Number(r.rating) || 0,
@@ -95,20 +91,7 @@ export default async function ProductPage({
     average,
     totalCount,
     counts,
-    featured, // показываем все отзывы (можешь ограничить slice(0, N))
-  };
-
-  const leaveReviewModalTexts = {
-    title: "Leave a review",
-    subtitle: "Share your experience with this product",
-    ratingLabel: "Rating",
-    commentLabel: "Your review",
-    commentPlaceholder: "Write your review here...",
-    submitButton: "Submit",
-    cancelButton: "Cancel",
-    submitting: "Submitting...",
-    successMessage: "Thanks! Your review was sent.",
-    errorMessage: "Something went wrong. Please try again.",
+    featured,
   };
 
   return (
@@ -154,17 +137,13 @@ export default async function ProductPage({
         CTATitle={t.CustomerReviews.CTATitle}
         CTASubtitle={t.CustomerReviews.CTASubtitle}
         button={t.CustomerReviews.button}
-
-        // ✅ ВОТ ТУТ FIX: больше не recentReviews, а recentReviewsLabel
-        recentReviewsLabel={t.CustomerReviews.recentReviews}
-        // optional:
-        // emptyReviewsText={t.CustomerReviews.emptyReviews ?? "No reviews yet"}
-
+        recentReviewsLabel={t.customerReviews.recentReviewsLabel}
+        emptyReviewsText={t.customerReviews.emptyReviewsText}
         reviews={reviewsData}
         productExternalId={productExternalId}
         productHandle={product.handle}
-        loginToReview={"Log in to leave a review"}
-        modalTexts={leaveReviewModalTexts}
+        loginToReview={t.CustomerReviews.loginToReview}
+        modalTexts={t.leaveReviewModal}
       />
     </main>
   );

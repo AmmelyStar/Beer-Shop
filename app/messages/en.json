@@ -234,5 +234,76 @@
   },
   "AddToCartButton":{
     "addToCart": "Add to cart"
+  },
+   "Contact": {
+    "title": "Let's work together",
+    "subtitle": "We'd love to hear from you! Whether you have questions about our products, need assistance with an order, or just want to share your feedback, our team is here to help.",
+    "firstname": "First name",
+    "lastname": "Last name",
+    "emailLabel": "Email",
+    "company": "Company",
+    "phone": "Phone",
+    "optional": "Optional",
+    "message": "How can we help you?",
+    "messageLimit": "Max 500 characters",
+    "submit": "Send message",
+    "submitting": "Sending...",
+    "success": "Thank you for reaching out! We have received your message and will get back to you as soon as possible.",
+    "error": "Oops! Something went wrong while sending your message. Please try again later."
+  },
+  "Questions": {
+    "title": "Frequently asked questions",
+    "empty": "No questions yet"
+  },
+  "reviewModal": {
+    "titleCreate": "Leave a review",
+  "titleEdit": "Edit review",
+  "subtitleCreate": "Tell us what you think about this product.",
+  "subtitleEdit": "Update your rating and text. After editing, the review may be re-moderated.",
+
+  "nameLabel": "Name",
+  "ratingLabel": "Rating",
+  "textLabel": "Your review",
+
+  "namePlaceholder": "Your name",
+  "textPlaceholder": "Write at least 10 characters...",
+
+  "helperMinMax": "Min 10, max 200 characters",
+  "helperChars": "{count}/200",
+
+  "cancel": "Cancel",
+  "submit": "Submit review",
+  "saveChanges": "Save changes",
+  "sending": "Sending...",
+
+  "validationName": "Please enter your name.",
+  "validationMin": "Review text must be at least 10 characters.",
+  "validationMax": "Review text must be at most 200 characters.",
+  "validationRating": "Please select a rating from 1 to 5 stars.",
+  "validationMissingHandle": "Missing product handle.",
+
+  "errorSubmit": "Failed to submit review.",
+  "errorUpdate": "Failed to update review.",
+
+  "successSubmit": "Thank you! Your review has been submitted.",
+  "successUpdate": "Your review has been updated.",
+
+  "closeAria": "Close"
+  },
+  "customerReviews": {
+    "recentReviewsLabel": "Recent reviews",
+    "emptyReviewsText": "No reviews yet. Be the first to leave one."
+  },
+  "leaveReviewModal": {
+    "title": "Leave a review",
+    "subtitle": "Share your experience with this product.",
+    "ratingLabel": "Rating",
+    "commentLabel": "Your review",
+    "commentPlaceholder": "Write your review here...",
+    "submitButton": "Submit",
+    "cancelButton": "Cancel",
+    "submitting": "Submitting...",
+    "successMessage": "Thanks! Your review was sent.",
+    "errorMessage": "Something went wrong. Please try again."
   }
 }
