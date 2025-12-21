@@ -1,206 +1,279 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useDebouncedValue } from "@/app/lib/useDebouncedValue";
+import { useRouter } from "next/navigation";
+import type { Locale } from "@/app/lib/locale";
 
-type HeaderSearchMessages = {
-  HeaderSearch?: { label?: string; placeholder?: string };
-};
-
-type SearchProduct = {
-  id: string;
+type SearchItem = {
   title: string;
-  handle: string;
-  imageUrl: string | null;
-  imageAlt: string | null;
+  handle?: string | null;
+  url?: string | null;
 };
 
-type SearchApiResponse = {
-  products?: SearchProduct[];
-  error?: string;
+type Props = {
+  lang: Locale;
 };
 
-export default function HeaderSearch({
-  lang,
-  messages,
-  label,
-}: {
-  lang: string;
-  messages?: HeaderSearchMessages;
-  /** кастомная подпись (перебьёт messages) */
-  label?: string;
-}) {
+function cn(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
+}
+
+export default function HeaderSearch({ lang }: Props) {
+  const router = useRouter();
+
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const debounced = useDebouncedValue(query, 250);
-
+  const [q, setQ] = useState("");
+  const [items, setItems] = useState<SearchItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState<SearchProduct[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
-  const inputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const Label = messages?.HeaderSearch?.label ?? label ?? "Search products";
-  const Placeholder = messages?.HeaderSearch?.placeholder ?? "Search beer…";
+  const trimmed = useMemo(() => q.trim(), [q]);
 
-  const close = () => {
-    setOpen(false);
-    setQuery("");
-    setItems([]);
-    setError(null);
-    setLoading(false);
-  };
-
-  // автофокус
-  useEffect(() => {
-    if (open) inputRef.current?.focus();
-  }, [open]);
-
-  // закрытие при клике вне dropdown
+  // close on outside click
   useEffect(() => {
     if (!open) return;
 
-    function onDown(e: MouseEvent) {
-      const el = containerRef.current;
-      if (!el) return;
-      if (e.target instanceof Node && !el.contains(e.target)) close();
-    }
+    const onDown = (e: MouseEvent) => {
+      if (!rootRef.current) return;
+      if (!rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
 
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    window.addEventListener("mousedown", onDown);
+    return () => window.removeEventListener("mousedown", onDown);
   }, [open]);
 
-  // Поиск через API route
+  // close on escape
   useEffect(() => {
-    let cancelled = false;
+    if (!open) return;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  // focus input when opened
+  useEffect(() => {
+    if (!open) return;
+    const t = window.setTimeout(() => inputRef.current?.focus(), 0);
+    return () => window.clearTimeout(t);
+  }, [open]);
+
+  // fetch suggestions (debounced)
+  useEffect(() => {
+    let alive = true;
+    const controller = new AbortController();
 
     async function run() {
       if (!open) return;
-
-      const q = debounced.trim();
-
-      // пока меньше 2 символов — ничего не ищем и не показываем "not found"
-      if (q.length < 2) {
+      if (!trimmed) {
         setItems([]);
-        setError(null);
-        setLoading(false);
         return;
       }
 
       setLoading(true);
-      setError(null);
 
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, {
-          cache: "no-store",
-        });
+        // IMPORTANT:
+        // Подстрой endpoint под свой проект, если у тебя другой.
+        // Я делаю максимально мягко: пробуем /api/search?q=
+        const res = await fetch(
+          `/api/search?q=${encodeURIComponent(trimmed)}&lang=${encodeURIComponent(
+            String(lang)
+          )}`,
+          { signal: controller.signal }
+        );
 
-        const data = (await res.json()) as SearchApiResponse;
+        if (!res.ok) throw new Error("Search failed");
 
-        if (!res.ok) {
-          throw new Error(data?.error || "Search failed");
-        }
+        const data = (await res.json()) as {
+          items?: Array<{ title?: string; handle?: string; url?: string }>;
+          results?: Array<{ title?: string; handle?: string; url?: string }>;
+        };
 
-        if (!cancelled) setItems(data.products ?? []);
-      } catch (e: unknown) {
-        if (!cancelled) {
-          setItems([]);
-          const message = e instanceof Error ? e.message : "Search failed";
-          setError(message);
-        }
+        const raw = data.items ?? data.results ?? [];
+        const mapped: SearchItem[] = raw
+          .map((x) => ({
+            title: x.title ?? "",
+            handle: x.handle ?? null,
+            url: x.url ?? null,
+          }))
+          .filter((x) => x.title);
+
+        if (!alive) return;
+        setItems(mapped.slice(0, 6));
+      } catch {
+        if (!alive) return;
+        setItems([]);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!alive) return;
+        setLoading(false);
       }
     }
 
-    run();
+    const t = window.setTimeout(run, 180);
     return () => {
-      cancelled = true;
+      alive = false;
+      controller.abort();
+      window.clearTimeout(t);
     };
-  }, [debounced, open]);
+  }, [open, trimmed, lang]);
 
-  const showNoResults =
-    open &&
-    !loading &&
-    !error &&
-    debounced.trim().length >= 2 &&
-    items.length === 0;
+  function onSubmit() {
+    const query = trimmed;
+    if (!query) return;
+
+    // безопасный вариант: ведём на shop с query
+    router.push(`/${lang}/shop?query=${encodeURIComponent(query)}`);
+    setOpen(false);
+  }
 
   return (
-    <div ref={containerRef} className="relative">
-      {/* Лупа */}
+    // ВАЖНО: relative + w-full => dropdown НЕ вылезет за рамку меню
+    <div ref={rootRef} className="relative w-full">
+      {/* Trigger button (иконка) */}
       <button
         type="button"
-        aria-label={Label}
         onClick={() => setOpen((v) => !v)}
-        className="p-2 text-gray-400 hover:text-yellow-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-400 rounded-md"
+        className={cn(
+          "inline-flex items-center justify-center rounded-xl p-2 transition-colors",
+          "text-white/80 hover:text-white hover:bg-white/10"
+        )}
+        aria-label="Search"
+        aria-expanded={open}
+        aria-haspopup="dialog"
       >
-        <span className="sr-only">{Label}</span>
-        <MagnifyingGlassIcon aria-hidden="true" className="h-6 w-6" />
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
+          <path
+            d="M16.2 16.2 21 21"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
       </button>
 
-      {/* Dropdown (не во всю ширину хедера) */}
+      {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl bg-zinc-950/95 shadow-2xl ring-1 ring-white/10 backdrop-blur p-4 z-50">
-          {/* Input line (как в форме: тонкая линия снизу) */}
-          <div className="flex items-center gap-3 border-b border-white/15 pb-2 focus-within:border-white/35">
-            <MagnifyingGlassIcon className="h-5 w-5 text-white/60" />
+        <div
+          role="dialog"
+          aria-modal="false"
+          className={cn(
+            // РОВНО по ширине контейнера: не вылезает
+            "absolute left-0 right-0 top-full mt-2",
+            // На мобилке делаем компактнее: максимум 340px, но не шире родителя
+            "mx-auto max-w-[340px] md:mx-0 md:max-w-[360px]",
+            "rounded-2xl border border-white/10 bg-[#0b0f10] shadow-xl",
+            "overflow-hidden"
+          )}
+          style={{
+            // на всякий случай выключаем blur если где-то глобально включен
+            backdropFilter: "none",
+            WebkitBackdropFilter: "none",
+          }}
+        >
+          {/* Input row */}
+          <div className="flex items-center gap-2 px-3 py-2.5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-white/45">
+              <path
+                d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <path
+                d="M16.2 16.2 21 21"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
 
             <input
               ref={inputRef}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Escape") close();
+                if (e.key === "Enter") onSubmit();
               }}
-              placeholder={Placeholder}
-              autoComplete="off"
-              className="w-full bg-transparent border-0 outline-none focus:outline-none focus:ring-0 text-sm text-white placeholder:text-white/40"
+              placeholder="Search beer…"
+              className={cn(
+                "w-full bg-transparent outline-none",
+                "text-sm text-white placeholder:text-white/35"
+              )}
             />
 
             <button
               type="button"
-              onClick={close}
-              className="text-white/50 hover:text-white/80"
-              aria-label="Close search"
+              onClick={() => {
+                setQ("");
+                setItems([]);
+                inputRef.current?.focus();
+              }}
+              className="rounded-lg p-1.5 text-white/55 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Clear"
+              title="Clear"
             >
-              <XMarkIcon className="h-5 w-5" />
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M6 6l12 12M18 6L6 18"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
             </button>
           </div>
 
-          {/* Состояния */}
-          <div className="mt-3">
+          <div className="h-px bg-white/10" />
+
+          {/* Results */}
+          <div className="max-h-64 overflow-auto py-1">
             {loading && (
-              <p className="text-sm text-white/45">Searching…</p>
+              <div className="px-3 py-2 text-sm text-white/55">Searching…</div>
             )}
 
-            {error && (
-              <p className="text-sm text-red-400">{error}</p>
+            {!loading && trimmed && items.length === 0 && (
+              <div className="px-3 py-2 text-sm text-white/55">No results</div>
             )}
 
-            {showNoResults && (
-              <p className="text-sm text-white/45">No products found</p>
+            {!loading && !trimmed && (
+              <div className="px-3 py-2 text-sm text-white/45">
+                Start typing to search
+              </div>
             )}
 
-            {!loading && !error && items.length > 0 && (
-              <ul className="mt-2 space-y-1">
-                {items.map((p) => (
-                  <li key={p.id}>
-                    <Link
-                      href={`/product/${p.handle}`}
-                      className="block rounded-xl px-2 py-2 text-sm text-white/85 hover:bg-white/5"
-                      onClick={() => setOpen(false)}
-                    >
-                      {p.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {!loading &&
+              items.map((it, idx) => {
+                const href =
+                  it.url ??
+                  (it.handle
+                    ? `/${lang}/product/${it.handle}`
+                    : `/${lang}/shop?query=${encodeURIComponent(it.title)}`);
+
+                return (
+                  <Link
+                    key={`${it.title}-${idx}`}
+                    href={href}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "block px-3 py-2 text-sm",
+                      "text-white/85 hover:text-white hover:bg-white/10 transition-colors"
+                    )}
+                  >
+                    {it.title}
+                  </Link>
+                );
+              })}
           </div>
         </div>
       )}

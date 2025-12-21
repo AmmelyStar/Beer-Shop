@@ -18,7 +18,7 @@ export default async function DeliveryPage({
 
   return (
     <main>
-      <LegalPageLayout title={page.title} html={page.body} />;
+      <LegalPageLayout title={page.title} html={page.body} />
     </main>
-  );
+  )
 }

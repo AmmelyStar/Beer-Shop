@@ -76,8 +76,8 @@ export default async function Footer({ lang }: FooterProps) {
         // Shipping & payment -> delivery
         { label: t.customers.shippingPayment, href: "/delivery" },
 
-        // Returns -> cookie policy (как ты сказала)
-        { label: t.customers.returns, href: "/cookie-policy" },
+        // Returns -> 
+        { label: t.customers.returns, href: "/refunds" },
 
         // Cookie policy -> cookie policy
         { label: t.customers.cookiePolicy, href: "/cookies-policy" },

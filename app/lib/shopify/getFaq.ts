@@ -39,7 +39,7 @@ export async function getFaq(lang: Locale): Promise<FaqItem[]> {
     const f = fieldsToObj(n.fields);
     return {
       id: n.id,
-      question: String(f.question ?? ""),
+      question: String(f.question1 ?? ""),
       answer: String(f.answer ?? ""),
       order: Number(f.order ?? 0),
     };
