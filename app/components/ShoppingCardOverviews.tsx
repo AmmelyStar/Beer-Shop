@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -61,6 +62,36 @@ function getProductHandle(value: unknown): string | null {
     : null;
 }
 
+function getViewProductText(lang: Locale) {
+  switch (lang) {
+    case "ru":
+      return "Просмотреть товар";
+    case "uk":
+      return "Переглянути товар";
+    case "et":
+      return "Vaata toodet";
+    case "fi":
+      return "Näytä tuote";
+    default:
+      return "View product";
+  }
+}
+
+function getPaginationLabels(lang: Locale) {
+  switch (lang) {
+    case "ru":
+      return { prev: "Назад", next: "Вперёд", page: "Стр.", of: "из" };
+    case "uk":
+      return { prev: "Назад", next: "Далі", page: "Стор.", of: "з" };
+    case "et":
+      return { prev: "Eelmine", next: "Järgmine", page: "Lk", of: "/" };
+    case "fi":
+      return { prev: "Edellinen", next: "Seuraava", page: "Sivu", of: "/" };
+    default:
+      return { prev: "Prev", next: "Next", page: "Page", of: "of" };
+  }
+}
+
 export default function ShoppingCardOverviews({
   shoppingCart,
   description,
@@ -83,6 +114,7 @@ export default function ShoppingCardOverviews({
   const items = cart.lines;
   const hasItems = items.length > 0;
 
+  // ✅ totals считаем по ВСЕЙ корзине
   const totalPrice = items.reduce(
     (sum, line) => sum + line.unitPrice * line.quantity,
     0
@@ -106,6 +138,33 @@ export default function ShoppingCardOverviews({
       router.push(`/account?redirectTo=${redirectTo}`);
     }
   };
+
+  // ✅ Pagination
+  const PAGE_SIZE = 4; // <-- меняй здесь количество товаров на странице
+  const labels = getPaginationLabels(lang);
+
+  // страница (1-based)
+  const [page, setPage] = useState(1);
+
+  const totalItems = items.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+
+  // ✅ ВАЖНО: БЕЗ useEffect и setState внутри эффекта
+  // Если текущая page стала больше totalPages (после удаления товаров),
+  // просто вычисляем "безопасную" страницу для рендера.
+  const safePage = Math.min(page, totalPages);
+
+  const startIdx = (safePage - 1) * PAGE_SIZE;
+  const endIdx = startIdx + PAGE_SIZE;
+
+  const visibleItems = useMemo(() => {
+    return items.slice(startIdx, endIdx);
+  }, [items, startIdx, endIdx]);
+
+  const showPagination = hasItems && totalItems > PAGE_SIZE;
+
+  const goPrev = () => setPage((p) => Math.max(1, p - 1));
+  const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
   return (
     <div>
@@ -137,25 +196,63 @@ export default function ShoppingCardOverviews({
                   </Link>
                 </div>
               ) : (
-                <ul
-                  role="list"
-                  className="divide-y divide-gray-200 border-b border-t border-gray-200"
-                >
-                  {items.map((product) => {
-                    const handle = getProductHandle(product);
-                    const canLink = Boolean(handle);
-                    const href = canLink ? productHref(lang, handle!) : null;
+                <>
+                  {/* ✅ Pagination (top) */}
+                  {showPagination && (
+                    <div className="mt-6 flex items-center justify-between">
+                      <p className="text-sm text-gray-400">
+                        {labels.page} {safePage} {labels.of} {totalPages}
+                      </p>
 
-                    return (
-                      <li key={product.id} className="flex py-6 sm:py-10">
-                        <div className="shrink-0 size-24 sm:size-48 relative rounded-lg bg-stone-600 overflow-hidden">
-                          {product.imageUrl && href ? (
-                            <Link
-                              href={href}
-                              prefetch={false}
-                              className="block w-full h-full"
-                              aria-label={product.title}
-                            >
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={goPrev}
+                          disabled={safePage === 1}
+                          className="rounded-md border border-white/20 bg-transparent px-3 py-1.5 text-sm font-semibold text-gray-200 hover:bg-white/5 disabled:opacity-40 disabled:hover:bg-transparent"
+                        >
+                          {labels.prev}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={goNext}
+                          disabled={safePage === totalPages}
+                          className="rounded-md border border-white/20 bg-transparent px-3 py-1.5 text-sm font-semibold text-gray-200 hover:bg-white/5 disabled:opacity-40 disabled:hover:bg-transparent"
+                        >
+                          {labels.next}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <ul
+                    role="list"
+                    className="mt-4 divide-y divide-gray-200 border-b border-t border-gray-200"
+                  >
+                    {visibleItems.map((product) => {
+                      const handle = getProductHandle(product);
+                      const href = handle ? productHref(lang, handle) : null;
+
+                      return (
+                        <li key={product.id} className="flex py-6 sm:py-10">
+                          <div className="shrink-0 size-24 sm:size-48 relative rounded-lg bg-stone-600 overflow-hidden">
+                            {product.imageUrl && href ? (
+                              <Link
+                                href={href}
+                                prefetch={false}
+                                className="block w-full h-full"
+                                aria-label={product.title}
+                              >
+                                <Image
+                                  width={640}
+                                  height={640}
+                                  alt={product.imageAlt}
+                                  src={product.imageUrl}
+                                  className="object-contain p-3 w-full h-full"
+                                />
+                              </Link>
+                            ) : product.imageUrl ? (
                               <Image
                                 width={640}
                                 height={640}
@@ -163,113 +260,144 @@ export default function ShoppingCardOverviews({
                                 src={product.imageUrl}
                                 className="object-contain p-3 w-full h-full"
                               />
-                            </Link>
-                          ) : product.imageUrl ? (
-                            <Image
-                              width={640}
-                              height={640}
-                              alt={product.imageAlt}
-                              src={product.imageUrl}
-                              className="object-contain p-3 w-full h-full"
-                            />
-                          ) : null}
-                        </div>
+                            ) : null}
+                          </div>
 
-                        <div className="ml-4 flex flex-1 flex-col justify-between sm:ml-6">
-                          <div className="relative pr-9 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:pr-0">
-                            <div>
-                              <div className="flex justify-between">
-                                <h3 className="text-lg font-medium pr-6">
-                                  {href ? (
+                          <div className="ml-4 flex flex-1 flex-col justify-between sm:ml-6">
+                            <div className="relative pr-9 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:pr-0">
+                              <div>
+                                <div className="flex justify-between">
+                                  <h3 className="text-lg font-medium pr-6">
+                                    {href ? (
+                                      <Link
+                                        href={href}
+                                        prefetch={false}
+                                        className="text-yellow-400 hover:opacity-80"
+                                      >
+                                        {product.title}
+                                      </Link>
+                                    ) : (
+                                      <span className="text-yellow-400">
+                                        {product.title}
+                                      </span>
+                                    )}
+                                  </h3>
+                                </div>
+
+                                {href && (
+                                  <div className="mt-1">
                                     <Link
                                       href={href}
                                       prefetch={false}
-                                      className="text-yellow-400 hover:opacity-80"
+                                      className="text-sm text-gray-300 underline underline-offset-4 hover:text-white"
                                     >
-                                      {product.title}
+                                      {getViewProductText(lang)}
                                     </Link>
-                                  ) : (
-                                    <span className="text-yellow-400">
-                                      {product.title}
-                                    </span>
-                                  )}
-                                </h3>
+                                  </div>
+                                )}
                               </div>
 
-                              {/* ✅ ВОТ ОНА: ссылка "Просмотреть товар" на каждый item */}
-                              {href && (
-                                <div className="mt-1">
-                                  <Link
-                                    href={href}
-                                    prefetch={false}
-                                    className="text-sm text-gray-300 underline underline-offset-4 hover:text-white"
-                                  >
-                                    Просмотреть товар
-                                  </Link>
+                              <div className="absolute right-0 top-0 mt-4 sm:mt-0 sm:pr-9 flex flex-col gap-5">
+                                <div>
+                                  <div className="flex gap-8 items-center">
+                                    <p className="mt-1 text-base font-medium text-gray-300">
+                                      {(
+                                        product.unitPrice * product.quantity
+                                      ).toFixed(2)}{" "}
+                                      €
+                                    </p>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeLine(product.id)}
+                                      className="-m-2 inline-flex p-2 text-gray-400 hover:text-gray-500"
+                                    >
+                                      <span className="sr-only">Remove</span>
+                                      <XMarkIconMini
+                                        aria-hidden="true"
+                                        className="size-5"
+                                      />
+                                    </button>
+                                  </div>
                                 </div>
-                              )}
-                            </div>
 
-                            <div className="absolute right-0 top-0 mt-4 sm:mt-0 sm:pr-9 flex flex-col gap-5">
-                              <div>
-                                <div className="flex gap-8 items-center">
-                                  <p className="mt-1 text-base font-medium text-gray-300">
-                                    {(product.unitPrice * product.quantity).toFixed(
-                                      2
-                                    )}{" "}
-                                    €
-                                  </p>
+                                <div className="flex items-center gap-2">
                                   <button
                                     type="button"
-                                    onClick={() => removeLine(product.id)}
-                                    className="-m-2 inline-flex p-2 text-gray-400 hover:text-gray-500"
+                                    onClick={() =>
+                                      updateLineQuantity(
+                                        product.id,
+                                        Math.max(1, product.quantity - 1)
+                                      )
+                                    }
+                                    className="flex size-8 items-center justify-center rounded-md border border-gray-400 text-gray-300 hover:bg-white/10 transition-colors"
                                   >
-                                    <span className="sr-only">Remove</span>
-                                    <XMarkIconMini
-                                      aria-hidden="true"
-                                      className="size-5"
-                                    />
+                                    <span className="sr-only">
+                                      Decrease quantity
+                                    </span>
+                                    <span className="text-lg font-medium">
+                                      −
+                                    </span>
+                                  </button>
+
+                                  <span className="w-8 text-center text-base text-gray-200">
+                                    {product.quantity}
+                                  </span>
+
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      updateLineQuantity(
+                                        product.id,
+                                        product.quantity + 1
+                                      )
+                                    }
+                                    className="flex size-8 items-center justify-center rounded-md border border-gray-400 text-gray-300 hover:bg-white/10 transition-colors"
+                                  >
+                                    <span className="sr-only">
+                                      Increase quantity
+                                    </span>
+                                    <span className="text-lg font-medium">
+                                      +
+                                    </span>
                                   </button>
                                 </div>
                               </div>
-
-                              <div className="flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    updateLineQuantity(
-                                      product.id,
-                                      Math.max(1, product.quantity - 1)
-                                    )
-                                  }
-                                  className="flex size-8 items-center justify-center rounded-md border border-gray-400 text-gray-300 hover:bg-white/10 transition-colors"
-                                >
-                                  <span className="sr-only">Decrease quantity</span>
-                                  <span className="text-lg font-medium">−</span>
-                                </button>
-
-                                <span className="w-8 text-center text-base text-gray-200">
-                                  {product.quantity}
-                                </span>
-
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    updateLineQuantity(product.id, product.quantity + 1)
-                                  }
-                                  className="flex size-8 items-center justify-center rounded-md border border-gray-400 text-gray-300 hover:bg-white/10 transition-colors"
-                                >
-                                  <span className="sr-only">Increase quantity</span>
-                                  <span className="text-lg font-medium">+</span>
-                                </button>
-                              </div>
                             </div>
                           </div>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  {/* ✅ Pagination (bottom) */}
+                  {showPagination && (
+                    <div className="mt-6 flex items-center justify-between">
+                      <p className="text-sm text-gray-400">
+                        {labels.page} {safePage} {labels.of} {totalPages}
+                      </p>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={goPrev}
+                          disabled={safePage === 1}
+                          className="rounded-md border border-white/20 bg-transparent px-3 py-1.5 text-sm font-semibold text-gray-200 hover:bg-white/5 disabled:opacity-40 disabled:hover:bg-transparent"
+                        >
+                          {labels.prev}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={goNext}
+                          disabled={safePage === totalPages}
+                          className="rounded-md border border-white/20 bg-transparent px-3 py-1.5 text-sm font-semibold text-gray-200 hover:bg-white/5 disabled:opacity-40 disabled:hover:bg-transparent"
+                        >
+                          {labels.next}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </section>
 
@@ -301,7 +429,9 @@ export default function ShoppingCardOverviews({
                           type="button"
                           className="ml-2 shrink-0 text-gray-400 hover:text-gray-300"
                         >
-                          <span className="sr-only">{shippingEstimateInfo}</span>
+                          <span className="sr-only">
+                            {shippingEstimateInfo}
+                          </span>
                           <QuestionMarkCircleIcon
                             aria-hidden="true"
                             className="size-5"

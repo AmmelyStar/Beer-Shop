@@ -97,7 +97,7 @@ export default async function Footer({ lang }: FooterProps) {
   ];
 
   return (
-    <footer className="bg-neutral-950">
+    <footer className="bg-[var(--background)]">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="border-t border-b border-neutral-600/70 py-12">
           <div className="grid gap-12 md:grid-cols-3 md:gap-16">

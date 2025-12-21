@@ -139,8 +139,8 @@
       "contacts": "Контакти"
     },
     "followUs": "Підписуйтеся на нас",
-    "copyright": "© 2025 Craft Bear Store",
-    "prodused": "Produced by Dvi"
+    "copyright": "© 2025 Beer & Snacks",
+    "prodused": "Створено DVI"
   },
   "CookieBanner": {
     "text": "Ми використовуємо cookies, щоб покращити ваш досвід, аналізувати трафік та персоналізувати контент. Ви можете прийняти або відхилити необов’язкові cookies.",
@@ -350,5 +350,11 @@
     "submitting": "Надсилаємо...",
     "successMessage": "Дякуємо! Ваш відгук надіслано.",
     "errorMessage": "Щось пішло не так. Спробуйте ще раз."
-  }
+  },
+  "HeaderNav": {
+  "home": "Головна",
+  "shop": "Магазин",
+  "contacts": "Контакти"
+}
+
 }

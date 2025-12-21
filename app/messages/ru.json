@@ -131,8 +131,8 @@
       "contacts": "Контакты"
     },
     "followUs": "Подписывайтесь на нас",
-    "copyright": "© 2025 Craft Bear Store",
-    "prodused": "Produced by Dvi"
+    "copyright": "© 2025 Beer & Snacks",
+    "prodused": "Сделано DVI"
   },
 
 
@@ -280,7 +280,12 @@
     "submitting": "Отправляем...",
     "successMessage": "Спасибо! Ваш отзыв отправлен.",
     "errorMessage": "Что-то пошло не так. Попробуйте ещё раз."
-  }
+  },
+  "HeaderNav": {
+  "home": "Главная",
+  "shop": "Магазин",
+  "contacts": "Контакты"
+}
 
 
 }

@@ -140,7 +140,7 @@
     },
     "followUs": "Seuraa meitä",
     "copyright": "© 2025 Craft Bear Store",
-    "prodused": "Produced by Dvi"
+    "prodused": "Tuottanut DVI"
   },
   "CookieBanner": {
     "text": "Käytämme evästeitä parantaaksemme käyttökokemustasi, analysoidaksemme liikennettä ja personoidaksemme sisältöä.",
@@ -350,6 +350,11 @@
     "submitting": "Lähetetään...",
     "successMessage": "Kiitos! Arvostelusi on lähetetty.",
     "errorMessage": "Jokin meni pieleen. Yritä uudelleen."
-  }
+  },
+  "HeaderNav": {
+  "home": "Etusivu",
+  "shop": "Kauppa",
+  "contacts": "Yhteystiedot"
+}
 
 }

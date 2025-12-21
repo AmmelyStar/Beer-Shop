@@ -139,8 +139,8 @@
       "contacts": "Kontaktid"
     },
     "followUs": "Jälgi meid",
-    "copyright": "© 2025 Craft Bear Store",
-    "prodused": "Produced by Dvi"
+    "copyright": "© 2025 Beer & Snacks",
+    "prodused": "Valmistas DVI"
   },
   "CookieBanner": {
     "text": "Kasutame küpsiseid, et parandada sinu sirvimiskogemust, analüüsida liiklust ja isikupärastada sisu.",
@@ -350,6 +350,11 @@
     "submitting": "Saadan...",
     "successMessage": "Aitäh! Sinu arvustus on saadetud.",
     "errorMessage": "Midagi läks valesti. Palun proovi uuesti."
-  }
+  },
+  "HeaderNav": {
+  "home": "Avaleht",
+  "shop": "Pood",
+  "contacts": "Kontaktid"
+}
 }
 

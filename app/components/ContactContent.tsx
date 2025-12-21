@@ -60,7 +60,7 @@ export default function ContactContent({ lang, messages }: Props) {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    // Валидация имени
+    // First name
     if (!formData.firstName.trim()) {
       newErrors.firstName = "First name is required";
     } else if (formData.firstName.trim().length < 2) {
@@ -69,7 +69,7 @@ export default function ContactContent({ lang, messages }: Props) {
       newErrors.firstName = "Only letters, spaces and hyphens allowed";
     }
 
-    // Валидация фамилии
+    // Last name
     if (!formData.lastName.trim()) {
       newErrors.lastName = "Last name is required";
     } else if (formData.lastName.trim().length < 2) {
@@ -78,7 +78,7 @@ export default function ContactContent({ lang, messages }: Props) {
       newErrors.lastName = "Only letters, spaces and hyphens allowed";
     }
 
-    // Валидация email
+    // Email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const disposableEmails = [
       "tempmail.com",
@@ -100,7 +100,7 @@ export default function ContactContent({ lang, messages }: Props) {
       }
     }
 
-    // Валидация сообщения
+    // Message
     if (!formData.message.trim()) {
       newErrors.message = "Message is required";
     } else if (formData.message.trim().length < 10) {
@@ -109,7 +109,7 @@ export default function ContactContent({ lang, messages }: Props) {
       newErrors.message = "Message must be 500 characters or less";
     }
 
-    // Валидация телефона (опционально)
+    // Phone (optional)
     if (formData.phone) {
       if (!/^[\d\s\-\+\(\)]+$/.test(formData.phone)) {
         newErrors.phone =
@@ -143,19 +143,14 @@ export default function ContactContent({ lang, messages }: Props) {
     e.preventDefault();
     setSubmitStatus(null);
 
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
 
     try {
-      // Используем путь с локалью
       const response = await fetch(`/api/contact`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
@@ -182,17 +177,10 @@ export default function ContactContent({ lang, messages }: Props) {
 
   return (
     <div className="relative overflow-hidden max-w-7xl mx-auto mt-2 mb-24">
-      <div className="lg:absolute lg:inset-0 lg:left-1/2">
-        <Image
-          width="640"
-          height="850"
-          alt=""
-          src="/category/pouring-beer-into-mug.jpg"
-          className="h-64 w-full bg-gray-800 object-cover sm:h-80 lg:absolute lg:h-full"
-        />
-      </div>
-      <div className="pt-12 sm:pt-24 lg:mx-auto lg:grid lg:max-w-7xl lg:grid-cols-2">
-        <div className="px-6">
+      {/* Grid на lg: форма и картинка одной высоты */}
+      <div className="pt-12 sm:pt-24 lg:mx-auto lg:grid lg:max-w-7xl lg:grid-cols-2 lg:items-stretch">
+        {/* Левая колонка (форма) */}
+        <div className="px-6 lg:py-12">
           <div className="mx-auto max-w-xl lg:mx-0 lg:max-w-lg">
             <h2 className="text-pretty text-4xl font-semibold tracking-tight text-white sm:text-5xl">
               {t.title}
@@ -246,9 +234,7 @@ export default function ContactContent({ lang, messages }: Props) {
                       value={formData.lastName}
                       onChange={handleChange}
                       className={`w-full border-b ${
-                        errors.lastName
-                          ? "border-red-500"
-                          : "border-gray-400/50"
+                        errors.lastName ? "border-red-500" : "border-gray-400/50"
                       } bg-transparent pb-1 outline-none text-white`}
                     />
                     {errors.lastName && (
@@ -381,6 +367,7 @@ export default function ContactContent({ lang, messages }: Props) {
                   {isSubmitting ? t.submitting : t.submit}
                 </button>
               </div>
+
               {submitStatus === "success" && (
                 <div className="mt-8 rounded-md bg-green-500/10 border border-green-500/50 p-4">
                   <p className="text-sm text-green-400">{t.success}</p>
@@ -394,6 +381,18 @@ export default function ContactContent({ lang, messages }: Props) {
               )}
             </form>
           </div>
+        </div>
+
+        {/* Правая колонка (картинка той же высоты, что и форма) */}
+        <div className="mt-10 lg:mt-0 lg:relative">
+          <Image
+            width={640}
+            height={850}
+            alt=""
+            src="/category/pouring-beer-into-mug.jpg"
+            className="h-64 w-full bg-gray-800 object-cover sm:h-80 lg:absolute lg:inset-0 lg:h-full"
+            priority={false}
+          />
         </div>
       </div>
     </div>

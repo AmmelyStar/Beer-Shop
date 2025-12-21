@@ -1,14 +1,14 @@
 // app/[lang]/cart/page.tsx
 
 import ShoppingCardOverviews from "@/app/components/ShoppingCardOverviews";
-import { getMessages, Locale } from "../messages";
+import { getMessages, type Locale } from "../messages";
 
 export default async function CartPage({
   params,
 }: {
-  params: { lang: Locale };
+  params: Promise<{ lang: Locale }>;
 }) {
-  const { lang } = params;
+  const { lang } = await params; // ✅ важно: await
   const t = await getMessages(lang);
 
   return (

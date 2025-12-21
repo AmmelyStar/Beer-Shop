@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import type { Locale } from "@/app/lib/locale";
 
 type ContactInfoMessages = {

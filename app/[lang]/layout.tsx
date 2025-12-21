@@ -2,13 +2,18 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
+
 import Header from "../components/Header";
-import { ClerkProvider } from "@clerk/nextjs";
-import { enUS, fiFI, ukUA, ruRU } from "@clerk/localizations";
-import { etEE } from "@/app/i18n/clerk-et";
 import Footer from "../components/Footer";
 import BannerCookie from "@/app/components/BannerCookie";
 import { CartProvider } from "@/app/context/CartContext";
+
+import { ClerkProvider } from "@clerk/nextjs";
+import { enUS, fiFI, ukUA, ruRU } from "@clerk/localizations";
+import { etEE } from "@/app/i18n/clerk-et";
+
+import { getMessages } from "./messages";
+
 type ClerkLocale = typeof enUS;
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -17,12 +22,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// import { LOCALES, type Locale } from "../lib/locale";
 const LOCALES = ["en", "et", "fi", "uk", "ru"] as const;
 type Locale = (typeof LOCALES)[number];
+
 const MAP: Record<Locale, ClerkLocale> = {
   en: enUS,
-  et: etEE, // временно эстонский = мой
+  et: etEE,
   fi: fiFI,
   uk: ukUA,
   ru: ruRU,
@@ -43,6 +48,9 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode; params: Promise<{ lang: Locale }> }>) {
   const { lang } = await params;
 
+  // ✅ Загружаем переводы один раз на весь layout
+  const messages = await getMessages(lang);
+
   return (
     <html lang={lang}>
       <body
@@ -50,8 +58,17 @@ export default async function RootLayout({
       >
         <ClerkProvider localization={MAP[lang]}>
           <CartProvider>
-            <Header lang={lang} />
+            {/* ✅ Передаём в Header только то, что ему нужно */}
+            <Header
+              lang={lang}
+              messages={{
+                HeaderNav: messages.HeaderNav,
+                ShoppingCart: messages.ShoppingCart,
+              }}
+            />
+
             {children}
+
             <Footer lang={lang} />
             <BannerCookie lang={lang} />
           </CartProvider>
