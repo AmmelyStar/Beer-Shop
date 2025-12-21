@@ -107,17 +107,34 @@
     "goHome": "Перейти на главную"
   },
   "Footer": {
-    "about": "О нас",
-    "terms": "Условия и положения",
-    "delivery": "Информация о доставке",
-    "refunds": "Возврат и обмен",
-    "contact": "Контакты",
-    "cookiesPolicy": "Политика файлов cookie",
-    "privacyPolicy": "Политика конфиденциальности",
+    "catalog": {
+      "title": "Каталог",
+      "bottledBeer": "Пиво в бутылках",
+      "draftBeer": "Пиво на кране",
+      "cider": "Сидр",
+      "nonAlcoholic": "Безалкогольное",
+      "snacks": "Закуски",
+      "gifts": "Подарки и наборы"
+    },
+    "customers": {
+      "title": "Покупателям",
+      "faq": "Часто задаваемые вопросы",
+      "shippingPayment": "Доставка и оплата",
+      "returns": "Возврат товара",
+      "cookiePolicy": "Политика cookies",
+      "publicOffer": "Публичная оферта"
+    },
+    "company": {
+      "title": "Компания",
+      "aboutUs": "О нас",
+      "partnership": "Сотрудничество",
+      "contacts": "Контакты"
+    },
     "followUs": "Подписывайтесь на нас",
-    "copyright": "© 2025 Beer Shop. Все права защищены.",
-    "prodused": "Создано Dvi"
+    "copyright": "© 2025 Craft Bear Store",
+    "prodused": "Produced by Dvi"
   },
+
 
 
    "CookieBanner": {

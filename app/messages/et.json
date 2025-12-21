@@ -114,17 +114,33 @@
     "pageNotFound": "Lehte ei leitud",
     "goHome": "Mine avalehele"
   },
-  "Footer": {
-    "about": " Meist",
-    "terms": " Tingimused",
-    "delivery": " Tarneinfo",
-    "refunds": " Tagastused",
-    "contact": " Kontakt",
-    "cookiesPolicy": " Küpsiste poliitika",
-    "privacyPolicy": " Privaatsuspoliitika",
-    "followUs": " Jälgi meid",
-    "copyright": " © 2025 Craft Beer Shop. Kõik õigused kaitstud.",
-    "prodused": "Tootnud Dvi"
+   "Footer": {
+    "catalog": {
+      "title": "Kataloog",
+      "bottledBeer": "Pudelõlu",
+      "draftBeer": "Vaadiõlu",
+      "cider": "Siider",
+      "nonAlcoholic": "Alkoholivaba",
+      "snacks": "Suupisted",
+      "gifts": "Kingitused ja komplektid"
+    },
+    "customers": {
+      "title": "Klientidele",
+      "faq": "Korduma kippuvad küsimused",
+      "shippingPayment": "Tarne ja maksmine",
+      "returns": "Tagastamine",
+      "cookiePolicy": "Küpsiste poliitika",
+      "publicOffer": "Avalik pakkumus"
+    },
+    "company": {
+      "title": "Ettevõte",
+      "aboutUs": "Meist",
+      "partnership": "Koostöö",
+      "contacts": "Kontaktid"
+    },
+    "followUs": "Jälgi meid",
+    "copyright": "© 2025 Craft Bear Store",
+    "prodused": "Produced by Dvi"
   },
   "CookieBanner": {
     "text": "Kasutame küpsiseid, et parandada sinu sirvimiskogemust, analüüsida liiklust ja isikupärastada sisu.",

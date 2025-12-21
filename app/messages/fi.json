@@ -114,17 +114,33 @@
     "pageNotFound": "Sivua ei löytynyt",
     "goHome": "Siirry etusivulle"
   },
-  "Footer": {
-    "about": " Meistä",
-    "terms": " Käyttöehdot",
-    "delivery": " Toimitustiedot",
-    "refunds": " Palautukset",
-    "contact": " Yhteystiedot",
-    "cookiesPolicy": " Evästekäytäntö",
-    "privacyPolicy": " Tietosuojakäytäntö",
-    "followUs": " Seuraa meitä",
-    "copyright": " © 2025 Craft Beer Shop. Kaikki oikeudet pidätetään.",
-    "prodused": "Tuottanut Dvi"
+   "Footer": {
+    "catalog": {
+      "title": "Valikoima",
+      "bottledBeer": "Pullotettu olut",
+      "draftBeer": "Hanasta (tölkistä) / Hanaolut",
+      "cider": "Siideri",
+      "nonAlcoholic": "Alkoholiton",
+      "snacks": "Naposteltavat",
+      "gifts": "Lahjat ja setit"
+    },
+    "customers": {
+      "title": "Asiakkaille",
+      "faq": "Usein kysytyt kysymykset",
+      "shippingPayment": "Toimitus ja maksaminen",
+      "returns": "Palautukset",
+      "cookiePolicy": "Evästekäytäntö",
+      "publicOffer": "Julkinen tarjous"
+    },
+    "company": {
+      "title": "Yritys",
+      "aboutUs": "Tietoa meistä",
+      "partnership": "Yhteistyö",
+      "contacts": "Yhteystiedot"
+    },
+    "followUs": "Seuraa meitä",
+    "copyright": "© 2025 Craft Bear Store",
+    "prodused": "Produced by Dvi"
   },
   "CookieBanner": {
     "text": "Käytämme evästeitä parantaaksemme käyttökokemustasi, analysoidaksemme liikennettä ja personoidaksemme sisältöä.",

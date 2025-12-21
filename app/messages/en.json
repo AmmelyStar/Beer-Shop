@@ -109,16 +109,33 @@
     "goHome": "Go to homepage"
   },
   "Footer": {
-    "about": " About Us",
-    "terms": " Terms & Conditions",
-    "delivery": " Delivery Information",
-    "refunds": " Refunds",
-    "contact": " Contact",
-    "cookiesPolicy": " Cookies policy",
-    "privacyPolicy": " Privacy policy",
-    "followUs": " Follow Us",
-    "copyright": " © 2025 Beer Shop. All rights reserved.",
+    "catalog": {
+      "title": "Catalog",
+      "bottledBeer": "Bottled beer",
+      "draftBeer": "Draft beer",
+      "cider": "Cider",
+      "nonAlcoholic": "Non-alcoholic",
+      "snacks": "Snacks",
+      "gifts": "Gifts & bundles"
+    },
+      "customers": {
+      "title": "Customers",
+      "faq": "Frequently asked questions",
+      "shippingPayment": "Shipping & payment",
+      "returns": "Returns",
+      "cookiePolicy": "Cookie policy",
+      "publicOffer": "Public offer"
+    },
+    "company": {
+      "title": "Company",
+      "aboutUs": "About us",
+      "partnership": "Partnership",
+      "contacts": "Contacts"
+    },
+    "followUs": "Follow us",
+    "copyright": "© 2025 Craft Bear Store",
     "prodused": "Produced by Dvi"
+  
   },
    "CookieBanner": {
     "text": "We use cookies to improve your browsing experience, analyse traffic and personalize content. You can accept or reject non-essential cookies.",
@@ -305,5 +322,27 @@
     "submitting": "Submitting...",
     "successMessage": "Thanks! Your review was sent.",
     "errorMessage": "Something went wrong. Please try again."
-  }
+  },
+   "Partnership": {
+    "title": "Partnership",
+    "subtitle": "Tell us about your idea — we’ll reply within 1–2 business days.",
+
+    "imageAlt": "Partnership",
+
+    "form": {
+      "firstname": "First name",
+      "lastname": "Last name",
+      "emailLabel": "Email",
+      "company": "Company",
+      "phone": "Phone",
+      "optional": "Optional",
+      "message": "How would you like to collaborate?",
+      "messageLimit": "Max 500 characters",
+
+      "submit": "Send inquiry",
+      "submitting": "Sending...",
+      "success": "Thank you! We received your inquiry and will get back to you shortly.",
+      "error": "Oops! Something went wrong. Please try again later."
+    }
+     }
 }
