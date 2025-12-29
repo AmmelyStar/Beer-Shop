@@ -53,7 +53,7 @@ export default function AccountContent({
     { href: baseAccountPath, label: messages.tabProfile },
     { href: `${baseAccountPath}/orders`, label: messages.tabOrders },
     { href: `${baseAccountPath}/reviews`, label: messages.tabReviews },
-    { href: `${baseAccountPath}/addresses`, label: messages.tabAddresses },
+   
   ];
 
   const rawMetadata = (user?.publicMetadata ?? {}) as ProfileMetadata;
@@ -343,7 +343,7 @@ export default function AccountContent({
             )}
           </section>
 
-          {/* Блок заказов / Shopify — пока как информационный/техничный */}
+          {/* Блок заказов / Shopify — пока как информационный/техничный
           <section className="rounded-lg border border-white/10 bg-white/5 p-6">
             <h2 className="mb-4 text-xl font-semibold text-white">
               {messages.recentOrders}
@@ -382,7 +382,7 @@ export default function AccountContent({
                 </p>
               )}
             </div>
-          </section>
+          </section> */}
         </main>
       </div>
     </div>

@@ -16,6 +16,19 @@ type AccountPageMessages = {
   tabOrders: string;
   tabReviews: string;
   tabAddresses: string;
+
+  edit?: string;
+  delete?: string;
+  save?: string;
+  cancel?: string;
+  editReview?: string;
+  emptyReviews?: string;
+  helpText?: string;
+
+  // pagination like cart
+  pageShort?: string; // e.g. "Page {page} of {totalPages}"
+  prev?: string;
+  next?: string;
 };
 
 type AccountReviewsContentProps = {
@@ -27,21 +40,79 @@ type AccountReview = {
   rating: number | null;
   text: string | null;
   created_at?: string | null;
-
   product_title?: string | null;
   product_image_url?: string | null;
   product_handle?: string | null;
 };
 
-const FALLBACK_MESSAGES: AccountPageMessages = {
-  signingOut: "Signing out...",
-  signOut: "Sign out",
-  sidebarGreeting: "Hello",
-  tabProfile: "Profile",
-  tabOrders: "My orders",
-  tabReviews: "My reviews",
-  tabAddresses: "Addresses",
-};
+const I18N = {
+  en: {
+    edit: "Edit",
+    delete: "Delete",
+    save: "Save",
+    cancel: "Cancel",
+    editReview: "Edit review",
+    emptyReviews: "You don't have any reviews yet.",
+    helpText: "Here you can edit or delete your reviews.",
+    pageShort: "Page {page} of {totalPages}",
+    prev: "Back",
+    next: "Next",
+  },
+  et: {
+    edit: "Muuda",
+    delete: "Kustuta",
+    save: "Salvesta",
+    cancel: "Tühista",
+    editReview: "Muuda arvustust",
+    emptyReviews: "Sul ei ole veel ühtegi arvustust.",
+    helpText: "Siin saad oma arvustusi muuta või kustutada.",
+    pageShort: "Lk {page} / {totalPages}",
+    prev: "Tagasi",
+    next: "Edasi",
+  },
+  fi: {
+    edit: "Muokkaa",
+    delete: "Poista",
+    save: "Tallenna",
+    cancel: "Peruuta",
+    editReview: "Muokkaa arvostelua",
+    emptyReviews: "Sinulla ei ole vielä arvosteluja.",
+    helpText: "Täällä voit muokata tai poistaa arvostelujasi.",
+    pageShort: "Sivu {page} / {totalPages}",
+    prev: "Takaisin",
+    next: "Seuraava",
+  },
+  uk: {
+    edit: "Редагувати",
+    delete: "Видалити",
+    save: "Зберегти",
+    cancel: "Скасувати",
+    editReview: "Редагувати відгук",
+    emptyReviews: "У вас ще немає відгуків.",
+    helpText: "Тут ви можете редагувати або видаляти свої відгуки.",
+    pageShort: "Стор. {page} з {totalPages}",
+    prev: "Назад",
+    next: "Далі",
+  },
+  ru: {
+    edit: "Редактировать",
+    delete: "Удалить",
+    save: "Сохранить",
+    cancel: "Отмена",
+    editReview: "Редактировать отзыв",
+    emptyReviews: "У вас пока нет отзывов.",
+    helpText: "Здесь вы можете редактировать или удалять свои отзывы.",
+    pageShort: "Стр. {page} из {totalPages}",
+    prev: "Назад",
+    next: "Далее",
+  },
+} as const;
+
+type I18nLocale = keyof typeof I18N;
+
+function isI18nLocale(x: string): x is I18nLocale {
+  return x in I18N;
+}
 
 function toReviewId(value: unknown): string | null {
   if (typeof value === "string") {
@@ -57,6 +128,10 @@ function clampRating(n: number): number {
   if (n < 1) return 1;
   if (n > 5) return 5;
   return Math.round(n);
+}
+
+function formatTemplate(template: string, vars: Record<string, string | number>) {
+  return template.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ""));
 }
 
 function StarsReadOnly({ value }: { value: number }) {
@@ -122,15 +197,36 @@ export default function AccountReviewsContent({ messages }: AccountReviewsConten
   const { signOut } = useClerk();
   const params = useParams();
 
-  const messagesSafe = messages ?? FALLBACK_MESSAGES;
+  const langFromParams = (params as { lang?: string | string[] } | null)?.lang;
+  const lang = (Array.isArray(langFromParams) ? langFromParams[0] : langFromParams) as
+    | string
+    | undefined;
 
-  useEffect(() => {
-    if (!messages) {
-      console.warn(
-        "[AccountReviewsContent] messages prop is undefined. Fix page: <AccountReviewsContent messages={t.AccountPage} />"
-      );
-    }
-  }, [messages]);
+  const effectiveLang: Locale = (lang || "en") as Locale;
+
+  const dict = isI18nLocale(effectiveLang) ? I18N[effectiveLang] : I18N.en;
+
+  const messagesSafe: Required<AccountPageMessages> = {
+    signingOut: messages?.signingOut ?? "Signing out...",
+    signOut: messages?.signOut ?? "Sign out",
+    sidebarGreeting: messages?.sidebarGreeting ?? "Hello",
+    tabProfile: messages?.tabProfile ?? "Profile",
+    tabOrders: messages?.tabOrders ?? "My orders",
+    tabReviews: messages?.tabReviews ?? "My reviews",
+    tabAddresses: messages?.tabAddresses ?? "Addresses",
+
+    edit: messages?.edit ?? dict.edit,
+    delete: messages?.delete ?? dict.delete,
+    save: messages?.save ?? dict.save,
+    cancel: messages?.cancel ?? dict.cancel,
+    editReview: messages?.editReview ?? dict.editReview,
+    emptyReviews: messages?.emptyReviews ?? dict.emptyReviews,
+    helpText: messages?.helpText ?? dict.helpText,
+
+    pageShort: messages?.pageShort ?? dict.pageShort,
+    prev: messages?.prev ?? dict.prev,
+    next: messages?.next ?? dict.next,
+  };
 
   const [loadingLogout, setLoadingLogout] = useState(false);
   const [reviews, setReviews] = useState<AccountReview[] | null>(null);
@@ -144,12 +240,10 @@ export default function AccountReviewsContent({ messages }: AccountReviewsConten
     title?: string | null;
   } | null>(null);
 
-  const langFromParams = (params as { lang?: string | string[] } | null)?.lang;
-  const lang = (Array.isArray(langFromParams) ? langFromParams[0] : langFromParams) as
-    | Locale
-    | undefined;
+  // ✅ Pagination
+  const PAGE_SIZE = 4;
+  const [page, setPage] = useState(1);
 
-  const effectiveLang = (lang || "en") as Locale;
   const baseAccountPath = `/${effectiveLang}/account`;
 
   const navItems = useMemo(() => {
@@ -157,14 +251,14 @@ export default function AccountReviewsContent({ messages }: AccountReviewsConten
       { href: baseAccountPath, label: messagesSafe.tabProfile },
       { href: `${baseAccountPath}/orders`, label: messagesSafe.tabOrders },
       { href: `${baseAccountPath}/reviews`, label: messagesSafe.tabReviews },
-      { href: `${baseAccountPath}/addresses`, label: messagesSafe.tabAddresses },
+      
     ];
   }, [
     baseAccountPath,
     messagesSafe.tabProfile,
     messagesSafe.tabOrders,
     messagesSafe.tabReviews,
-    messagesSafe.tabAddresses,
+ 
   ]);
 
   useEffect(() => {
@@ -181,22 +275,35 @@ export default function AccountReviewsContent({ messages }: AccountReviewsConten
         );
 
         if (res.status === 401) {
-          if (!cancelled) setReviews([]);
+          if (!cancelled) {
+            setReviews([]);
+            setPage(1);
+          }
           return;
         }
 
-        const data = (await res.json().catch(() => ({}))) as { reviews?: AccountReview[] };
+        const data = (await res.json().catch(() => ({}))) as {
+          reviews?: AccountReview[];
+        };
 
         if (!res.ok) {
-          console.warn("Failed to load reviews", data);
-          if (!cancelled) setReviews([]);
+          if (!cancelled) {
+            setReviews([]);
+            setPage(1);
+          }
           return;
         }
 
-        if (!cancelled) setReviews(Array.isArray(data.reviews) ? data.reviews : []);
-      } catch (e) {
-        console.warn("Reviews load error", e);
-        if (!cancelled) setReviews([]);
+        if (!cancelled) {
+          const list = Array.isArray(data.reviews) ? data.reviews : [];
+          setReviews(list);
+          setPage(1);
+        }
+      } catch {
+        if (!cancelled) {
+          setReviews([]);
+          setPage(1);
+        }
       }
     };
 
@@ -207,12 +314,26 @@ export default function AccountReviewsContent({ messages }: AccountReviewsConten
     };
   }, [user, effectiveLang]);
 
+  const total = reviews?.length ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const safePage = Math.min(Math.max(page, 1), totalPages);
+
+  const pagedReviews = useMemo(() => {
+    if (!reviews) return null;
+    const start = (safePage - 1) * PAGE_SIZE;
+    return reviews.slice(start, start + PAGE_SIZE);
+  }, [reviews, safePage]);
+
+  useEffect(() => {
+    if (page !== safePage) setPage(safePage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [safePage]);
+
   const handleSignOut = async () => {
     setLoadingLogout(true);
     try {
       await signOut({ redirectUrl: `/${effectiveLang}/account` });
-    } catch (e) {
-      console.error("Sign out error:", e);
+    } catch {
       setLoadingLogout(false);
     }
   };
@@ -321,11 +442,11 @@ export default function AccountReviewsContent({ messages }: AccountReviewsConten
 
   if (!user) return null;
 
+  const showPagination = !!reviews && reviews.length > PAGE_SIZE;
+
   return (
     <section className="relative mx-auto my-10 max-w-7xl rounded-b-3xl">
-      {/* ✅ ВОТ ТУТ КЛЮЧЕВОЕ: flex-col на мобилке, flex-row на lg — как на твоём скрине */}
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-12">
-        {/* sidebar слева */}
         <div className="w-full lg:w-[360px] xl:w-[380px]">
           <AccountSidebar
             user={user}
@@ -340,11 +461,10 @@ export default function AccountReviewsContent({ messages }: AccountReviewsConten
           />
         </div>
 
-        {/* контент справа */}
         <div className="w-full flex-1 mt-30">
           <div className="mb-6">
             <h1 className="text-2xl font-semibold">{messagesSafe.tabReviews}</h1>
-            <p className="mt-1 text-sm text-white/60">Here you can edit or delete your reviews.</p>
+            <p className="mt-1 text-sm text-white/60">{messagesSafe.helpText}</p>
           </div>
 
           {error ? (
@@ -359,78 +479,114 @@ export default function AccountReviewsContent({ messages }: AccountReviewsConten
             </div>
           ) : reviews.length === 0 ? (
             <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">
-              You don&apos;t have any reviews yet.
+              {messagesSafe.emptyReviews}
             </div>
           ) : (
-            <div className="grid gap-3">
-              {reviews.map((r) => {
-                const id = toReviewId(r.id);
-                const isBusy = !!id && busyId === id;
+            <>
+              <div className="grid gap-3">
+                {(pagedReviews ?? []).map((r) => {
+                  const id = toReviewId(r.id);
+                  const isBusy = !!id && busyId === id;
 
-                return (
-                  <div
-                    key={id ?? String(Math.random())}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-4"
-                  >
-                    <div className="flex gap-4">
-                      <div className="h-16 w-16 overflow-hidden rounded-xl border border-white/10 bg-white/5">
-                        {r.product_image_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={r.product_image_url}
-                            alt={r.product_title ?? "Product"}
-                            className="h-full w-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-xs opacity-60">
-                            —
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className="truncate text-sm font-semibold">
-                              {r.product_title ?? "Product"}
+                  return (
+                    <div
+                      key={id ?? String(Math.random())}
+                      className="rounded-2xl border border-white/10 bg-white/5 p-4"
+                    >
+                      <div className="flex gap-4">
+                        <div className="h-16 w-16 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                          {r.product_image_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={r.product_image_url}
+                              alt={r.product_title ?? "Product"}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-xs opacity-60">
+                              —
                             </div>
-                            <div className="mt-1">
-                              <StarsReadOnly value={typeof r.rating === "number" ? r.rating : 5} />
-                            </div>
-                          </div>
-
-                          <div className="flex shrink-0 items-center gap-2">
-                            <button
-                              type="button"
-                              className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10 disabled:opacity-50"
-                              onClick={() => openEdit(r)}
-                              disabled={!id || isBusy}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10 disabled:opacity-50"
-                              onClick={() => void handleDelete(r.id)}
-                              disabled={!id || isBusy}
-                            >
-                              Delete
-                            </button>
-                          </div>
+                          )}
                         </div>
 
-                        {r.text ? (
-                          <p className="mt-3 whitespace-pre-wrap text-sm text-white/90">{r.text}</p>
-                        ) : (
-                          <p className="mt-3 text-sm text-white/60">—</p>
-                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="truncate text-sm font-semibold">
+                                {r.product_title ?? "Product"}
+                              </div>
+                              <div className="mt-1">
+                                <StarsReadOnly
+                                  value={typeof r.rating === "number" ? r.rating : 5}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex shrink-0 items-center gap-2">
+                              <button
+                                type="button"
+                                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10 disabled:opacity-50"
+                                onClick={() => openEdit(r)}
+                                disabled={!id || isBusy}
+                              >
+                                {messagesSafe.edit}
+                              </button>
+                              <button
+                                type="button"
+                                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10 disabled:opacity-50"
+                                onClick={() => void handleDelete(r.id)}
+                                disabled={!id || isBusy}
+                              >
+                                {messagesSafe.delete}
+                              </button>
+                            </div>
+                          </div>
+
+                          {r.text ? (
+                            <p className="mt-3 whitespace-pre-wrap text-sm text-white/90">{r.text}</p>
+                          ) : (
+                            <p className="mt-3 text-sm text-white/60">—</p>
+                          )}
+                        </div>
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+
+              {/* ✅ Pagination exactly like cart */}
+              {showPagination ? (
+                <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
+                  <div className="text-sm text-white/60">
+                    {formatTemplate(messagesSafe.pageShort, {
+                      page: safePage,
+                      totalPages,
+                    })}
                   </div>
-                );
-              })}
-            </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-50"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={safePage <= 1}
+                    >
+                      {messagesSafe.prev}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-50"
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={safePage >= totalPages}
+                    >
+                      {messagesSafe.next}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </>
           )}
         </div>
       </div>
@@ -440,7 +596,7 @@ export default function AccountReviewsContent({ messages }: AccountReviewsConten
           <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#0b0b0b] p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-base font-semibold">Edit review</div>
+                <div className="text-base font-semibold">{messagesSafe.editReview}</div>
                 <div className="truncate text-sm text-white/60">{editing.title ?? "Product"}</div>
               </div>
 
@@ -481,7 +637,7 @@ export default function AccountReviewsContent({ messages }: AccountReviewsConten
                   onClick={() => setEditing(null)}
                   disabled={busyId === editing.id}
                 >
-                  Cancel
+                  {messagesSafe.cancel}
                 </button>
                 <button
                   type="button"
@@ -489,7 +645,7 @@ export default function AccountReviewsContent({ messages }: AccountReviewsConten
                   onClick={() => void saveEdit()}
                   disabled={busyId === editing.id}
                 >
-                  Save
+                  {messagesSafe.save}
                 </button>
               </div>
             </div>

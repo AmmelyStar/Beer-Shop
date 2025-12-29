@@ -8,19 +8,18 @@ import AccountReviewsContent from "@/app/components/AccountReviewsContent";
 export default async function AccountReviewsPage({
   params,
 }: {
-  params: { lang: Locale };
+  params: Promise<{ lang: Locale }>;
 }) {
-  const { lang } = params;
+  const { lang } = await params;
   const t = await getMessages(lang);
 
   return (
     <section className="relative mx-auto my-10 max-w-7xl overflow-hidden rounded-b-3xl">
       <SignedOut>
-  <LoginRegisterForm messages={t.auth} />
-</SignedOut>
+        <LoginRegisterForm messages={t.auth} />
+      </SignedOut>
 
       <SignedIn>
-        {/* ✅ вот сюда передаём именно блок AccountPage */}
         <AccountReviewsContent messages={t.AccountPage} />
       </SignedIn>
     </section>

@@ -49,10 +49,8 @@ export default function AccountOrdersContent({
     { href: baseAccountPath, label: accountMessages.tabProfile },
     { href: `${baseAccountPath}/orders`, label: accountMessages.tabOrders },
     { href: `${baseAccountPath}/reviews`, label: accountMessages.tabReviews },
-    {
-      href: `${baseAccountPath}/addresses`,
-      label: accountMessages.tabAddresses,
-    },
+  
+
   ];
 
   // в AccountOrdersContent.tsx, внутри useEffect
