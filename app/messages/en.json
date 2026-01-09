@@ -19,6 +19,29 @@
     "gifts": "Gifts & Sets",
     "nonAlcoholic": "Non-alcoholic"
   },
+  "categories": {
+  "all": "All Products",
+
+  "bottled-beer": "Bottled beer",
+  "draft-beer": "Draft beer",
+  "cider": "Cider",
+  "non-alcoholic": "Non-alcoholic",
+  "snacks": "Snacks",
+  "gifts-bundles": "Gifts & bundles",
+
+  "beer": "Beer",
+  "gifts-sets": "Gifts & Sets",
+  "alcohol-free": "Non-alcoholic"
+},
+"sort": {
+  "label": "Sort",
+  "best": "Best",
+  "new": "New",
+  "priceAsc": "Price ↑",
+  "priceDesc": "Price ↓",
+  "titleAsc": "A–Z",
+  "titleDesc": "Z–A"
+},
   "alts": {
     "beer": "Assorted craft beers on a shelf.",
     "cider": "Selection of bottled ciders.",
@@ -35,21 +58,31 @@
     "alcohol": "Alcohol free"
   },
   "AllProducts": {
-    "title": "All Products",
-    "stars": "out of 5 stars",
-    "reviews": "reviews",
-    "add": "Add to cart",
-    "alcohol": "Alcohol free",
-    "noProducts": "No products found",
-    "noProductsDescription": "There are no products in this category yet. Check back soon or browse other categories.",
-    "categories": {
-      "all": "All Products",
-      "beer": "Beer",
-      "cider": "Cider",
-      "snacks": "Snacks",
-        "gifts-sets": "Gifts & Sets",
-  "alcohol-free": "Non-alcoholic"
-    }
+  "title": "All Products",
+  "stars": "out of 5 stars",
+  "reviews": "reviews",
+  "add": "Add to cart",
+  "alcohol": "Alcohol free",
+  "noProducts": "No products found",
+  "noProductsDescription": "There are no products in this category yet. Check back soon or browse other categories.",
+  "categories": {
+    "all": "All Products",
+    "beer": "Beer",
+    "cider": "Cider",
+    "snacks": "Snacks",
+    "gifts-sets": "Gifts & Sets",
+    "alcohol-free": "Non-alcoholic"
+  },
+  "sort": {
+    "label": "Sort",
+    "best": "Best",
+    "new": "New",
+    "priceAsc": "Price ↑",
+    "priceDesc": "Price ↓",
+    "titleAsc": "A–Z",
+    "titleDesc": "Z–A"
+  }
+
   },
   "OneProduct": {
     "perUnit": "per 1 pc",

@@ -29,21 +29,32 @@
     "add": "Lisää ostoskoriin",
     "alcohol": "Alkoholiton"
   },
-  "AllProducts": {
-    "title": "Kaikki tuotteet",
-    "stars": "5 tähdestä",
-    "reviews": "arvostelua",
-    "add": "Lisää ostoskoriin",
-    "alcohol": "Alkoholiton",
-    "noProducts": "Tuotteita ei löytynyt",
-    "noProductsDescription": "Tässä kategoriassa ei ole vielä tuotteita. Palaa myöhemmin tai selaa muita kategorioita.",
-    "categories": {
-      "all": "Kaikki tuotteet",
-      "beer": "Olut",
-      "cider": "Siideri",
-      "snacks": "Välipalat"
-    }
+ "AllProducts": {
+  "title": "Kaikki tuotteet",
+  "stars": "5 tähdestä",
+  "reviews": "arvostelua",
+  "add": "Lisää ostoskoriin",
+  "alcohol": "Alkoholiton",
+  "noProducts": "Tuotteita ei löytynyt",
+  "noProductsDescription": "Tässä kategoriassa ei ole vielä tuotteita. Tarkista myöhemmin tai valitse toinen kategoria.",
+  "categories": {
+    "all": "Kaikki tuotteet",
+    "beer": "Olut",
+    "cider": "Siideri",
+    "snacks": "Naposteltavat",
+    "gifts-sets": "Lahjapaketit",
+    "alcohol-free": "Alkoholiton"
   },
+  "sort": {
+    "label": "Lajittelu",
+    "best": "Parhaat",
+    "new": "Uutuudet",
+    "priceAsc": "Hinta ↑",
+    "priceDesc": "Hinta ↓",
+    "titleAsc": "A–Ö",
+    "titleDesc": "Ö–A"
+  }
+},
   "OneProduct": {
     "perUnit": "per 1 kpl",
     "abv": "ABV",
@@ -355,6 +366,29 @@
   "home": "Etusivu",
   "shop": "Kauppa",
   "contacts": "Yhteystiedot"
+},
+"categories": {
+  "all": "Kaikki tuotteet",
+
+  "bottled-beer": "Pullotettu olut",
+  "draft-beer": "Hanaolut",
+  "cider": "Siideri",
+  "non-alcoholic": "Alkoholiton",
+  "snacks": "Naposteltavat",
+  "gifts-bundles": "Lahjapaketit",
+
+  "beer": "Olut",
+  "gifts-sets": "Lahjapaketit",
+  "alcohol-free": "Alkoholiton"
+},
+"sort": {
+  "label": "Lajittelu",
+  "best": "Parhaat",
+  "new": "Uutuudet",
+  "priceAsc": "Hinta ↑",
+  "priceDesc": "Hinta ↓",
+  "titleAsc": "A–Ö",
+  "titleDesc": "Ö–A"
 }
 
 }

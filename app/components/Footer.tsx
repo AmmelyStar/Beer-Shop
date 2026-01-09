@@ -3,8 +3,8 @@
 import Link from "next/link";
 import type { Locale } from "@/app/lib/locale";
 import { getMessages } from "@/app/[lang]/messages";
-import { SVGProps } from "react";
-import { JSX } from "react/jsx-runtime";
+import type { SVGProps } from "react";
+import type { JSX } from "react/jsx-runtime";
 
 type FooterProps = {
   lang: Locale;
@@ -55,43 +55,38 @@ export default async function Footer({ lang }: FooterProps) {
   const messages = await getMessages(lang);
   const t = messages.Footer;
 
+  // Маппинг старых переводов футера -> новые shop query-параметры
+  // bottled/draft пока ведём на одну категорию beer, потому что в фильтре нет отдельных ключей.
+  const catalogLinks = [
+    { label: t.catalog.bottledBeer, href: `/${lang}/shop?category=beer` },
+    { label: t.catalog.draftBeer, href: `/${lang}/shop?category=beer` },
+    { label: t.catalog.cider, href: `/${lang}/shop?category=cider` },
+    { label: t.catalog.nonAlcoholic, href: `/${lang}/shop?category=alcohol-free` },
+    { label: t.catalog.snacks, href: `/${lang}/shop?category=snacks` },
+    { label: t.catalog.gifts, href: `/${lang}/shop?category=gifts-sets` },
+  ] as const;
+
   const columns = [
     {
       title: t.catalog.title,
-      links: [
-        { label: t.catalog.bottledBeer, href: "/catalog/bottles" },
-        { label: t.catalog.draftBeer, href: "/catalog/draft" },
-        { label: t.catalog.cider, href: "/catalog/cider" },
-        { label: t.catalog.nonAlcoholic, href: "/catalog/non-alcoholic" },
-        { label: t.catalog.snacks, href: "/catalog/snacks" },
-        { label: t.catalog.gifts, href: "/catalog/gifts" },
-      ],
+      links: catalogLinks,
     },
     {
       title: t.customers.title,
       links: [
-        // FAQ from components -> page route
-        { label: t.customers.faq, href: "/questions" },
-
-        // Shipping & payment -> delivery
-        { label: t.customers.shippingPayment, href: "/delivery" },
-
-        // Returns -> 
-        { label: t.customers.returns, href: "/refunds" },
-
-        // Cookie policy -> cookie policy
-        { label: t.customers.cookiePolicy, href: "/cookies-policy" },
-
-        // Public offer -> privacy policy (как ты сказала)
-        { label: t.customers.publicOffer, href: "/privacy-policy" },
+        { label: t.customers.faq, href: `/${lang}/questions` },
+        { label: t.customers.shippingPayment, href: `/${lang}/delivery` },
+        { label: t.customers.returns, href: `/${lang}/refunds` },
+        { label: t.customers.cookiePolicy, href: `/${lang}/cookies-policy` },
+        { label: t.customers.publicOffer, href: `/${lang}/privacy-policy` },
       ],
     },
     {
       title: t.company.title,
       links: [
-        { label: t.company.aboutUs, href: "/about" },
-        { label: t.company.partnership, href: "/partnership" },
-        { label: t.company.contacts, href: "/contact" },
+        { label: t.company.aboutUs, href: `/${lang}/about` },
+        { label: t.company.partnership, href: `/${lang}/partnership` },
+        { label: t.company.contacts, href: `/${lang}/contact` },
       ],
     },
   ];

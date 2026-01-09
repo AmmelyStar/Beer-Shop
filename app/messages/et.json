@@ -30,20 +30,31 @@
     "alcohol": "Alkoholivaba"
   },
   "AllProducts": {
-    "title": "Kõik tooted",
-    "stars": "5 tärnist",
-    "reviews": "arvustust",
-    "add": "Lisa ostukorvi",
-    "alcohol": "Alkoholivaba",
-    "noProducts": "Tooteid ei leitud",
-    "noProductsDescription": "Selles kategoorias pole veel tooteid. Tule varsti tagasi või vaata teisi kategooriaid.",
-    "categories": {
-      "all": "Kõik tooted",
-      "beer": "Õlu",
-      "cider": "Siider",
-      "snacks": "Snäkid"
-    }
+  "title": "Kõik tooted",
+  "stars": "5 tärnist",
+  "reviews": "arvustust",
+  "add": "Lisa ostukorvi",
+  "alcohol": "Alkoholivaba",
+  "noProducts": "Tooteid ei leitud",
+  "noProductsDescription": "Selles kategoorias pole veel tooteid. Vaata hiljem uuesti või vali teine kategooria.",
+  "categories": {
+    "all": "Kõik tooted",
+    "beer": "Õlu",
+    "cider": "Siider",
+    "snacks": "Suupisted",
+    "gifts-sets": "Kingikomplektid",
+    "alcohol-free": "Alkoholivaba"
   },
+  "sort": {
+    "label": "Sorteerimine",
+    "best": "Parimad",
+    "new": "Uued",
+    "priceAsc": "Hind ↑",
+    "priceDesc": "Hind ↓",
+    "titleAsc": "A–Z",
+    "titleDesc": "Z–A"
+  }
+},
   "OneProduct": {
     "perUnit": "1 tk kohta",
     "abv": "ABV",
@@ -355,6 +366,29 @@
   "home": "Avaleht",
   "shop": "Pood",
   "contacts": "Kontaktid"
+},
+"categories": {
+  "all": "Kõik tooted",
+
+  "bottled-beer": "Pudeliõlu",
+  "draft-beer": "Vaadiõlu",
+  "cider": "Siider",
+  "non-alcoholic": "Alkoholivaba",
+  "snacks": "Suupisted",
+  "gifts-bundles": "Kingipaketid",
+
+  "beer": "Õlu",
+  "gifts-sets": "Kingikomplektid",
+  "alcohol-free": "Alkoholivaba"
+},
+"sort": {
+  "label": "Sort",
+  "best": "Best",
+  "new": "New",
+  "priceAsc": "Price ↑",
+  "priceDesc": "Price ↓",
+  "titleAsc": "A–Z",
+  "titleDesc": "Z–A"
 }
 }
 

@@ -2,49 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import type { CategoryKey } from "@/app/lib/shop/categories";
+import { CATEGORY_KEYS } from "@/app/lib/shop/categories";
 
 type Lang = "en" | "uk" | "ru" | "et" | "fi";
-
-// реальные ключи категорий = Shopify handles
-type CategoryKey =
-  | "all"
-  | "beer"
-  | "cider"
-  | "snacks"
-  | "gifts-sets"
-  | "alcohol-free";
-
-const CATEGORY_KEYS: CategoryKey[] = [
-  "all",
-  "beer",
-  "cider",
-  "snacks",
-  "gifts-sets",
-  "alcohol-free",
-];
-
-// Маппинг productType → категория
-// на случай, если productCategory приходит как текст, а не handle
-const PRODUCT_TYPE_TO_CATEGORY: Record<string, CategoryKey> = {
-  beer: "beer",
-  Beer: "beer",
-  BEER: "beer",
-
-  cider: "cider",
-  Cider: "cider",
-  CIDER: "cider",
-
-  snacks: "snacks",
-  Snacks: "snacks",
-
-  "Gifts & Sets": "gifts-sets",
-  gifts: "gifts-sets",
-
-  "Alcohol-free": "alcohol-free",
-  "alcohol-free": "alcohol-free",
-  "Non-alcoholic": "alcohol-free",
-  "NON-ALCOHOLIC": "alcohol-free",
-};
 
 export type BreadcrumbLabels = {
   home: string;
@@ -60,6 +21,20 @@ interface BreadcrumbsProps {
   separator?: string;
 }
 
+function getCategory(sp: URLSearchParams): CategoryKey {
+  const raw = sp.get("category") ?? "all";
+  return (CATEGORY_KEYS as readonly string[]).includes(raw) ? (raw as CategoryKey) : "all";
+}
+
+function buildShopHref(lang: Lang, sp: URLSearchParams, category: CategoryKey) {
+  const next = new URLSearchParams(sp.toString());
+  if (category === "all") next.delete("category");
+  else next.set("category", category);
+
+  const qs = next.toString();
+  return qs ? `/${lang}/shop?${qs}` : `/${lang}/shop`;
+}
+
 export default function Breadcrumbs({
   lang,
   labels,
@@ -68,67 +43,34 @@ export default function Breadcrumbs({
   separator = "›",
 }: BreadcrumbsProps) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const sp = useSearchParams();
+  const params = new URLSearchParams(sp.toString());
 
-  const items: { href: string; label: string }[] = [
-    { href: `/${lang}`, label: labels.home },
-  ];
+  const items: { href: string; label: string }[] = [{ href: `/${lang}`, label: labels.home }];
 
   const parts = pathname.split("/").filter(Boolean);
   const afterLang = parts.slice(1);
 
-  // ---------- SHOP PAGE ----------
   if (afterLang[0] === "shop") {
-    items.push({ href: `/${lang}/shop`, label: labels.shop });
+    items.push({ href: buildShopHref(lang, params, "all"), label: labels.shop });
 
-    const raw = (searchParams.get("category") ?? "all") as string;
-
-    const category: CategoryKey =
-      CATEGORY_KEYS.includes(raw as CategoryKey)
-        ? (raw as CategoryKey)
-        : "all";
-
-    if (category !== "all") {
+    const active = getCategory(params);
+    if (active !== "all") {
       items.push({
-        href: `/${lang}/shop?category=${category}`,
-        label: labels.categories[category],
+        href: buildShopHref(lang, params, active),
+        label: labels.categories[active],
       });
     }
   }
 
-  // ---------- PRODUCT PAGE ----------
   if (afterLang[0] === "product") {
-    items.push({ href: `/${lang}/shop`, label: labels.shop });
+    items.push({ href: buildShopHref(lang, params, "all"), label: labels.shop });
 
-    if (productCategory) {
-      let category: CategoryKey | null = null;
-
-      // 1. пробуем найти по product type
-      if (PRODUCT_TYPE_TO_CATEGORY[productCategory]) {
-        category = PRODUCT_TYPE_TO_CATEGORY[productCategory];
-      }
-
-      // 2. пробуем интерпретировать productCategory как handle
-      if (!category) {
-        const lower = productCategory.toLowerCase();
-        if (CATEGORY_KEYS.includes(lower as CategoryKey)) {
-          category = lower as CategoryKey;
-        }
-      }
-
-      if (category && category !== "all") {
-        items.push({
-          href: `/${lang}/shop?category=${category}`,
-          label: labels.categories[category],
-        });
-      }
-    }
+    // если ты передаёшь productCategory — можешь здесь сделать маппинг,
+    // но это уже вторично. Оставим просто текущий label ниже.
   }
 
-  // ---------- CURRENT PAGE ----------
-  if (currentLabel) {
-    items.push({ href: "#", label: currentLabel });
-  }
+  if (currentLabel) items.push({ href: "#", label: currentLabel });
 
   return (
     <nav aria-label="Breadcrumb" className="mx-auto max-w-7xl pb-10">
@@ -143,9 +85,7 @@ export default function Breadcrumbs({
                 </span>
               )}
               {last ? (
-                <span className="text-sm font-medium text-gray-300">
-                  {it.label}
-                </span>
+                <span className="text-sm font-medium text-gray-300">{it.label}</span>
               ) : (
                 <Link
                   href={it.href}

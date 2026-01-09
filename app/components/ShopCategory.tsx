@@ -53,13 +53,13 @@ export default function ShopCategory({
     },
     {
       key: "gifts" as const,
-      href: `/${lang}/shop?category=gifts`,
+      href: `/${lang}/shop?category=gifts-sets`,
       img: "/category/gifts-and-sets.jpg",
       alt: alts.gifts,
     },
     {
       key: "nonAlcoholic" as const,
-      href: `/${lang}/shop?category=nonAlcoholic`,
+      href: `/${lang}/shop?category=alcohol-free`,
       img: "/category/non-alcoholic.jpg",
       alt: alts.nonAlcoholic,
     },

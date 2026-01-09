@@ -39,23 +39,32 @@
     "alcohol": "Безалкогольное"
   },
 
-  "AllProducts": {
-    "title": "Все товары",
-    "stars": "из 5 звёзд",
-    "reviews": "отзывов",
-    "add": "В корзину",
-    "alcohol": "Безалкогольное",
-    "noProducts": "Товары не найдены",
-    "noProductsDescription": "В этой категории пока нет товаров. Загляните позже или посмотрите другие категории.",
-    "categories": {
-      "all": "Все товары",
-      "beer": "Пиво",
-      "cider": "Сидр",
-      "snacks": "Закуски",
-      "gifts-sets": "Подарки и наборы",
-      "alcohol-free": "Безалкогольные"
-    }
+ "AllProducts": {
+  "title": "Все товары",
+  "stars": "из 5 звёзд",
+  "reviews": "отзывов",
+  "add": "Добавить в корзину",
+  "alcohol": "Безалкогольное",
+  "noProducts": "Товары не найдены",
+  "noProductsDescription": "В этой категории пока нет товаров. Загляните позже или выберите другую категорию.",
+  "categories": {
+    "all": "Все товары",
+    "beer": "Пиво",
+    "cider": "Сидр",
+    "snacks": "Закуски",
+    "gifts-sets": "Подарки и наборы",
+    "alcohol-free": "Безалкогольные"
   },
+  "sort": {
+    "label": "Сортировка",
+    "best": "Лучшее",
+    "new": "Новинки",
+    "priceAsc": "Цена ↑",
+    "priceDesc": "Цена ↓",
+    "titleAsc": "А–Я",
+    "titleDesc": "Я–А"
+  }
+},
 
   "OneProduct": {
     "perUnit": "за 1 шт",
@@ -266,5 +275,28 @@
     "home": "Главная",
     "shop": "Магазин",
     "contacts": "Контакты"
-  }
+  },
+  "categories": {
+  "all": "Все товары",
+
+  "bottled-beer": "Пиво в бутылках",
+  "draft-beer": "Разливное пиво",
+  "cider": "Сидр",
+  "non-alcoholic": "Безалкогольное",
+  "snacks": "Снеки",
+  "gifts-bundles": "Подарочные наборы",
+
+  "beer": "Пиво",
+  "gifts-sets": "Подарочные наборы",
+  "alcohol-free": "Безалкогольное"
+},
+"sort": {
+  "label": "Сортировка",
+  "best": "Лучшее",
+  "new": "Новинки",
+  "priceAsc": "Цена ↑",
+  "priceDesc": "Цена ↓",
+  "titleAsc": "А–Я",
+  "titleDesc": "Я–А"
+}
 }
