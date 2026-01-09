@@ -26,6 +26,23 @@ type AccountOrdersContentProps = {
   ordersMessages: AccountOrdersMessages;
 };
 
+// то, что реально приходит из /api/account/orders
+type ApiOrder = {
+  id: number;
+  name: string; // "#1001"
+  createdAt: string; // ISO
+  financialStatus: string;
+  fulfillmentStatus: string | null;
+  totalPrice: string;
+  currency: string;
+  statusUrl?: string | null; // 👈 если ты добавила это в API
+  lineItems: { id: number; name: string; quantity: number }[];
+};
+
+type ApiResponse = {
+  orders?: ApiOrder[];
+};
+
 export default function AccountOrdersContent({
   accountMessages,
   ordersMessages,
@@ -49,11 +66,8 @@ export default function AccountOrdersContent({
     { href: baseAccountPath, label: accountMessages.tabProfile },
     { href: `${baseAccountPath}/orders`, label: accountMessages.tabOrders },
     { href: `${baseAccountPath}/reviews`, label: accountMessages.tabReviews },
-  
-
   ];
 
-  // в AccountOrdersContent.tsx, внутри useEffect
   useEffect(() => {
     if (!user) return;
 
@@ -64,24 +78,48 @@ export default function AccountOrdersContent({
         const res = await fetch("/api/account/orders", { cache: "no-store" });
 
         if (res.status === 401) {
-          // не авторизован → просто показываем пустой список, без ошибок
           if (!cancelled) setOrders([]);
           return;
         }
 
-        const data = await res.json();
+        const data = (await res.json()) as ApiResponse;
 
         if (!res.ok) {
-          console.warn("Failed to load orders", data); // 👈 warn вместо error
+          console.warn("Failed to load orders", data);
           if (!cancelled) setOrders([]);
           return;
         }
 
-        if (!cancelled) {
-          setOrders(data.orders ?? []);
-        }
+        const apiOrders = data.orders ?? [];
+
+        // ✅ ВОТ ТУТ "ПРИВЯЗКА": преобразуем API → OrderForUi, как ждёт OrdersList
+        const uiOrders: OrderForUi[] = apiOrders.map((o) => {
+          const dt = new Date(o.createdAt);
+          const date = Number.isNaN(dt.getTime())
+            ? o.createdAt
+            : dt.toLocaleDateString(); // как было — без немецких/австрийских приколов
+
+          return {
+            number: o.name,
+            date,
+            datetime: o.createdAt,
+            total: `${o.totalPrice} ${o.currency}`,
+            statusUrl: o.statusUrl ?? null,
+            products: (o.lineItems ?? []).map((li) => ({
+              id: String(li.id),
+              name: li.quantity > 1 ? `${li.name} × ${li.quantity}` : li.name,
+              href: `/${effectiveLang}/shop`, // если захочешь — сделаем точную ссылку на продукт
+              price: "", // в API сейчас нет цены по каждой позиции
+              status: o.fulfillmentStatus ?? o.financialStatus ?? "",
+              imageSrc: "/placeholder.png", // положи placeholder.png в /public
+              imageAlt: li.name,
+            })),
+          };
+        });
+
+        if (!cancelled) setOrders(uiOrders);
       } catch (e) {
-        console.warn("Orders load error", e); // 👈 тоже warn
+        console.warn("Orders load error", e);
         if (!cancelled) setOrders([]);
       }
     };
@@ -91,7 +129,7 @@ export default function AccountOrdersContent({
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, effectiveLang]);
 
   const handleSignOut = async () => {
     setLoadingLogout(true);

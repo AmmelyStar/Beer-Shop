@@ -43,6 +43,8 @@ export type OrderForUi = {
   datetime: string;
   total: string;
   products: OrderProduct[];
+
+  statusUrl?: string | null;
 };
 
 type OrdersListProps = {
