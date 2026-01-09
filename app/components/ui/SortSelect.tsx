@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type SortKey =
@@ -39,7 +40,50 @@ type Option = {
   label: string;
 };
 
+/**
+ * Outer component: always provides a Suspense boundary
+ * so useSearchParams() is safe anywhere this is rendered.
+ */
 export function SortSelect({ labels }: { labels: SortLabels }) {
+  return (
+    <Suspense fallback={<SortSelectFallback labels={labels} />}>
+      <SortSelectInner labels={labels} />
+    </Suspense>
+  );
+}
+
+function SortSelectFallback({ labels }: { labels: SortLabels }) {
+  const options: Option[] = [
+    { value: "best", label: labels.best },
+    { value: "new", label: labels.new },
+    { value: "price_asc", label: labels.priceAsc },
+    { value: "price_desc", label: labels.priceDesc },
+    { value: "title_asc", label: labels.titleAsc },
+    { value: "title_desc", label: labels.titleDesc },
+  ];
+
+  // Фолбэк без хуков: показываем селект, но отключённый.
+  return (
+    <div className="flex items-center gap-2">
+      <span className="sr-only">{labels.label}</span>
+
+      <select
+        aria-label={labels.label}
+        defaultValue="best"
+        disabled
+        className="h-10 rounded-md border border-white/15 bg-white/5 px-3 text-sm text-white/70 outline-none"
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value} className="bg-neutral-900">
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function SortSelectInner({ labels }: { labels: SortLabels }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -63,7 +107,6 @@ export function SortSelect({ labels }: { labels: SortLabels }) {
     const params = new URLSearchParams(searchParams.toString());
 
     if (nextSort === "best") {
-      // чтобы URL был чище (опционально)
       params.delete("sort");
     } else {
       params.set("sort", nextSort);

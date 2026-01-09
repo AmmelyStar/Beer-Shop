@@ -1,5 +1,5 @@
 // app/api/account/reviews/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth as clerkAuth } from "@clerk/nextjs/server";
 import { getSupabaseServerClient } from "../../../lib/supabase";
 import type { Review } from "../../../lib/supabase";
@@ -66,7 +66,23 @@ function pickProductImageUrl(product: unknown): string | null {
   return null;
 }
 
-export async function GET(req: Request) {
+function normalizeLocale(x: string | null): Locale {
+  // если у тебя есть строгий список локалей — можно усилить проверку
+  return (x || "en") as Locale;
+}
+
+type PatchBody = {
+  reviewId?: unknown;
+  rating?: unknown;
+  text?: unknown;
+};
+
+type ReviewUpdatePatch = {
+  rating?: number;
+  text?: string;
+};
+
+export async function GET(req: NextRequest) {
   try {
     const { userId } = await clerkAuth();
 
@@ -74,8 +90,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const url = new URL(req.url);
-    const langParam = (url.searchParams.get("lang") || "en") as Locale;
+    const langParam = normalizeLocale(req.nextUrl.searchParams.get("lang"));
 
     const supabase = getSupabaseServerClient();
 
@@ -133,19 +148,7 @@ export async function GET(req: Request) {
   }
 }
 
-type PatchBody = {
-  reviewId: string;
-  rating?: number;
-  text?: string;
-};
-
-// ✅ отдельный тип для update, НЕ завязан на keyof Review
-type ReviewUpdatePatch = {
-  rating?: number;
-  text?: string;
-};
-
-export async function PATCH(req: Request) {
+export async function PATCH(req: NextRequest) {
   try {
     const { userId } = await clerkAuth();
     if (!userId) {
@@ -154,19 +157,25 @@ export async function PATCH(req: Request) {
 
     const body = (await req.json()) as PatchBody;
 
-    if (!body?.reviewId) {
+    const reviewId =
+      typeof body.reviewId === "string" ? body.reviewId : undefined;
+
+    if (!reviewId) {
       return NextResponse.json(
         { error: "reviewId is required" },
         { status: 400 }
       );
     }
 
-    // ✅ больше нет Partial<Pick<Review, ...>>
     const patch: ReviewUpdatePatch = {};
 
     if (typeof body.rating === "number" && Number.isFinite(body.rating)) {
       patch.rating = body.rating;
+    } else if (typeof body.rating === "string") {
+      const n = Number(body.rating);
+      if (Number.isFinite(n)) patch.rating = n;
     }
+
     if (typeof body.text === "string") {
       patch.text = body.text;
     }
@@ -183,7 +192,7 @@ export async function PATCH(req: Request) {
     const { data, error } = await supabase
       .from("reviews")
       .update(patch)
-      .eq("id", body.reviewId)
+      .eq("id", reviewId)
       .eq("clerk_user_id", userId)
       .select("*")
       .single();
@@ -211,15 +220,14 @@ export async function PATCH(req: Request) {
   }
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
   try {
     const { userId } = await clerkAuth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const url = new URL(req.url);
-    const reviewId = url.searchParams.get("id");
+    const reviewId = req.nextUrl.searchParams.get("id");
 
     if (!reviewId) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });

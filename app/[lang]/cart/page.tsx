@@ -1,32 +1,32 @@
 // app/[lang]/cart/page.tsx
+import type { Locale } from "@/app/lib/locale";
+import CartClient from "./CartClient";
 
-import ShoppingCardOverviews from "@/app/components/ShoppingCardOverviews";
-import { getMessages, type Locale } from "../messages";
+// Если у тебя НЕ static export — можно оставить.
+// Если next.config.js -> output: "export" — удали эту строку.
+export const dynamic = "force-dynamic";
 
-export default async function CartPage({
-  params,
-}: {
-  params: Promise<{ lang: Locale }>;
-}) {
-  const { lang } = await params; // ✅ важно: await
-  const t = await getMessages(lang);
+type SearchParams = Record<string, string | string[] | undefined>;
+
+type Props = {
+  params: { lang: Locale };
+  searchParams?: SearchParams;
+};
+
+export default async function Page({ params, searchParams }: Props) {
+  const { lang } = params;
+
+  const checkout =
+    typeof searchParams?.checkout === "string" ? searchParams.checkout : undefined;
+  const status =
+    typeof searchParams?.status === "string" ? searchParams.status : undefined;
+
+  const success = checkout === "success" || status === "success";
+  const cancel = checkout === "cancel" || status === "cancel";
 
   return (
-    <ShoppingCardOverviews
-      lang={lang}
-      shoppingCart={t.ShoppingCardOverviews.shoppingCart}
-      description={t.ShoppingCardOverviews.description}
-      orderSummary={t.ShoppingCardOverviews.orderSummary}
-      subtotal={t.ShoppingCardOverviews.subtotal}
-      shippingEstimate={t.ShoppingCardOverviews.shippingEstimate}
-      taxEstimate={t.ShoppingCardOverviews.taxEstimate}
-      shippingEstimateInfo={t.ShoppingCardOverviews.shippingEstimateInfo}
-      total={t.ShoppingCardOverviews.total}
-      taxEstimateInfo={t.ShoppingCardOverviews.taxEstimateInfo}
-      checkout={t.ShoppingCardOverviews.checkout}
-      empty={t.ShoppingCardOverviews.empty}
-      emptyDescription={t.ShoppingCardOverviews.emptyDescription}
-      CTAAdd={t.ShoppingCardOverviews.CTAAdd}
-    />
+    <main className="mx-auto max-w-7xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
+      <CartClient lang={lang} success={success} cancel={cancel} />
+    </main>
   );
 }

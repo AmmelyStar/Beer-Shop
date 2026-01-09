@@ -9,18 +9,44 @@
     "subtitle": "Klassikud ja piiratud partiid, käsitöölemmikud, hooajalised väljalasked ja haruldused — mugavalt kureeritud valik õlle- ja siidristiilide ning snäkkide kaupa, kõik ühes kohas."
   },
   "ShopCategory": {
-    "title": "Osta kategooria järgi",
-    "browseAll": "Sirvi kõiki kategooriaid",
-    "names": {
-      "beer": "Õlu",
-      "cider": "Siider",
-      "snacks": "Snäkid"
-    },
-    "alts": {
-      "beer": "Valik käsitööõllesid riiulil.",
-      "cider": "Valik pudelisi siidreid.",
-      "snacks": "Maitsvad snäkid puidust alusel."
-    }
+  "title": "Osta kategooria järgi",
+  "browseAll": "Sirvi kõiki kategooriaid",
+  "names": {
+    "beer": "Õlu",
+    "cider": "Siider",
+    "snacks": "Suupisted",
+    "gifts": "Kingitused ja komplektid",
+    "nonAlcoholic": "Alkoholivaba"
+  },
+  "categories": {
+    "all": "Kõik tooted",
+    "bottled-beer": "Pudelõlu",
+    "draft-beer": "Vaadiõlu",
+    "cider": "Siider",
+    "non-alcoholic": "Alkoholivaba",
+    "snacks": "Suupisted",
+    "gifts-bundles": "Kingitused ja komplektid",
+    "beer": "Õlu",
+    "gifts-sets": "Kingikomplektid",
+    "alcohol-free": "Alkoholivaba"
+  },
+  "sort": {
+    "label": "Sorteerimine",
+    "best": "Parimad",
+    "new": "Uued",
+    "priceAsc": "Hind ↑",
+    "priceDesc": "Hind ↓",
+    "titleAsc": "A–Z",
+    "titleDesc": "Z–A"
+  },
+  "alts": {
+    "beer": "Valik käsitööõllesid riiulil.",
+    "cider": "Valik pudelisi siidreid.",
+    "snacks": "Maitsvad suupisted puidust alusel.",
+    "gifts": "Kinkekarbid ja segukomplektid.",
+    "nonAlcoholic": "Valik alkoholivabu jooke."
+  }
+
   },
   "TrendingProducts": {
     "title": "Trendikad tooted",

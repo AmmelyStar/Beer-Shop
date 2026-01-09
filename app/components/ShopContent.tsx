@@ -5,7 +5,7 @@ import type { Locale } from "@/app/[lang]/messages";
 import AllProducts from "@/app/components/AllProducts";
 import type { ReviewSummary } from "@/app/lib/reviews/getReviewSummaryByHandle";
 
-import Tabs from "@/app/components/ui/Tabs";
+import TabsQuery from "@/app/components/ui/TabsQuery";
 import { SortSelect } from "@/app/components/ui/SortSelect";
 
 import { CATEGORY_KEYS, type CategoryKey } from "@/app/lib/shop/categories";
@@ -28,8 +28,8 @@ type ShopTranslations = {
   alcohol: string;
   noProducts: string;
   noProductsDescription: string;
-  categories: Record<CategoryKey, string>; // подписи вкладок/категорий
-  sort: SortLabels; // ✅ подписи сортировки
+  categories: Record<CategoryKey, string>;
+  sort: SortLabels;
 };
 
 export type ShopContentProps = {
@@ -37,7 +37,7 @@ export type ShopContentProps = {
   translations: ShopTranslations;
   lang: Locale;
   reviewSummaries: Record<string, ReviewSummary>;
-  activeCategory: CategoryKey;
+  activeCategory: CategoryKey; // приходит с сервера/родителя
 };
 
 export default function ShopContent({
@@ -57,10 +57,14 @@ export default function ShopContent({
   return (
     <section className="mt-6">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <Tabs<CategoryKey>
+        <TabsQuery<CategoryKey>
           keys={CATEGORY_KEYS}
           labels={translations.categories}
           paramKey="category"
+          // (опционально) guard, чтобы из URL не принимался мусор
+          isKey={(x): x is CategoryKey =>
+            (CATEGORY_KEYS as readonly string[]).includes(x)
+          }
         />
 
         <SortSelect labels={translations.sort} />

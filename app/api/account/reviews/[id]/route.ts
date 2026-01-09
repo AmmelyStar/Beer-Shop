@@ -1,5 +1,5 @@
 // app/api/account/reviews/[id]/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth as clerkAuth } from "@clerk/nextjs/server";
 import { getSupabaseServerClient } from "@/app/lib/supabase";
 
@@ -7,49 +7,60 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function PUT(req: Request, context: RouteContext) {
+type UpdateReviewBody = {
+  rating?: unknown;
+  comment?: unknown;
+};
+
+function isValidId(rawId: string | undefined | null): rawId is string {
+  return typeof rawId === "string" && rawId.length > 0 && rawId !== "undefined";
+}
+
+function parseRating(value: unknown): number | null {
+  const n = typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
+  if (!Number.isFinite(n)) return null;
+  if (n < 1 || n > 5) return null;
+  return n;
+}
+
+function parseComment(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (trimmed.length < 10) return null;
+  return trimmed;
+}
+
+export async function PUT(req: NextRequest, context: RouteContext) {
   try {
     const { userId } = await clerkAuth();
 
     if (!userId) {
-      console.log("❌ Unauthorized - no userId");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Await params в Next.js 15+
     const { id: rawId } = await context.params;
 
-    console.log("✅ PUT /api/account/reviews/[id] - Review ID:", rawId);
-    console.log("✅ User ID:", userId);
-
-    if (!rawId || rawId === "undefined") {
-      console.log("❌ Missing review id");
+    if (!isValidId(rawId)) {
       return NextResponse.json({ error: "Missing review id" }, { status: 400 });
     }
 
     const reviewId = Number(rawId);
-    if (Number.isNaN(reviewId)) {
-      console.log("❌ Invalid review id:", rawId);
+    if (!Number.isFinite(reviewId)) {
       return NextResponse.json({ error: "Invalid review id" }, { status: 400 });
     }
 
-    const body = await req.json();
-    const { rating, comment } = body;
+    const body = (await req.json()) as UpdateReviewBody;
 
-    console.log("📝 Update data:", { rating, commentLength: comment?.length });
-
-    const parsedRating = Number(rating);
-
-    if (!parsedRating || parsedRating < 1 || parsedRating > 5) {
-      console.log("❌ Invalid rating:", rating);
+    const rating = parseRating(body.rating);
+    if (rating === null) {
       return NextResponse.json(
         { error: "Rating must be between 1 and 5" },
         { status: 400 }
       );
     }
 
-    if (!comment || typeof comment !== "string" || comment.trim().length < 10) {
-      console.log("❌ Invalid comment:", comment?.length);
+    const comment = parseComment(body.comment);
+    if (comment === null) {
       return NextResponse.json(
         { error: "Comment must be at least 10 characters long" },
         { status: 400 }
@@ -58,13 +69,11 @@ export async function PUT(req: Request, context: RouteContext) {
 
     const supabase = getSupabaseServerClient();
 
-    console.log("🔄 Updating review in Supabase...");
-
     const { data, error } = await supabase
       .from("reviews")
       .update({
-        rating: parsedRating,
-        comment: comment.trim(),
+        rating,
+        comment,
         status: "approved",
       })
       .eq("id", reviewId)
@@ -81,14 +90,11 @@ export async function PUT(req: Request, context: RouteContext) {
     }
 
     if (!data) {
-      console.log("❌ No review found or not authorized");
       return NextResponse.json(
         { error: "Review not found or unauthorized" },
         { status: 404 }
       );
     }
-
-    console.log("✅ Review updated successfully:", data.id);
 
     return NextResponse.json({ review: data });
   } catch (err: unknown) {
@@ -98,7 +104,7 @@ export async function PUT(req: Request, context: RouteContext) {
   }
 }
 
-export async function DELETE(req: Request, context: RouteContext) {
+export async function DELETE(req: NextRequest, context: RouteContext) {
   try {
     const { userId } = await clerkAuth();
 
@@ -108,14 +114,12 @@ export async function DELETE(req: Request, context: RouteContext) {
 
     const { id: rawId } = await context.params;
 
-    console.log("🗑️ DELETE /api/account/reviews/[id] - Review ID:", rawId);
-
-    if (!rawId || rawId === "undefined") {
+    if (!isValidId(rawId)) {
       return NextResponse.json({ error: "Missing review id" }, { status: 400 });
     }
 
     const reviewId = Number(rawId);
-    if (Number.isNaN(reviewId)) {
+    if (!Number.isFinite(reviewId)) {
       return NextResponse.json({ error: "Invalid review id" }, { status: 400 });
     }
 
@@ -134,8 +138,6 @@ export async function DELETE(req: Request, context: RouteContext) {
         { status: 500 }
       );
     }
-
-    console.log("✅ Review deleted successfully");
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

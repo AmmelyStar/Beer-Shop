@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { CategoryKey } from "@/app/lib/shop/categories";
 import { CATEGORY_KEYS } from "@/app/lib/shop/categories";
@@ -35,7 +36,36 @@ function buildShopHref(lang: Lang, sp: URLSearchParams, category: CategoryKey) {
   return qs ? `/${lang}/shop?${qs}` : `/${lang}/shop`;
 }
 
-export default function Breadcrumbs({
+/**
+ * Outer component: always provides a Suspense boundary so
+ * useSearchParams() is never "naked" in the tree.
+ */
+export default function Breadcrumbs(props: BreadcrumbsProps) {
+  return (
+    <Suspense fallback={<BreadcrumbsFallback separator={props.separator} />}>
+      <BreadcrumbsInner {...props} />
+    </Suspense>
+  );
+}
+
+function BreadcrumbsFallback({ separator = "›" }: { separator?: string }) {
+  // Минимальный фолбэк без хукoв (можно сделать skeleton)
+  return (
+    <nav aria-label="Breadcrumb" className="mx-auto max-w-7xl pb-10">
+      <ol role="list" className="flex items-center space-x-2">
+        <li className="flex items-center">
+          <span className="text-sm font-medium text-gray-400">…</span>
+          <span aria-hidden="true" className="mx-2 text-gray-400">
+            {separator}
+          </span>
+          <span className="text-sm font-medium text-gray-400">…</span>
+        </li>
+      </ol>
+    </nav>
+  );
+}
+
+function BreadcrumbsInner({
   lang,
   labels,
   currentLabel,
@@ -44,6 +74,8 @@ export default function Breadcrumbs({
 }: BreadcrumbsProps) {
   const pathname = usePathname();
   const sp = useSearchParams();
+
+  // Делаем обычный URLSearchParams, чтобы можно было копировать/мутировать
   const params = new URLSearchParams(sp.toString());
 
   const items: { href: string; label: string }[] = [{ href: `/${lang}`, label: labels.home }];
@@ -66,8 +98,15 @@ export default function Breadcrumbs({
   if (afterLang[0] === "product") {
     items.push({ href: buildShopHref(lang, params, "all"), label: labels.shop });
 
-    // если ты передаёшь productCategory — можешь здесь сделать маппинг,
-    // но это уже вторично. Оставим просто текущий label ниже.
+    // Если хочешь: можно аккуратно использовать productCategory
+    // (только если это CategoryKey и есть label)
+    if (productCategory && (CATEGORY_KEYS as readonly string[]).includes(productCategory)) {
+      const key = productCategory as CategoryKey;
+      items.push({
+        href: buildShopHref(lang, params, key),
+        label: labels.categories[key],
+      });
+    }
   }
 
   if (currentLabel) items.push({ href: "#", label: currentLabel });
@@ -87,10 +126,7 @@ export default function Breadcrumbs({
               {last ? (
                 <span className="text-sm font-medium text-gray-300">{it.label}</span>
               ) : (
-                <Link
-                  href={it.href}
-                  className="text-sm font-medium text-gray-400 hover:text-white"
-                >
+                <Link href={it.href} className="text-sm font-medium text-gray-400 hover:text-white">
                   {it.label}
                 </Link>
               )}

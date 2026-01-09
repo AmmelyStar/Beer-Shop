@@ -3,8 +3,8 @@
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";
+import { Suspense, useMemo } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useMemo } from "react";
 import { LOCALES, LOCALE_LABEL, type Locale } from "@/app/lib/locale";
 
 function buildHref(target: Locale, pathname: string, search: string) {
@@ -15,9 +15,34 @@ function buildHref(target: Locale, pathname: string, search: string) {
   return search ? `${base}?${search}` : base;
 }
 
+/**
+ * Outer component: always provides a Suspense boundary so
+ * useSearchParams() is safe even inside Layout/Header.
+ */
 export default function LanguageSwitcher({ current }: { current?: Locale }) {
+  return (
+    <Suspense fallback={<LanguageSwitcherFallback current={current} />}>
+      <LanguageSwitcherInner current={current} />
+    </Suspense>
+  );
+}
+
+function LanguageSwitcherFallback({ current }: { current?: Locale }) {
+  const active = current ?? "en";
+  return (
+    <Popover className="relative">
+      <PopoverButton className="inline-flex items-center gap-x-1 text-sm/6 font-semibold text-gray-200 hover:text-yellow-500">
+        <span>{LOCALE_LABEL[active]}</span>
+        <ChevronDownIcon aria-hidden="true" className="size-5" />
+      </PopoverButton>
+      {/* panel не рендерим в fallback — он без нужды */}
+    </Popover>
+  );
+}
+
+function LanguageSwitcherInner({ current }: { current?: Locale }) {
   const pathname = usePathname();
-  const search = useSearchParams()?.toString() || "";
+  const search = useSearchParams().toString();
 
   const detected: Locale = useMemo(() => {
     const code = pathname.split("/")[1];
@@ -36,18 +61,17 @@ export default function LanguageSwitcher({ current }: { current?: Locale }) {
       <PopoverPanel
         transition
         className="absolute left-1/2 z-50 mt-5 -translate-x-1/2
-    w-auto
-    px-4 py-3
-    data-closed:translate-y-1 data-closed:opacity-0
-    data-enter:duration-200 data-leave:duration-150 data-enter:ease-out data-leave:ease-in
-
-    rounded-2xl shadow-2xl shadow-black/50
-    ring-1 ring-white/15 dark:ring-stone/20
-    bg-linear-to-b from-white/55 to-white/20
-    dark:from-stone-950/75 dark:to-stone-950/80
-    backdrop-blur-sm"
+          w-auto
+          px-4 py-3
+          data-closed:translate-y-1 data-closed:opacity-0
+          data-enter:duration-200 data-leave:duration-150 data-enter:ease-out data-leave:ease-in
+          rounded-2xl shadow-2xl shadow-black/50
+          ring-1 ring-white/15 dark:ring-stone/20
+          bg-linear-to-b from-white/55 to-white/20
+          dark:from-stone-950/75 dark:to-stone-950/80
+          backdrop-blur-sm"
       >
-        <div className="w-56 shrink rounded-xl  p-4 text-sm/6 font-semibold text-gray-200 shadow-lg  outline-1 outline-gray-900/5">
+        <div className="w-56 shrink rounded-xl p-4 text-sm/6 font-semibold text-gray-200 shadow-lg outline-1 outline-gray-900/5">
           {LOCALES.map((loc) => {
             const href = buildHref(loc, pathname, search);
             const isActive = loc === active;

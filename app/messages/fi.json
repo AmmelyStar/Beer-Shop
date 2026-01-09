@@ -8,19 +8,47 @@
     "title": "Löydä uusia makuja",
     "subtitle": "Klassikot ja rajoitetut erät, käsityösuosikit, kausituotteet ja harvinaisuudet — huolella kuratoidut valinnat olut- ja siiderityyleittäin sekä välipalat, kaikki yhdessä paikassa."
   },
-  "ShopCategory": {
-    "title": "Osta kategorian mukaan",
-    "browseAll": "Selaa kaikkia kategorioita",
-    "names": {
-      "beer": "Olut",
-      "cider": "Siideri",
-      "snacks": "Välipalat"
-    },
-    "alts": {
-      "beer": "Valikoima käsityöoluita hyllyllä.",
-      "cider": "Valikoima pullotettuja siidereitä.",
-      "snacks": "Herkullisia välipaloja puualustalla."
-    }
+ "ShopCategory": {
+  "title": "Osta kategorian mukaan",
+  "browseAll": "Selaa kaikkia kategorioita",
+  "names": {
+    "beer": "Olut",
+    "cider": "Siideri",
+    "snacks": "Naposteltavat",
+    "gifts": "Lahjat & setit",
+    "nonAlcoholic": "Alkoholiton"
+  },
+  "categories": {
+    "all": "Kaikki tuotteet",
+
+    "bottled-beer": "Pullotettu olut",
+    "draft-beer": "Hanatuotteet",
+    "cider": "Siideri",
+    "non-alcoholic": "Alkoholiton",
+    "snacks": "Naposteltavat",
+    "gifts-bundles": "Lahjapaketit",
+
+    "beer": "Olut",
+    "gifts-sets": "Lahjat & setit",
+    "alcohol-free": "Alkoholiton"
+  },
+  "sort": {
+    "label": "Lajittelu",
+    "best": "Parhaat",
+    "new": "Uudet",
+    "priceAsc": "Hinta ↑",
+    "priceDesc": "Hinta ↓",
+    "titleAsc": "A–Z",
+    "titleDesc": "Z–A"
+  },
+  "alts": {
+    "beer": "Valikoima käsityöläisoluita hyllyllä.",
+    "cider": "Valikoima pullosiidereitä.",
+    "snacks": "Herkullisia naposteltavia puualustalla.",
+    "gifts": "Lahjapakkauksia ja sekasettejä.",
+    "nonAlcoholic": "Valikoima alkoholittomia juomia."
+  }
+
   },
   "TrendingProducts": {
     "title": "Suositut tuotteet",
