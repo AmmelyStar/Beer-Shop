@@ -1,6 +1,7 @@
 // app/[lang]/api/contact/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+export const runtime = "nodejs";
 
 type Payload = {
   firstName?: string;
