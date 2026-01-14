@@ -1,31 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-type SortKey =
-  | "best"
-  | "new"
-  | "price_asc"
-  | "price_desc"
-  | "title_asc"
-  | "title_desc";
-
-const SORT_KEYS: readonly SortKey[] = [
-  "best",
-  "new",
-  "price_asc",
-  "price_desc",
-  "title_asc",
-  "title_desc",
-] as const;
-
-function isSortKey(x: unknown): x is SortKey {
-  return typeof x === "string" && (SORT_KEYS as readonly string[]).includes(x);
-}
-
-export type SortLabels = {
+type SortLabels = {
   label: string;
   best: string;
   new: string;
@@ -35,102 +13,96 @@ export type SortLabels = {
   titleDesc: string;
 };
 
-type Option = {
-  value: SortKey;
-  label: string;
-};
+type SortUrlKey =
+  | "best"
+  | "new"
+  | "price_asc"
+  | "price_desc"
+  | "title_asc"
+  | "title_desc";
 
-/**
- * Outer component: always provides a Suspense boundary
- * so useSearchParams() is safe anywhere this is rendered.
- */
+// на случай, если где-то ещё прилетит camelCase
+function normalizeSort(raw: string | null): SortUrlKey {
+  if (!raw) return "best";
+
+  const mapped =
+    raw === "priceAsc" ? "price_asc" :
+    raw === "priceDesc" ? "price_desc" :
+    raw === "titleAsc" ? "title_asc" :
+    raw === "titleDesc" ? "title_desc" :
+    raw;
+
+  return (
+    mapped === "best" ||
+    mapped === "new" ||
+    mapped === "price_asc" ||
+    mapped === "price_desc" ||
+    mapped === "title_asc" ||
+    mapped === "title_desc"
+  )
+    ? (mapped as SortUrlKey)
+    : "best";
+}
+
 export function SortSelect({ labels }: { labels: SortLabels }) {
-  return (
-    <Suspense fallback={<SortSelectFallback labels={labels} />}>
-      <SortSelectInner labels={labels} />
-    </Suspense>
-  );
-}
-
-function SortSelectFallback({ labels }: { labels: SortLabels }) {
-  const options: Option[] = [
-    { value: "best", label: labels.best },
-    { value: "new", label: labels.new },
-    { value: "price_asc", label: labels.priceAsc },
-    { value: "price_desc", label: labels.priceDesc },
-    { value: "title_asc", label: labels.titleAsc },
-    { value: "title_desc", label: labels.titleDesc },
-  ];
-
-  // Фолбэк без хуков: показываем селект, но отключённый.
-  return (
-    <div className="flex items-center gap-2">
-      <span className="sr-only">{labels.label}</span>
-
-      <select
-        aria-label={labels.label}
-        defaultValue="best"
-        disabled
-        className="h-10 rounded-md border border-white/15 bg-white/5 px-3 text-sm text-white/70 outline-none"
-      >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value} className="bg-neutral-900">
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-function SortSelectInner({ labels }: { labels: SortLabels }) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const sp = useSearchParams();
 
-  const currentRaw = searchParams.get("sort");
-  const current: SortKey = currentRaw && isSortKey(currentRaw) ? currentRaw : "best";
+  const active = normalizeSort(sp.get("sort"));
 
-  const options: Option[] = [
-    { value: "best", label: labels.best },
-    { value: "new", label: labels.new },
-    { value: "price_asc", label: labels.priceAsc },
-    { value: "price_desc", label: labels.priceDesc },
-    { value: "title_asc", label: labels.titleAsc },
-    { value: "title_desc", label: labels.titleDesc },
-  ];
+  const setSort = (next: SortUrlKey) => {
+    const nextSp = new URLSearchParams(sp.toString());
 
-  function onChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const nextValue = e.target.value;
-    const nextSort: SortKey = isSortKey(nextValue) ? nextValue : "best";
+    // "best" можно убрать из URL, чтобы было чище
+    if (next === "best") nextSp.delete("sort");
+    else nextSp.set("sort", next);
 
-    const params = new URLSearchParams(searchParams.toString());
+    // обычно при смене сортировки сбрасываем страницу
+    nextSp.delete("page");
 
-    if (nextSort === "best") {
-      params.delete("sort");
-    } else {
-      params.set("sort", nextSort);
+    const qs = nextSp.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    router.refresh();
+  };
+
+  // подписи берём из твоих labels (camelCase)
+  const labelFor = (k: SortUrlKey) => {
+    switch (k) {
+      case "best":
+        return labels.best;
+      case "new":
+        return labels.new;
+      case "price_asc":
+        return labels.priceAsc;
+      case "price_desc":
+        return labels.priceDesc;
+      case "title_asc":
+        return labels.titleAsc;
+      case "title_desc":
+        return labels.titleDesc;
     }
-
-    const qs = params.toString();
-    router.push(qs ? `${pathname}?${qs}` : pathname);
-  }
+  };
 
   return (
     <div className="flex items-center gap-2">
-      <span className="sr-only">{labels.label}</span>
+      <span className="text-sm text-white/70">{labels.label}</span>
 
       <select
-        aria-label={labels.label}
-        value={current}
-        onChange={onChange}
-        className="h-10 rounded-md border border-white/15 bg-white/5 px-3 text-sm text-white outline-none hover:bg-white/10"
+        value={active}
+        onChange={(e) => setSort(e.target.value as SortUrlKey)}
+        className={[
+          "min-w-[220px] rounded-md border border-white/15",
+          "bg-[#0f0f0f] px-3 py-2 text-sm text-white",
+          "outline-none focus:border-white/40",
+        ].join(" ")}
       >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value} className="bg-neutral-900">
-            {opt.label}
-          </option>
-        ))}
+        <option value="best">{labelFor("best")}</option>
+        <option value="new">{labelFor("new")}</option>
+        <option value="price_asc">{labelFor("price_asc")}</option>
+        <option value="price_desc">{labelFor("price_desc")}</option>
+        <option value="title_asc">{labelFor("title_asc")}</option>
+        <option value="title_desc">{labelFor("title_desc")}</option>
       </select>
     </div>
   );

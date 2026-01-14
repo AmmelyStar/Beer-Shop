@@ -1,58 +1,69 @@
 "use client";
 
-import { Suspense } from "react";
+import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import Tabs from "./Tabs";
 
-type TabsQueryProps<T extends string> = {
-  paramKey?: string;
-  labels: Record<T, string>;
-  keys: readonly T[];
-  /**
-   * Если у тебя есть строгий набор допустимых значений,
-   * можно передать guard, чтобы не принимать мусор из URL.
-   */
-  isKey?: (x: string) => x is T;
+type Props<K extends string> = {
+  keys: readonly K[];
+  labels: Record<K, string>;
+  paramKey: string;              // например "category"
+  isKey?: (x: string) => x is K; // guard
+  resetParams?: string[];        // например ["page"]
 };
 
-export default function TabsQuery<T extends string>(props: TabsQueryProps<T>) {
-  return (
-    <Suspense fallback={<TabsQueryFallback {...props} />}>
-      <TabsQueryInner {...props} />
-    </Suspense>
-  );
-}
-
-function TabsQueryFallback<T extends string>({ labels, keys }: TabsQueryProps<T>) {
-  const first = keys[0] as T;
-  return <Tabs labels={labels} keys={keys} active={first} onChange={() => {}} />;
-}
-
-function TabsQueryInner<T extends string>({
-  paramKey = "category",
-  labels,
+export default function TabsQuery<K extends string>({
   keys,
+  labels,
+  paramKey,
   isKey,
-}: TabsQueryProps<T>) {
+  resetParams = ["page"],
+}: Props<K>) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
 
   const raw = sp.get(paramKey);
-  const active: T =
-    raw && (isKey ? isKey(raw) : (keys as readonly string[]).includes(raw))
-      ? (raw as T)
-      : (keys[0] as T);
+  const active: K =
+    raw &&
+    (isKey ? isKey(raw) : (keys as readonly string[]).includes(raw))
+      ? (raw as K)
+      : keys[0];
 
-  const handleChange = (nextTab: T) => {
-    const next = new URLSearchParams(sp.toString());
+  const setActive = (next: K) => {
+    const nextSp = new URLSearchParams(sp.toString());
+    nextSp.set(paramKey, next);
 
-    if (nextTab === ("all" as T)) next.delete(paramKey);
-    else next.set(paramKey, nextTab);
+    // сбрасываем то, что надо (обычно page)
+    for (const k of resetParams) nextSp.delete(k);
 
-    const qs = next.toString();
-    router.push(qs ? `${pathname}?${qs}` : pathname);
+    const qs = nextSp.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+
+    // ВАЖНО: чтобы сервер реально пересчитал products
+    router.refresh();
   };
 
-  return <Tabs labels={labels} keys={keys} active={active} onChange={handleChange} />;
+  return (
+    <div className="flex flex-wrap gap-2">
+      {keys.map((k) => {
+        const isActive = k === active;
+        return (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setActive(k)}
+            aria-pressed={isActive}
+            className={[
+              "rounded-full border px-3 py-1 text-sm transition",
+              isActive
+                ? "border-white/70 bg-white/10 text-white"
+                : "border-white/15 text-white/80 hover:border-white/40 hover:text-white",
+            ].join(" ")}
+          >
+            {labels[k]}
+          </button>
+        );
+      })}
+    </div>
+  );
 }

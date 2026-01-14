@@ -381,6 +381,7 @@
      "HeaderNav": {
   "home": "Home",
   "shop": "Shop",
-  "contacts": "Contacts"
+  "contacts": "Contacts",
+    "menuTitle": "Menu"
 }
 }

@@ -393,7 +393,8 @@
   "HeaderNav": {
   "home": "Etusivu",
   "shop": "Kauppa",
-  "contacts": "Yhteystiedot"
+  "contacts": "Yhteystiedot",
+  "menuTitle": "Valikko"
 },
 "categories": {
   "all": "Kaikki tuotteet",

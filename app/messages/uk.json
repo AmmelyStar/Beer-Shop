@@ -408,7 +408,9 @@
   "HeaderNav": {
   "home": "Головна",
   "shop": "Магазин",
-  "contacts": "Контакти"
+  "contacts": "Контакти",
+   "menuTitle": "Меню"
 }
+
 
 }

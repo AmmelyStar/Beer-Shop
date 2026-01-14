@@ -45,12 +45,10 @@ function getContinueShoppingText(lang: Locale) {
   }
 }
 
-// ✅ роут товара
 function productHref(lang: Locale, handle: string) {
   return `/${lang}/product/${handle}`;
 }
 
-// ✅ достаём handle / productHandle
 function getProductHandle(value: unknown): string | null {
   if (!value || typeof value !== "object") return null;
 
@@ -114,7 +112,6 @@ export default function ShoppingCardOverviews({
   const items = cart.lines;
   const hasItems = items.length > 0;
 
-  // ✅ totals считаем по ВСЕЙ корзине
   const totalPrice = items.reduce(
     (sum, line) => sum + line.unitPrice * line.quantity,
     0
@@ -139,19 +136,12 @@ export default function ShoppingCardOverviews({
     }
   };
 
-  // ✅ Pagination
-  const PAGE_SIZE = 4; // <-- меняй здесь количество товаров на странице
+  const PAGE_SIZE = 4;
   const labels = getPaginationLabels(lang);
-
-  // страница (1-based)
   const [page, setPage] = useState(1);
 
   const totalItems = items.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-
-  // ✅ ВАЖНО: БЕЗ useEffect и setState внутри эффекта
-  // Если текущая page стала больше totalPages (после удаления товаров),
-  // просто вычисляем "безопасную" страницу для рендера.
   const safePage = Math.min(page, totalPages);
 
   const startIdx = (safePage - 1) * PAGE_SIZE;
@@ -187,8 +177,9 @@ export default function ShoppingCardOverviews({
                   <p className="text-gray-400 text-lg">{empty}</p>
                   <p className="text-gray-500 my-2">{emptyDescription}</p>
 
+                  {/* ✅ FIX #1: language-aware link */}
                   <Link
-                    href="/shop"
+                    href={`/${lang}/shop`}
                     prefetch={false}
                     className="relative mt-10 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
                   >
@@ -197,7 +188,6 @@ export default function ShoppingCardOverviews({
                 </div>
               ) : (
                 <>
-                  {/* ✅ Pagination (top) */}
                   {showPagination && (
                     <div className="mt-6 flex items-center justify-between">
                       <p className="text-sm text-gray-400">
@@ -301,10 +291,7 @@ export default function ShoppingCardOverviews({
                                 <div>
                                   <div className="flex gap-8 items-center">
                                     <p className="mt-1 text-base font-medium text-gray-300">
-                                      {(
-                                        product.unitPrice * product.quantity
-                                      ).toFixed(2)}{" "}
-                                      €
+                                      {(product.unitPrice * product.quantity).toFixed(2)} €
                                     </p>
                                     <button
                                       type="button"
@@ -312,10 +299,7 @@ export default function ShoppingCardOverviews({
                                       className="-m-2 inline-flex p-2 text-gray-400 hover:text-gray-500"
                                     >
                                       <span className="sr-only">Remove</span>
-                                      <XMarkIconMini
-                                        aria-hidden="true"
-                                        className="size-5"
-                                      />
+                                      <XMarkIconMini aria-hidden="true" className="size-5" />
                                     </button>
                                   </div>
                                 </div>
@@ -331,12 +315,8 @@ export default function ShoppingCardOverviews({
                                     }
                                     className="flex size-8 items-center justify-center rounded-md border border-gray-400 text-gray-300 hover:bg-white/10 transition-colors"
                                   >
-                                    <span className="sr-only">
-                                      Decrease quantity
-                                    </span>
-                                    <span className="text-lg font-medium">
-                                      −
-                                    </span>
+                                    <span className="sr-only">Decrease quantity</span>
+                                    <span className="text-lg font-medium">−</span>
                                   </button>
 
                                   <span className="w-8 text-center text-base text-gray-200">
@@ -346,19 +326,12 @@ export default function ShoppingCardOverviews({
                                   <button
                                     type="button"
                                     onClick={() =>
-                                      updateLineQuantity(
-                                        product.id,
-                                        product.quantity + 1
-                                      )
+                                      updateLineQuantity(product.id, product.quantity + 1)
                                     }
                                     className="flex size-8 items-center justify-center rounded-md border border-gray-400 text-gray-300 hover:bg-white/10 transition-colors"
                                   >
-                                    <span className="sr-only">
-                                      Increase quantity
-                                    </span>
-                                    <span className="text-lg font-medium">
-                                      +
-                                    </span>
+                                    <span className="sr-only">Increase quantity</span>
+                                    <span className="text-lg font-medium">+</span>
                                   </button>
                                 </div>
                               </div>
@@ -369,7 +342,6 @@ export default function ShoppingCardOverviews({
                     })}
                   </ul>
 
-                  {/* ✅ Pagination (bottom) */}
                   {showPagination && (
                     <div className="mt-6 flex items-center justify-between">
                       <p className="text-sm text-gray-400">
@@ -429,13 +401,8 @@ export default function ShoppingCardOverviews({
                           type="button"
                           className="ml-2 shrink-0 text-gray-400 hover:text-gray-300"
                         >
-                          <span className="sr-only">
-                            {shippingEstimateInfo}
-                          </span>
-                          <QuestionMarkCircleIcon
-                            aria-hidden="true"
-                            className="size-5"
-                          />
+                          <span className="sr-only">{shippingEstimateInfo}</span>
+                          <QuestionMarkCircleIcon aria-hidden="true" className="size-5" />
                         </button>
                       </dt>
                       <dd className="text-base font-medium text-gray-400">
@@ -451,10 +418,7 @@ export default function ShoppingCardOverviews({
                           className="ml-2 shrink-0 text-gray-400 hover:text-gray-500"
                         >
                           <span className="sr-only">{taxEstimateInfo}</span>
-                          <QuestionMarkCircleIcon
-                            aria-hidden="true"
-                            className="size-5"
-                          />
+                          <QuestionMarkCircleIcon aria-hidden="true" className="size-5" />
                         </button>
                       </dt>
                       <dd className="text-base font-medium text-gray-400">
@@ -463,9 +427,7 @@ export default function ShoppingCardOverviews({
                     </div>
 
                     <div className="flex items-center justify-between border-t border-gray-200 pt-4">
-                      <dt className="text-base font-medium text-yellow-400">
-                        {total}
-                      </dt>
+                      <dt className="text-base font-medium text-yellow-400">{total}</dt>
                       <dd className="text-base font-medium text-yellow-400">
                         {orderTotal.toFixed(2)} €
                       </dd>
@@ -493,8 +455,9 @@ export default function ShoppingCardOverviews({
                   </div>
                 </section>
 
+                {/* ✅ FIX #2: language-aware link */}
                 <Link
-                  href="/shop"
+                  href={`/${lang}/shop`}
                   prefetch={false}
                   className="mt-3 inline-flex w-full items-center justify-center rounded-md border border-white/20 bg-transparent px-8 py-2 text-sm font-semibold text-gray-200 hover:bg-white/5 duration-300"
                 >

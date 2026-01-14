@@ -2,20 +2,34 @@
 "use client";
 
 import type { Locale } from "@/app/lib/locale";
+import ShoppingCardOverviews from "../../components/ShoppingCardOverviews";
+
+type CartMsgs = {
+  shoppingCart: string;
+  description: string;
+  orderSummary: string;
+  subtotal: string;
+  shippingEstimate: string;
+  taxEstimate: string;
+  total: string;
+  checkout: string;
+  shippingEstimateInfo: string;
+  taxEstimateInfo: string;
+  empty: string;
+  emptyDescription: string;
+  CTAAdd: string;
+};
 
 type Props = {
   lang: Locale;
   success: boolean;
   cancel: boolean;
+  cartMsgs: CartMsgs; // ✅ добавили
 };
 
-export default function CartClient({ lang, success, cancel }: Props) {
+export default function CartClient({ lang, success, cancel, cartMsgs }: Props) {
   return (
     <section className="mt-6">
-      <header className="mb-8">
-        <h1 className="text-3xl font-semibold text-white">Cart</h1>
-      </header>
-
       {success ? (
         <div className="mb-6 rounded-xl border border-white/10 bg-white/5 p-4 text-neutral-200">
           Payment successful.
@@ -28,10 +42,7 @@ export default function CartClient({ lang, success, cancel }: Props) {
         </div>
       ) : null}
 
-      {/* Подключай сюда твой реальный UI корзины */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-6 text-neutral-300">
-        <p className="text-sm">Cart UI goes here. lang: {lang}</p>
-      </div>
+      <ShoppingCardOverviews {...cartMsgs} lang={lang} />
     </section>
   );
 }

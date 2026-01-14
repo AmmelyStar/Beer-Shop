@@ -295,7 +295,8 @@
   "HeaderNav": {
     "home": "Главная",
     "shop": "Магазин",
-    "contacts": "Контакты"
+    "contacts": "Контакты",
+    "menuTitle": "Меню"
   },
   "categories": {
   "all": "Все товары",
@@ -319,5 +320,20 @@
   "priceDesc": "Цена ↓",
   "titleAsc": "А–Я",
   "titleDesc": "Я–А"
+},
+"ShoppingCardOverviews": {
+  "shoppingCart": "Корзина",
+  "description": "Товары в вашей корзине",
+  "orderSummary": "Итого",
+  "subtotal": "Подытог",
+  "shippingEstimate": "Доставка",
+  "shippingEstimateInfo": "Как рассчитывается стоимость доставки",
+  "taxEstimate": "Налог",
+  "taxEstimateInfo": "Как рассчитывается налог",
+  "total": "Всего",
+  "checkout": "Перейти к оплате",
+  "empty": "Ваша корзина пуста",
+  "emptyDescription": "Добавьте товары, чтобы начать покупки.",
+  "CTAAdd": "Все товары"
 }
 }

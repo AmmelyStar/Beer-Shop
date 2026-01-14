@@ -15,6 +15,7 @@ type HeaderNavMessages = {
   home: string;
   shop: string;
   contacts: string;
+  menuTitle: string;
 };
 
 const SHOPPING_CART_FALLBACK: ShoppingCartMessages = {
@@ -22,12 +23,14 @@ const SHOPPING_CART_FALLBACK: ShoppingCartMessages = {
   emptyMessage: "Your cart is empty",
   checkoutButton: "Proceed to Checkout",
   itemsInCart: "items in cart, view bag",
+  
 };
 
 const HEADER_NAV_FALLBACK: HeaderNavMessages = {
   home: "Home",
   shop: "Shop",
   contacts: "Contacts",
+  menuTitle: "Menu",
 };
 
 type Props = {
@@ -216,7 +219,7 @@ export default function Header({ lang, messages }: Props) {
           <div className="absolute right-0 top-0 h-full w-[86%] max-w-sm bg-[#061414] border-l border-white/10">
             <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
               <span className="text-sm uppercase tracking-widest text-white/90">
-                Menu
+                {nav.menuTitle}
               </span>
 
               <button

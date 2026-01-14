@@ -1,23 +1,20 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import ShopContent, { type ShopContentProps } from "@/app/components/ShopContent";
+import { CATEGORY_KEYS, type CategoryKey } from "@/app/lib/shop/categories";
 
-export default function ShopClient({ lang }: { lang: string }) {
+type Props = Omit<ShopContentProps, "activeCategory">;
+
+function isCategoryKey(x: string): x is CategoryKey {
+  return (CATEGORY_KEYS as readonly string[]).includes(x);
+}
+
+export default function ShopClient(props: Props) {
   const sp = useSearchParams();
 
-  // пример: category/sort/page
-  const category = sp.get("category") ?? "all";
-  const sort = sp.get("sort") ?? "popular";
-  const page = Number(sp.get("page") ?? "1");
+  const raw = sp.get("category");
+  const activeCategory: CategoryKey = raw && isCategoryKey(raw) ? raw : "all";
 
-  return (
-    <div>
-      <h1 className="text-xl font-semibold">Shop ({lang})</h1>
-      <div className="text-sm opacity-70">
-        category={category} sort={sort} page={page}
-      </div>
-
-      {/* дальше твой реальный UI магазина */}
-    </div>
-  );
+  return <ShopContent {...props} activeCategory={activeCategory} />;
 }

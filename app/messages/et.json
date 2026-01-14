@@ -391,7 +391,8 @@
   "HeaderNav": {
   "home": "Avaleht",
   "shop": "Pood",
-  "contacts": "Kontaktid"
+  "contacts": "Kontaktid",
+  "menuTitle": "Menüü"
 },
 "categories": {
   "all": "Kõik tooted",
