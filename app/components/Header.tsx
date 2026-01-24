@@ -154,7 +154,7 @@ export default function Header({ lang, messages }: Props) {
             <img
               src="/category/beer_logo.svg"
               alt="Beer & Snacks"
-              className="h-14 md:h-16 w-auto object-contain"
+              className="h-22 md:h-24 w-auto object-contain"
               draggable={false}
             />
           </Link>

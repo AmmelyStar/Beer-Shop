@@ -1,87 +1,95 @@
 // app/components/BrandSection.tsx
 import Image from "next/image";
+import { getBrandsFromShopify, type BrandItem } from "@/app/lib/shopify/getBrands";
 
-type BrandItem = {
-  id: string;
-  name: string;
-  logo: string; // URL или путь из /public
-  url?: string;
-};
-
-// ✅ заполняем прямо здесь
-const items: BrandItem[] = [
+const fallbackItems: BrandItem[] = [
   {
-    id: "transistor",
-    name: "Transistor",
-    logo: "https://tailwindcss.com/plus-assets/img/logos/158x48/transistor-logo-white.svg",
-    url: "https://transistor.fm/",
-  },
-  {
-    id: "reform",
-    name: "Reform",
-    logo: "https://tailwindcss.com/plus-assets/img/logos/158x48/reform-logo-white.svg",
-    url: "https://reform.app/",
-  },
-  {
-    id: "tuple",
-    name: "Tuple",
-    logo: "https://tailwindcss.com/plus-assets/img/logos/158x48/tuple-logo-white.svg",
-    url: "https://tuple.app/",
-  },
-  {
-    id: "savvycal",
-    name: "SavvyCal",
-    logo: "https://tailwindcss.com/plus-assets/img/logos/158x48/savvycal-logo-white.svg",
-    url: "https://savvycal.com/",
-  },
-  {
-    id: "statamic",
-    name: "Statamic",
-    logo: "https://tailwindcss.com/plus-assets/img/logos/158x48/statamic-logo-white.svg",
-    url: "https://statamic.com/",
+    id: "fallback-test",
+    name: "FALLBACK",
+    logo: "https://dummyimage.com/240x80/ffffff/000000.png&text=FALLBACK",
+    url: "#",
   },
 ];
 
-const text =
-  "Нам доверяют команды по всему миру — от стартапов до лидеров рынка.";
+// ✅ messages как у тебя в JSON: brandSection.text
+type BrandSectionMessages = {
+  brandSection?: {
+    text?: string;
+  };
+};
 
-export default function BrandSection() {
-  if (!items.length) return null;
+function LogoItem({ partner, idx }: { partner: BrandItem; idx: number }) {
+  const href = partner.url ?? "#";
+  const isExternal = href.startsWith("http");
 
   return (
-    <section className="py-10">
-      <div className="mx-auto max-w-7xl px-8">
-        <div className="mx-auto my-10 flex max-w-lg flex-wrap items-center justify-center gap-x-8 gap-y-12 sm:max-w-xl sm:gap-x-10 sm:gap-y-14 lg:max-w-4xl">
-          {items.map((partner, idx) => {
-            const href = partner.url ?? "#";
-            return (
-              <a
-                key={partner.id}
-                href={href}
-                target={href.startsWith("http") ? "_blank" : undefined}
-                rel={
-                  href.startsWith("http") ? "noopener noreferrer" : undefined
-                }
-                aria-label={partner.name}
-                className="transition-opacity hover:opacity-90 focus-visible:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-              >
-                <Image
-                  alt={partner.name}
-                  src={partner.logo}
-                  width={158}
-                  height={48}
-                  className="max-h-12 w-auto object-contain"
-                  sizes="(max-width: 640px) 120px, 158px"
-                  priority={idx < 2}
-                />
-              </a>
-            );
-          })}
+    <a
+      href={href}
+      target={isExternal ? "_blank" : undefined}
+      rel={isExternal ? "noopener noreferrer" : undefined}
+      aria-label={partner.name}
+      className="flex h-20 items-center justify-center opacity-90 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+    >
+      <Image
+        alt={partner.name}
+        src={partner.logo}
+        width={520}
+        height={180}
+        // ✅ больше, чем h-40 — используем arbitrary value
+        className="h-[168px] w-auto object-contain"
+        // ✅ просим браузер брать крупнее на больших экранах
+        sizes="(max-width: 640px) 220px, (max-width: 1024px) 320px, 420px"
+        priority={idx < 12}
+      />
+    </a>
+  );
+}
+
+export default async function BrandSection({
+  messages,
+  maxItems = 200,
+}: {
+  messages?: BrandSectionMessages;
+  maxItems?: number;
+}) {
+  let items: BrandItem[] = [];
+
+  try {
+    items = await getBrandsFromShopify();
+  } catch {
+    items = [];
+  }
+
+  if (!items.length) items = fallbackItems;
+  if (!items.length) return null;
+
+  const normalized = items
+    .filter((x) => x?.logo && x?.name)
+    .map((x, i) => ({
+      ...x,
+      id: x.id || `${x.name}-${i}`,
+      url: x.url || "#",
+    }))
+    .slice(0, maxItems);
+
+  const text = messages?.brandSection?.text ?? "";
+
+  return (
+    <section className="bg-[var(--background)] py-24">
+      <div className="mx-auto max-w-7xl px-6">
+        {/* ✅ твой стиль + грид рядами, не зависит от количества */}
+        <div className="grid grid-cols-2 place-items-center gap-x-14 gap-y-12 sm:grid-cols-3 lg:grid-cols-6">
+          {normalized.map((partner, idx) => (
+            <LogoItem key={`${partner.id}-${idx}`} partner={partner} idx={idx} />
+          ))}
         </div>
 
-        <h2 className="mt-16 text-center text-base/7 font-light text-gray-600">
-          {text}
-        </h2>
+        {/* ✅ текст снизу на твоём фоне */}
+        {text && (
+          <p className="mt-16 text-center text-sm font-light text-gray-500">
+            {text}
+          </p>
+        )}
       </div>
     </section>
   );

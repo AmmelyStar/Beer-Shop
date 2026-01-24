@@ -68,7 +68,7 @@ export default async function Home({
         subtitle={t.LogoSection.subtitle}
       />
 
-      <BrandSection />
+      <BrandSection messages={t}/>
     </main>
   );
 }
