@@ -6,9 +6,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 type Props<K extends string> = {
   keys: readonly K[];
   labels: Record<K, string>;
-  paramKey: string;              // например "category"
+  paramKey: string; // например "category"
   isKey?: (x: string) => x is K; // guard
-  resetParams?: string[];        // например ["page"]
+  resetParams?: string[]; // например ["page"]
 };
 
 export default function TabsQuery<K extends string>({
@@ -23,6 +23,8 @@ export default function TabsQuery<K extends string>({
   const sp = useSearchParams();
 
   const raw = sp.get(paramKey);
+
+  // если параметра нет — НЕ пишем его в URL, просто считаем активным первый таб
   const active: K =
     raw &&
     (isKey ? isKey(raw) : (keys as readonly string[]).includes(raw))
@@ -31,7 +33,13 @@ export default function TabsQuery<K extends string>({
 
   const setActive = (next: K) => {
     const nextSp = new URLSearchParams(sp.toString());
-    nextSp.set(paramKey, next);
+
+    // "all" = показываем всё → убираем paramKey из URL
+    if (String(next) === "all") {
+      nextSp.delete(paramKey);
+    } else {
+      nextSp.set(paramKey, String(next));
+    }
 
     // сбрасываем то, что надо (обычно page)
     for (const k of resetParams) nextSp.delete(k);
@@ -39,7 +47,7 @@ export default function TabsQuery<K extends string>({
     const qs = nextSp.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
 
-    // ВАЖНО: чтобы сервер реально пересчитал products
+    // чтобы сервер реально пересчитал products
     router.refresh();
   };
 
@@ -47,6 +55,7 @@ export default function TabsQuery<K extends string>({
     <div className="flex flex-wrap gap-2">
       {keys.map((k) => {
         const isActive = k === active;
+
         return (
           <button
             key={k}

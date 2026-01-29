@@ -7,7 +7,6 @@ import BannerSection from "../components/BannerSection";
 import TextBlockCenter from "../components/ui/TextBlockCenter";
 import BrandSection from "../components/BrandSection";
 import { fetchAllProductsFlattened } from "../data/repo";
-// import LinksList from "../components/ui/LinksList";
 
 export default async function Home({
   params,
@@ -19,10 +18,8 @@ export default async function Home({
 
   const allProducts = await fetchAllProductsFlattened(lang);
 
-  // Берём только те, у которых marketing.trending = true
-  const trendingProducts = allProducts.filter((p) => p.trending).slice(0, 4); // например, максимум 4
+  const trendingProducts = allProducts.filter((p) => p.trending).slice(0, 4);
 
-  // Пример: если нужен URL магазина с текущей локалью
   const shopHref = `/${lang}/shop`;
 
   return (
@@ -32,19 +29,22 @@ export default async function Home({
         subtitle={t.hero.subtitle}
         ctaLabel={t.hero.cta}
         ctaHref={shopHref}
-        // imageUrl можешь подменять данными с бэка
       />
+
       <TextBlockCenter
         title={t.TextBlockCategory.title}
         subtitle={t.TextBlockCategory.subtitle}
       />
+
       <ShopCategory
         title={t.ShopCategory.title}
         browseAll={t.ShopCategory.browseAll}
+        // важно: эти поля должны иметь новые ключи
         names={t.ShopCategory.names}
         alts={t.ShopCategory.alts}
         lang={lang}
       />
+
       <TrendingProducts
         products={trendingProducts}
         lang={lang}
@@ -54,13 +54,14 @@ export default async function Home({
         add={t.TrendingProducts.add}
         alcohol={t.TrendingProducts.alcohol}
       />
+
       <BannerSection
         imageSrc="/category/golden-beer-bubbles-drop-wet-glass-generated-by-ai.jpg"
         imageAlt={t.BannerSection.title}
         title={t.BannerSection.title}
         subtitle={t.BannerSection.subtitle}
         ctaLabel={t.BannerSection.cta}
-        ctaHref={`/${lang}/shop`}
+        ctaHref={shopHref}
       />
 
       <TextBlockCenter
@@ -68,7 +69,7 @@ export default async function Home({
         subtitle={t.LogoSection.subtitle}
       />
 
-      <BrandSection messages={t}/>
+      <BrandSection messages={t} />
     </main>
   );
 }

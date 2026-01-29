@@ -2,21 +2,26 @@
 
 export type CategoryKey =
   | "all"
-  | "beer"
-  | "cider"
+  | "beer in bottles"
+  | "Cider"
+  | "energy drink"
+  | "non-alcoholic beer"
   | "snacks"
-  | "gifts-sets"
-  | "alcohol-free";
+  | "sparkling wine"
+  | "Soft Drinks";
 
 export const CATEGORY_KEYS: readonly CategoryKey[] = [
   "all",
-  "beer",
-  "cider",
+  "beer in bottles",
+  "Cider",
+  "energy drink",
+  "non-alcoholic beer",
   "snacks",
-  "gifts-sets",
-  "alcohol-free",
+  "sparkling wine",
+  "Soft Drinks",
 ] as const;
 
 export function isCategoryKey(x: unknown): x is CategoryKey {
-  return typeof x === "string" && (CATEGORY_KEYS as readonly string[]).includes(x);
+  return typeof x === "string" &&
+    (CATEGORY_KEYS as readonly string[]).includes(x);
 }

@@ -11,44 +11,43 @@
   "ShopCategory": {
     "title": "Shop by Category",
     "browseAll": "Browse all categories",
-
     "names": {
-    "beer": "Beer",
-    "cider": "Cider",
-    "snacks": "Snacks",
-    "gifts": "Gifts & Sets",
-    "nonAlcoholic": "Non-alcoholic"
-  },
-  "categories": {
-  "all": "All Products",
-
-  "bottled-beer": "Bottled beer",
-  "draft-beer": "Draft beer",
-  "cider": "Cider",
-  "non-alcoholic": "Non-alcoholic",
-  "snacks": "Snacks",
-  "gifts-bundles": "Gifts & bundles",
-
-  "beer": "Beer",
-  "gifts-sets": "Gifts & Sets",
-  "alcohol-free": "Non-alcoholic"
-},
-"sort": {
-  "label": "Sort",
-  "best": "Best",
-  "new": "New",
-  "priceAsc": "Price ↑",
-  "priceDesc": "Price ↓",
-  "titleAsc": "A–Z",
-  "titleDesc": "Z–A"
-},
-  "alts": {
-    "beer": "Assorted craft beers on a shelf.",
-    "cider": "Selection of bottled ciders.",
-    "snacks": "Tasty snacks next to a wooden tray.",
-    "gifts": "Gift boxes and mixed beer sets.",
-    "nonAlcoholic": "Selection of non-alcoholic drinks."
-  }
+      "beerInBottles": "Beer",
+      "cider": "Cider",
+      "energyDrink": "Energy drink",
+      "nonAlcoholicBeer": "Non-alcoholic beer",
+      "snacks": "Snacks",
+      "sparklingWine": "Sparkling wine",
+      "softDrinks": "Soft Drinks"
+    },
+    "alts": {
+      "beerInBottles": "Assorted bottled craft beers on a shelf.",
+      "cider": "Selection of bottled ciders.",
+      "energyDrink": "Cold energy drinks in bottles and cans.",
+      "nonAlcoholicBeer": "Selection of non-alcoholic beers.",
+      "snacks": "Tasty snacks next to a wooden tray.",
+      "sparklingWine": "Sparkling wine bottles with bubbles in a glass.",
+      "softDrinks": "Selection of soft drinks like mineral water and kvass."
+    },
+    "categories": {
+      "all": "All Products",
+      "beer in bottles": "Beer",
+      "Cider": "Cider",
+      "energy drink": "Energy drink",
+      "non-alcoholic beer": "Non-alcoholic beer",
+      "snacks": "Snacks",
+      "sparkling wine": "Sparkling wine",
+      "Soft Drinks": "Soft Drinks"
+    },
+    "sort": {
+      "label": "Sort",
+      "best": "Best",
+      "new": "New",
+      "priceAsc": "Price ↑",
+      "priceDesc": "Price ↓",
+      "titleAsc": "A–Z",
+      "titleDesc": "Z–A"
+    }
   },
   "TrendingProducts": {
     "title": "Trending Products",
@@ -58,31 +57,32 @@
     "alcohol": "Alcohol free"
   },
   "AllProducts": {
-  "title": "All Products",
-  "stars": "out of 5 stars",
-  "reviews": "reviews",
-  "add": "Add to cart",
-  "alcohol": "Alcohol free",
-  "noProducts": "No products found",
-  "noProductsDescription": "There are no products in this category yet. Check back soon or browse other categories.",
-  "categories": {
+    "title": "All Products",
+    "stars": "out of 5 stars",
+    "reviews": "reviews",
+    "add": "Add to cart",
+    "alcohol": "Alcohol free",
+    "noProducts": "No products found",
+    "noProductsDescription": "There are no products in this category yet. Check back soon or browse other categories.",
+     "categories": {
     "all": "All Products",
-    "beer": "Beer",
-    "cider": "Cider",
+    "beer in bottles": "Beer",
+    "Cider": "Cider",
+    "energy drink": "Energy drink",
+    "non-alcoholic beer": "Non-alcoholic beer",
     "snacks": "Snacks",
-    "gifts-sets": "Gifts & Sets",
-    "alcohol-free": "Non-alcoholic"
+    "sparkling wine": "Sparkling wine",
+    "Soft Drinks": "Soft Drinks"
   },
-  "sort": {
-    "label": "Sort",
-    "best": "Best",
-    "new": "New",
-    "priceAsc": "Price ↑",
-    "priceDesc": "Price ↓",
-    "titleAsc": "A–Z",
-    "titleDesc": "Z–A"
-  }
-
+    "sort": {
+      "label": "Sort",
+      "best": "Best",
+      "new": "New",
+      "priceAsc": "Price ↑",
+      "priceDesc": "Price ↓",
+      "titleAsc": "A–Z",
+      "titleDesc": "Z–A"
+    }
   },
   "OneProduct": {
     "perUnit": "per 1 pc",
@@ -102,7 +102,6 @@
     "allergens": "Allergens",
     "ingredients": "Ingredients"
   },
-
   "CustomerReviews": {
     "title": "Customer Reviews",
     "stars": "out of 5 stars",
@@ -115,7 +114,6 @@
     "recentReviews": "Recent reviews",
     "loginToReview": "Log in to leave a review"
   },
-
   "HeaderSearch": {
     "label": "Search products",
     "placeholder": "Search products…"
@@ -151,7 +149,7 @@
       "snacks": "Snacks",
       "gifts": "Gifts & bundles"
     },
-      "customers": {
+    "customers": {
       "title": "Customers",
       "faq": "Frequently asked questions",
       "shippingPayment": "Shipping & payment",
@@ -168,15 +166,14 @@
     "followUs": "Follow us",
     "copyright": "© 2025 Beer & Snacks",
     "prodused": "Produced by Dvi"
-  
   },
-   "CookieBanner": {
+  "CookieBanner": {
     "text": "We use cookies to improve your browsing experience, analyse traffic and personalize content. You can accept or reject non-essential cookies.",
     "accept": "Accept all",
     "reject": "Reject all",
     "policyLink": "Cookie policy"
   },
-   "AccountPage": {
+  "AccountPage": {
     "title": "My account",
     "profileInformation": "Profile",
     "profileIntro": "Personal details for orders and delivery.",
@@ -203,13 +200,12 @@
     "tabProfile": "Profile",
     "tabOrders": "My orders",
     "tabReviews": "My reviews",
-    "tabAddresses":"My",
-        "genderLabelNotSet": "Not specified",
+    "tabAddresses": "My",
+    "genderLabelNotSet": "Not specified",
     "genderLabelFemale": "Female",
     "genderLabelMale": "Male",
     "genderLabelOther": "Other"
   },
-  
   "AccountOrders": {
     "title": "Order history",
     "intro": "Check the status of recent orders, manage returns, and download invoices.",
@@ -238,30 +234,24 @@
     "email": "Email address",
     "password": "Password",
     "confirmPassword": "Confirm password",
-
     "passwordStrength": "Password strength",
     "passwordHint": "(min 8 chars, letters & digits)",
     "passwordStrengthWeak": "Weak",
     "passwordStrengthMedium": "Medium",
     "passwordStrengthStrong": "Strong",
-
     "showPasswordAria": "Show password",
     "hidePasswordAria": "Hide password",
-
     "forgotPassword": "Forgot password?",
     "submitSignIn": "Sign in",
     "submitSignUp": "Sign up",
-
     "passwordsDontMatch": "Passwords do not match.",
     "enterEmailFirst": "Please enter your email first.",
     "resetSent": "If this email exists, we have sent instructions to reset your password.",
     "weakPassword": "Password must be at least 8 characters and contain letters and numbers.",
-
     "accountCreated": "Account created successfully!",
     "signInFlowIncomplete": "Please complete the sign-in flow.",
     "signUpFlowIncomplete": "Please complete the sign-up flow.",
     "somethingWentWrong": "Something went wrong. Please try again.",
-
     "forgotPasswordDescription": "Enter your email to receive a reset code.",
     "resetPasswordDescription": "Enter the code from the email and your new password.",
     "sendResetCodeButton": "Send reset code",
@@ -282,10 +272,10 @@
     "emptyDescription": "Add some products to get started!",
     "CTAAdd": "All Products"
   },
-  "AddToCartButton":{
+  "AddToCartButton": {
     "addToCart": "Add to cart"
   },
-   "Contact": {
+  "Contact": {
     "title": "Let's work together",
     "subtitle": "We'd love to hear from you! Whether you have questions about our products, need assistance with an order, or just want to share your feedback, our team is here to help.",
     "firstname": "First name",
@@ -307,38 +297,30 @@
   },
   "reviewModal": {
     "titleCreate": "Leave a review",
-  "titleEdit": "Edit review",
-  "subtitleCreate": "Tell us what you think about this product.",
-  "subtitleEdit": "Update your rating and text. After editing, the review may be re-moderated.",
-
-  "nameLabel": "Name",
-  "ratingLabel": "Rating",
-  "textLabel": "Your review",
-
-  "namePlaceholder": "Your name",
-  "textPlaceholder": "Write at least 10 characters...",
-
-  "helperMinMax": "Min 10, max 200 characters",
-  "helperChars": "{count}/200",
-
-  "cancel": "Cancel",
-  "submit": "Submit review",
-  "saveChanges": "Save changes",
-  "sending": "Sending...",
-
-  "validationName": "Please enter your name.",
-  "validationMin": "Review text must be at least 10 characters.",
-  "validationMax": "Review text must be at most 200 characters.",
-  "validationRating": "Please select a rating from 1 to 5 stars.",
-  "validationMissingHandle": "Missing product handle.",
-
-  "errorSubmit": "Failed to submit review.",
-  "errorUpdate": "Failed to update review.",
-
-  "successSubmit": "Thank you! Your review has been submitted.",
-  "successUpdate": "Your review has been updated.",
-
-  "closeAria": "Close"
+    "titleEdit": "Edit review",
+    "subtitleCreate": "Tell us what you think about this product.",
+    "subtitleEdit": "Update your rating and text. After editing, the review may be re-moderated.",
+    "nameLabel": "Name",
+    "ratingLabel": "Rating",
+    "textLabel": "Your review",
+    "namePlaceholder": "Your name",
+    "textPlaceholder": "Write at least 10 characters...",
+    "helperMinMax": "Min 10, max 200 characters",
+    "helperChars": "{count}/200",
+    "cancel": "Cancel",
+    "submit": "Submit review",
+    "saveChanges": "Save changes",
+    "sending": "Sending...",
+    "validationName": "Please enter your name.",
+    "validationMin": "Review text must be at least 10 characters.",
+    "validationMax": "Review text must be at most 200 characters.",
+    "validationRating": "Please select a rating from 1 to 5 stars.",
+    "validationMissingHandle": "Missing product handle.",
+    "errorSubmit": "Failed to submit review.",
+    "errorUpdate": "Failed to update review.",
+    "successSubmit": "Thank you! Your review has been submitted.",
+    "successUpdate": "Your review has been updated.",
+    "closeAria": "Close"
   },
   "customerReviews": {
     "recentReviewsLabel": "Recent reviews",
@@ -356,12 +338,10 @@
     "successMessage": "Thanks! Your review was sent.",
     "errorMessage": "Something went wrong. Please try again."
   },
-   "Partnership": {
+  "Partnership": {
     "title": "Partnership",
     "subtitle": "Tell us about your idea — we’ll reply within 1–2 business days.",
-
     "imageAlt": "Partnership",
-
     "form": {
       "firstname": "First name",
       "lastname": "Last name",
@@ -371,20 +351,19 @@
       "optional": "Optional",
       "message": "How would you like to collaborate?",
       "messageLimit": "Max 500 characters",
-
       "submit": "Send inquiry",
       "submitting": "Sending...",
       "success": "Thank you! We received your inquiry and will get back to you shortly.",
       "error": "Oops! Something went wrong. Please try again later."
     }
-     },
-     "HeaderNav": {
-  "home": "Home",
-  "shop": "Shop",
-  "contacts": "Contacts",
+  },
+  "HeaderNav": {
+    "home": "Home",
+    "shop": "Shop",
+    "contacts": "Contacts",
     "menuTitle": "Menu"
-},
-"brandSection": {
-  "text": "Teams around the world trust us — from startups to market leaders."
-}
+  },
+  "brandSection": {
+    "text": "Teams around the world trust us — from startups to market leaders."
+  }
 }

@@ -4,23 +4,20 @@ import Link from "next/link";
 import type { Locale } from "@/app/lib/locale";
 import RowLink from "./ui/RowLink";
 
+type CategoryKey =
+  | "beerInBottles"
+  | "cider"
+  | "energyDrink"
+  | "nonAlcoholicBeer"
+  | "snacks"
+  | "sparklingWine"
+  | "softDrinks";
+
 type Props = {
   title: string;
   browseAll: string;
-  names: {
-    beer: string;
-    cider: string;
-    snacks: string;
-    gifts: string;
-    nonAlcoholic: string;
-  };
-  alts: {
-    beer: string;
-    cider: string;
-    snacks: string;
-    gifts: string;
-    nonAlcoholic: string;
-  };
+  names: Record<CategoryKey, string>;
+  alts: Record<CategoryKey, string>;
   lang: Locale;
 };
 
@@ -31,37 +28,55 @@ export default function ShopCategory({
   alts,
   lang,
 }: Props) {
-  const cards = [
+  const cards: Array<{
+    key: CategoryKey;
+    href: string;
+    img: string;
+    alt: string;
+    big?: boolean;
+  }> = [
     {
-      key: "beer" as const,
-      href: `/${lang}/shop?category=beer`,
+      key: "beerInBottles",
+      href: `/${lang}/shop?category=beer%20in%20bottles`,
       img: "/category/fresh-light-beer-mug.jpg",
-      alt: alts.beer,
+      alt: alts.beerInBottles,
       big: true,
     },
     {
-      key: "cider" as const,
-      href: `/${lang}/shop?category=cider`,
+      key: "cider",
+      href: `/${lang}/shop?category=Cider`,
       img: "/category/photo_2025-11-02_14-54-50.jpg",
       alt: alts.cider,
     },
     {
-      key: "snacks" as const,
+      key: "energyDrink",
+      href: `/${lang}/shop?category=energy%20drink`,
+      img: "/category/energy.jpg",
+      alt: alts.energyDrink,
+    },
+    {
+      key: "nonAlcoholicBeer",
+      href: `/${lang}/shop?category=non-alcoholic%20beer`,
+      img: "/category/non-alcoholic-beer.jpg",
+      alt: alts.nonAlcoholicBeer,
+    },
+    {
+      key: "snacks",
       href: `/${lang}/shop?category=snacks`,
       img: "/category/photo_2025-11-02_14-55-04.jpg",
       alt: alts.snacks,
     },
     {
-      key: "gifts" as const,
-      href: `/${lang}/shop?category=gifts-sets`,
-      img: "/category/gifts-and-sets.jpg",
-      alt: alts.gifts,
+      key: "sparklingWine",
+      href: `/${lang}/shop?category=sparkling%20wine`,
+      img: "/category/sparkling-wine.jpg",
+      alt: alts.sparklingWine,
     },
     {
-      key: "nonAlcoholic" as const,
-      href: `/${lang}/shop?category=alcohol-free`,
-      img: "/category/non-alcoholic.jpg",
-      alt: alts.nonAlcoholic,
+      key: "softDrinks",
+      href: `/${lang}/shop?category=Soft%20Drinks`,
+      img: "/category/soft-drinks.jpg",
+      alt: alts.softDrinks,
     },
   ];
 

@@ -11,46 +11,27 @@
   },
 
   "ShopCategory": {
-  "title": "Покупайте по категориям",
-  "browseAll": "Посмотреть все категории",
-  "names": {
-    "beer": "Пиво",
-    "cider": "Сидр",
-    "snacks": "Снеки",
-    "gifts": "Подарки и наборы",
-    "nonAlcoholic": "Безалкогольное"
+    "title": "Покупайте по категориям",
+    "browseAll": "Посмотреть все категории",
+    "names": {
+      "beerInBottles": "Пиво",
+      "cider": "Сидр",
+      "energyDrink": "Энергетики",
+      "nonAlcoholicBeer": "Безалкогольное пиво",
+      "snacks": "Закуски",
+      "sparklingWine": "Игристое вино",
+      "softDrinks": "Безалкогольные напитки"
+    },
+    "alts": {
+      "beerInBottles": "Ассорти крафтового пива в бутылках на полке.",
+      "cider": "Подборка бутылочного сидра.",
+      "energyDrink": "Холодные энергетические напитки в бутылках и банках.",
+      "nonAlcoholicBeer": "Подборка безалкогольного пива.",
+      "snacks": "Закуски рядом с деревянной подставкой.",
+      "sparklingWine": "Бутылки игристого вина и пузырьки в бокале.",
+      "softDrinks": "Безалкогольные напитки: минеральная вода и квас."
+    }
   },
-  "categories": {
-    "all": "Все товары",
-
-    "bottled-beer": "Пиво в бутылках",
-    "draft-beer": "Разливное пиво",
-    "cider": "Сидр",
-    "non-alcoholic": "Безалкогольное",
-    "snacks": "Снеки",
-    "gifts-bundles": "Подарочные наборы",
-
-    "beer": "Пиво",
-    "gifts-sets": "Подарки и наборы",
-    "alcohol-free": "Безалкогольное"
-  },
-  "sort": {
-    "label": "Сортировка",
-    "best": "Лучшие",
-    "new": "Новинки",
-    "priceAsc": "Цена ↑",
-    "priceDesc": "Цена ↓",
-    "titleAsc": "А–Я",
-    "titleDesc": "Я–А"
-  },
-  "alts": {
-    "beer": "Ассорти крафтового пива на полке.",
-    "cider": "Подборка бутылочного сидра.",
-    "snacks": "Снеки рядом с деревянной подставкой.",
-    "gifts": "Подарочные боксы и наборы.",
-    "nonAlcoholic": "Подборка безалкогольных напитков."
-  }
-},
 
   "TrendingProducts": {
     "title": "Популярные товары",
@@ -60,32 +41,34 @@
     "alcohol": "Безалкогольное"
   },
 
- "AllProducts": {
-  "title": "Все товары",
-  "stars": "из 5 звёзд",
-  "reviews": "отзывов",
-  "add": "Добавить в корзину",
-  "alcohol": "Безалкогольное",
-  "noProducts": "Товары не найдены",
-  "noProductsDescription": "В этой категории пока нет товаров. Загляните позже или выберите другую категорию.",
-  "categories": {
-    "all": "Все товары",
-    "beer": "Пиво",
-    "cider": "Сидр",
-    "snacks": "Закуски",
-    "gifts-sets": "Подарки и наборы",
-    "alcohol-free": "Безалкогольные"
-  },
-  "sort": {
-    "label": "Сортировка",
-    "best": "Лучшее",
-    "new": "Новинки",
-    "priceAsc": "Цена ↑",
-    "priceDesc": "Цена ↓",
-    "titleAsc": "А–Я",
-    "titleDesc": "Я–А"
-  }
+  "AllProducts": {
+    "title": "Все товары",
+    "stars": "из 5 звёзд",
+    "reviews": "отзывов",
+    "add": "Добавить в корзину",
+    "alcohol": "Безалкогольное",
+    "noProducts": "Товары не найдены",
+    "noProductsDescription": "В этой категории пока нет товаров. Загляните позже или выберите другую категорию.",
+    "categories": {
+  "all": "Все товары",
+  "beer in bottles": "Пиво",
+  "Cider": "Сидр",
+  "energy drink": "Энергетические напитки",
+  "non-alcoholic beer": "Безалкогольное пиво",
+  "snacks": "Снеки",
+  "sparkling wine": "Игристое вино",
+  "Soft Drinks": "Безалкогольные напитки"
 },
+    "sort": {
+      "label": "Сортировка",
+      "best": "Лучшее",
+      "new": "Новинки",
+      "priceAsc": "Цена ↑",
+      "priceDesc": "Цена ↓",
+      "titleAsc": "А–Я",
+      "titleDesc": "Я–А"
+    }
+  },
 
   "OneProduct": {
     "perUnit": "за 1 шт",
@@ -298,45 +281,24 @@
     "contacts": "Контакты",
     "menuTitle": "Меню"
   },
-  "categories": {
-  "all": "Все товары",
 
-  "bottled-beer": "Пиво в бутылках",
-  "draft-beer": "Разливное пиво",
-  "cider": "Сидр",
-  "non-alcoholic": "Безалкогольное",
-  "snacks": "Снеки",
-  "gifts-bundles": "Подарочные наборы",
+  "ShoppingCardOverviews": {
+    "shoppingCart": "Корзина",
+    "description": "Товары в вашей корзине",
+    "orderSummary": "Итого",
+    "subtotal": "Подытог",
+    "shippingEstimate": "Доставка",
+    "shippingEstimateInfo": "Как рассчитывается стоимость доставки",
+    "taxEstimate": "Налог",
+    "taxEstimateInfo": "Как рассчитывается налог",
+    "total": "Всего",
+    "checkout": "Перейти к оплате",
+    "empty": "Ваша корзина пуста",
+    "emptyDescription": "Добавьте товары, чтобы начать покупки.",
+    "CTAAdd": "Все товары"
+  },
 
-  "beer": "Пиво",
-  "gifts-sets": "Подарочные наборы",
-  "alcohol-free": "Безалкогольное"
-},
-"sort": {
-  "label": "Сортировка",
-  "best": "Лучшее",
-  "new": "Новинки",
-  "priceAsc": "Цена ↑",
-  "priceDesc": "Цена ↓",
-  "titleAsc": "А–Я",
-  "titleDesc": "Я–А"
-},
-"ShoppingCardOverviews": {
-  "shoppingCart": "Корзина",
-  "description": "Товары в вашей корзине",
-  "orderSummary": "Итого",
-  "subtotal": "Подытог",
-  "shippingEstimate": "Доставка",
-  "shippingEstimateInfo": "Как рассчитывается стоимость доставки",
-  "taxEstimate": "Налог",
-  "taxEstimateInfo": "Как рассчитывается налог",
-  "total": "Всего",
-  "checkout": "Перейти к оплате",
-  "empty": "Ваша корзина пуста",
-  "emptyDescription": "Добавьте товары, чтобы начать покупки.",
-  "CTAAdd": "Все товары"
-},
-"brandSection": {
+  "brandSection": {
     "text": "Нам доверяют команды по всему миру — от стартапов до лидеров рынка."
   }
 }
