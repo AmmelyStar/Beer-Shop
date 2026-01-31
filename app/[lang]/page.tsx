@@ -6,7 +6,10 @@ import TrendingProducts from "../components/TrendingProducts";
 import BannerSection from "../components/BannerSection";
 import TextBlockCenter from "../components/ui/TextBlockCenter";
 import BrandSection from "../components/BrandSection";
-import { fetchAllProductsFlattened } from "../data/repo";
+import {
+  fetchAllProductsFlattened,
+  fetchTrendingProductsFlattened,
+} from "../data/repo";
 
 export default async function Home({
   params,
@@ -16,9 +19,16 @@ export default async function Home({
   const { lang } = await params;
   const t = await getMessages(lang);
 
+  // ✅ оставляем: тебе нужны все продукты
   const allProducts = await fetchAllProductsFlattened(lang);
 
-  const trendingProducts = allProducts.filter((p) => p.trending).slice(0, 4);
+  // ✅ добавляем: trending по тегу (быстро и независимо от allProducts)
+  let trendingProducts = await fetchTrendingProductsFlattened(lang, 4);
+
+  // ✅ fallback: если по тегу пока пусто — берём твой старый вариант (по метафилду)
+  if (!trendingProducts.length) {
+    trendingProducts = allProducts.filter((p) => (p as any).trending).slice(0, 4);
+  }
 
   const shopHref = `/${lang}/shop`;
 
@@ -39,10 +49,10 @@ export default async function Home({
       <ShopCategory
         title={t.ShopCategory.title}
         browseAll={t.ShopCategory.browseAll}
-        // важно: эти поля должны иметь новые ключи
         names={t.ShopCategory.names}
         alts={t.ShopCategory.alts}
         lang={lang}
+        visibleKeys={["beer in bottles", "Cider", "snacks"]}
       />
 
       <TrendingProducts

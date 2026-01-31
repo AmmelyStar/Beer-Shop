@@ -1,5 +1,6 @@
 // app/data/repo.ts
 import { shopifyFetchWithLocale } from "../lib/shopify/client";
+import { PRODUCTS_BY_QUERY_WITH_METAFIELDS } from "../lib/shopify/queries/products.gql";
 
 import {
   PRODUCTS_ALL_WITH_METAFIELDS,
@@ -161,4 +162,21 @@ export async function fetchProductByShopifyNumericIdFlattened(
   if (!response.product) return null;
 
   return flattenMetafields(response.product);
+}
+
+
+
+export async function fetchTrendingProductsFlattened(
+  locale: Locale = "en",
+  limit = 8
+): Promise<FlattenedProduct[]> {
+  const response = await shopifyFetchWithLocale<ProductsAllResponse>(
+    PRODUCTS_BY_QUERY_WITH_METAFIELDS,
+    { first: limit, after: null, query: "tag:trending AND available_for_sale:true" },
+    locale,
+    60
+  );
+
+  const edges = response.products.edges as Array<Edge<ProductNode>>;
+  return flattenProducts(edges.map((e) => e.node));
 }

@@ -114,25 +114,73 @@ function matchesCategory(p: unknown, category: CategoryKey): boolean {
   const tags = getTagsLower(p);
   const pt = getProductTypeLower(p);
 
-  // алиасы, чтобы фильтр работал даже если данные названы чуть иначе
+  // алиасы под твои НОВЫЕ категории (и под возможные старые данные)
   const aliases: Record<CategoryKey, string[]> = {
     all: ["all"],
-    beer: ["beer", "пиво", "bier"],
-    cider: ["cider", "сидр"],
-    snacks: ["snacks", "snack", "снеки", "снек", "закус", "chips"],
-    "gifts-sets": ["gifts-sets", "gift", "set", "sets", "bundle", "bundles", "набор", "подар"],
-    "alcohol-free": ["alcohol-free", "non-alcoholic", "non alcoholic", "0%", "безалког", "без алкоголь"],
-  } as Record<CategoryKey, string[]>;
+
+    "beer in bottles": [
+      "beer in bottles",
+      "bottled beer",
+      "bottle",
+      "bottles",
+      "beer",
+      "bier",
+      "пиво",
+      "bottled",
+    ],
+
+    Cider: ["cider", "siider", "sidr", "сидр"],
+
+    "energy drink": ["energy drink", "energy", "энерг", "red bull", "monster"],
+
+    "non-alcoholic beer": [
+      "non-alcoholic beer",
+      "non alcoholic beer",
+      "alcohol free beer",
+      "0.0",
+      "0%",
+      "безалког",
+      "alkoholfrei",
+      "alcohol-free",
+      "alcohol free",
+    ],
+
+    snacks: ["snacks", "snack", "chips", "crisps", "nuts", "закус", "снеки"],
+
+    "sparkling wine": [
+      "sparkling wine",
+      "sparkling",
+      "prosecco",
+      "sekt",
+      "bubbles",
+      "игрист",
+    ],
+
+    "Soft Drinks": [
+      "soft drinks",
+      "soft drink",
+      "soda",
+      "mineral",
+      "mineral water",
+      "water",
+      "kvass",
+      "kvas",
+      "квас",
+      "минерал",
+      "лимонад",
+      "lemonade",
+    ],
+  };
 
   const needles = [String(category), ...(aliases[category] ?? [])].map((s) =>
     s.toLowerCase()
   );
 
-  // 1) лучший вариант — точное совпадение handle
+  // 1) лучший вариант — точное совпадение handle (в lower)
   if (handles.includes(String(category).toLowerCase())) return true;
 
   // 2) запасной — частичное совпадение по алиасам
-  const hay = [...handles, ...tags, pt];
+  const hay = [...handles, ...tags, pt].filter(Boolean);
   return hay.some((h) => needles.some((n) => h.includes(n)));
 }
 
@@ -175,7 +223,6 @@ export default async function Page({
   params: Promise<{ lang: Locale }>;
   searchParams?: Promise<{ category?: string; sort?: string }>;
 }) {
-  // ✅ Next 16: params/searchParams у тебя Promise → обязательно await
   const { lang } = await params;
   const sp = searchParams ? await searchParams : {};
 
@@ -205,12 +252,12 @@ export default async function Page({
       />
 
       <ShopContent
-  products={finalProducts}
-  translations={t.AllProducts}
-  lang={lang}
-  reviewSummaries={reviewSummaries}
-  activeCategory={category}
-/>
+        products={finalProducts}
+        translations={t.AllProducts}
+        lang={lang}
+        reviewSummaries={reviewSummaries}
+        activeCategory={category}
+      />
     </main>
   );
 }

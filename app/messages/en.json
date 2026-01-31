@@ -1,78 +1,59 @@
 {
   "hero": {
-    "title": "Craft beer big taste",
+    "title": "A taste that stands the test of time",
     "subtitle": "Discover limited releases from independent breweries.",
     "cta": "Shop now"
   },
   "TextBlockCategory": {
     "title": "Discover new flavors",
-    "subtitle": "Classics and limited releases, craft favorites, seasonal drops and rarities — convenient curated picks by beer and cider styles, plus snacks, all in one place."
+    "subtitle": "Classic and limited editions, proven favourites, seasonal releases and rare selections — curated collections by beer and cider styles, along with snacks. All in one place."
   },
   "ShopCategory": {
-    "title": "Shop by Category",
+    "title": "Shop by categories",
     "browseAll": "Browse all categories",
     "names": {
       "beerInBottles": "Beer",
       "cider": "Cider",
-      "energyDrink": "Energy drink",
+      "energyDrink": "Energy drinks",
       "nonAlcoholicBeer": "Non-alcoholic beer",
       "snacks": "Snacks",
       "sparklingWine": "Sparkling wine",
-      "softDrinks": "Soft Drinks"
+      "softDrinks": "Soft drinks"
     },
     "alts": {
-      "beerInBottles": "Assorted bottled craft beers on a shelf.",
-      "cider": "Selection of bottled ciders.",
-      "energyDrink": "Cold energy drinks in bottles and cans.",
-      "nonAlcoholicBeer": "Selection of non-alcoholic beers.",
-      "snacks": "Tasty snacks next to a wooden tray.",
-      "sparklingWine": "Sparkling wine bottles with bubbles in a glass.",
-      "softDrinks": "Selection of soft drinks like mineral water and kvass."
-    },
-    "categories": {
-      "all": "All Products",
-      "beer in bottles": "Beer",
-      "Cider": "Cider",
-      "energy drink": "Energy drink",
-      "non-alcoholic beer": "Non-alcoholic beer",
-      "snacks": "Snacks",
-      "sparkling wine": "Sparkling wine",
-      "Soft Drinks": "Soft Drinks"
-    },
-    "sort": {
-      "label": "Sort",
-      "best": "Best",
-      "new": "New",
-      "priceAsc": "Price ↑",
-      "priceDesc": "Price ↓",
-      "titleAsc": "A–Z",
-      "titleDesc": "Z–A"
+      "beerInBottles": "A selection of bottled craft beer on the shelf.",
+      "cider": "A selection of bottled cider.",
+      "energyDrink": "Chilled energy drinks in bottles and cans.",
+      "nonAlcoholicBeer": "A selection of non-alcoholic beer.",
+      "snacks": "Tasty snacks next to a wooden serving board.",
+      "sparklingWine": "Bottles of sparkling wine and bubbles in a glass.",
+      "softDrinks": "Soft drinks including mineral water and kvass."
     }
   },
   "TrendingProducts": {
-    "title": "Trending Products",
+    "title": "Trending products",
     "stars": "out of 5 stars",
     "reviews": "reviews",
     "add": "Add to cart",
-    "alcohol": "Alcohol free"
+    "alcohol": "Non-alcoholic"
   },
   "AllProducts": {
-    "title": "All Products",
+    "title": "All products",
     "stars": "out of 5 stars",
     "reviews": "reviews",
     "add": "Add to cart",
-    "alcohol": "Alcohol free",
+    "alcohol": "Non-alcoholic",
     "noProducts": "No products found",
-    "noProductsDescription": "There are no products in this category yet. Check back soon or browse other categories.",
-     "categories": {
-    "all": "All Products",
-    "beer in bottles": "Beer",
-    "Cider": "Cider",
-    "energy drink": "Energy drink",
-    "non-alcoholic beer": "Non-alcoholic beer",
-    "snacks": "Snacks",
-    "sparkling wine": "Sparkling wine",
-    "Soft Drinks": "Soft Drinks"
+    "noProductsDescription": "There are no products in this category yet. Please check back later or choose another category.",
+    "categories": {
+      "all": "All products",
+      "beer in bottles": "Beer",
+      "Cider": "Cider",
+      "energy drink": "Energy drinks",
+      "non-alcoholic beer": "Non-alcoholic beer",
+      "snacks": "Snacks",
+      "sparkling wine": "Sparkling wine",
+      "Soft Drinks": "Soft drinks"
   },
     "sort": {
       "label": "Sort",
@@ -131,7 +112,7 @@
   },
   "LogoSection": {
     "title": "Your favorite brands — on our shelves",
-    "subtitle": "We’re proud to partner with leading independent breweries and snack suppliers to offer you the best selection of craft beer and related products."
+    "subtitle": "We are proud to collaborate with leading independent breweries and snack suppliers."
   },
   "common": {
     "home": "Home",
@@ -142,12 +123,15 @@
   "Footer": {
     "catalog": {
       "title": "Catalog",
-      "bottledBeer": "Bottled beer",
-      "draftBeer": "Draft beer",
-      "cider": "Cider",
-      "nonAlcoholic": "Non-alcoholic",
+      "all": "All Products",
+      "beer in bottles": "Beer",
+       "Draft Beer": "Draft beer",
+      "Cider": "Cider",
+      "energy drink": "Energy drink",
+      "non-alcoholic beer": "Non-alcoholic beer",
       "snacks": "Snacks",
-      "gifts": "Gifts & bundles"
+      "sparkling wine": "Sparkling wine",
+      "Soft Drinks": "Soft Drinks"
     },
     "customers": {
       "title": "Customers",
@@ -164,7 +148,7 @@
       "contacts": "Contacts"
     },
     "followUs": "Follow us",
-    "copyright": "© 2025 Beer & Snacks",
+    "copyright": "© {{year}} Beer & Snacks",
     "prodused": "Produced by Dvi"
   },
   "CookieBanner": {

@@ -1,59 +1,59 @@
 {
   "hero": {
-    "title": "Käsityöolutta. Suuri maku",
+    "title": "Ajan saatossa todistettu maku",
     "subtitle": "Tutustu riippumattomien panimoiden rajoitettuihin eriin.",
     "cta": "Osta nyt"
   },
   "TextBlockCategory": {
     "title": "Löydä uusia makuja",
-    "subtitle": "Klassikot ja rajoitetut erät, käsityösuosikit, kausituotteet ja harvinaisuudet — huolella kuratoidut valinnat olut- ja siiderityyleittäin sekä naposteltavat, kaikki yhdessä paikassa."
+    "subtitle": "Klassiset ja rajoitetut erät, hyväksi todetut suosikit, kausijulkaisut ja harvinaiset valikoimat – huolellisesti koottu valikoima oluen, siiderin ja snackien tyyleittäin. Kaikki yhdessä paikassa."
   },
-  "ShopCategory": {
-    "title": "Osta kategorian mukaan",
-    "browseAll": "Selaa kaikkia kategorioita",
+ "ShopCategory": {
+    "title": "Osta kategorioittain",
+    "browseAll": "Näytä kaikki kategoriat",
     "names": {
       "beerInBottles": "Olut",
       "cider": "Siideri",
       "energyDrink": "Energiajuomat",
       "nonAlcoholicBeer": "Alkoholiton olut",
-      "snacks": "Naposteltavat",
+      "snacks": "Välipalat",
       "sparklingWine": "Kuohuviini",
       "softDrinks": "Virvoitusjuomat"
     },
     "alts": {
       "beerInBottles": "Valikoima pullotettua käsityöolutta hyllyllä.",
-      "cider": "Valikoima pullosiidereitä.",
-      "energyDrink": "Kylmiä energiajuomia pulloissa ja tölkeissä.",
+      "cider": "Valikoima pullotettua siideriä.",
+      "energyDrink": "Viileät energiajuomat pulloissa ja tölkeissä.",
       "nonAlcoholicBeer": "Valikoima alkoholittomia oluita.",
-      "snacks": "Herkullisia naposteltavia puualustalla.",
+      "snacks": "Herkullisia välipaloja puualustan vieressä.",
       "sparklingWine": "Kuohuviinipulloja ja kuplia lasissa.",
-      "softDrinks": "Virvoitusjuomia, kuten kivennäisvettä ja kvassia."
+      "softDrinks": "Virvoitusjuomia, mukaan lukien kivennäisvesi ja kvassi."
     }
   },
   "TrendingProducts": {
     "title": "Suositut tuotteet",
-    "stars": "5 tähdestä",
+    "stars": "/ 5 tähteä",
     "reviews": "arvostelua",
     "add": "Lisää ostoskoriin",
     "alcohol": "Alkoholiton"
   },
   "AllProducts": {
     "title": "Kaikki tuotteet",
-    "stars": "5 tähdestä",
+    "stars": "/ 5 tähteä",
     "reviews": "arvostelua",
     "add": "Lisää ostoskoriin",
     "alcohol": "Alkoholiton",
     "noProducts": "Tuotteita ei löytynyt",
-    "noProductsDescription": "Tässä kategoriassa ei ole vielä tuotteita. Tarkista myöhemmin tai valitse toinen kategoria.",
+    "noProductsDescription": "Tässä kategoriassa ei ole vielä tuotteita. Palaa myöhemmin tai valitse toinen kategoria.",
     "categories": {
-  "all": "Kaikki tuotteet",
-  "beer in bottles": "Olut",
-  "Cider": "Siideri",
-  "energy drink": "Energiajuomat",
-  "non-alcoholic beer": "Alkoholiton olut",
-  "snacks": "Naposteltavat",
-  "sparkling wine": "Kuohuviini",
-  "Soft Drinks": "Virvoitusjuomat"
+      "all": "Kaikki tuotteet",
+      "beer in bottles": "Olut",
+      "Cider": "Siideri",
+      "energy drink": "Energiajuomat",
+      "non-alcoholic beer": "Alkoholiton olut",
+      "snacks": "Välipalat",
+      "sparkling wine": "Kuohuviini",
+      "Soft Drinks": "Virvoitusjuomat"
 },
     "sort": {
       "label": "Lajittelu",
@@ -138,12 +138,15 @@
   "Footer": {
     "catalog": {
       "title": "Valikoima",
-      "bottledBeer": "Pullotettu olut",
-      "draftBeer": "Hanaolut",
-      "cider": "Siideri",
-      "nonAlcoholic": "Alkoholiton",
-      "snacks": "Naposteltavat",
-      "gifts": "Lahjat ja setit"
+      "all": "Kaikki tuotteet",
+      "beer in bottles": "Olut",
+       "Draft Beer": "Hanajuoma",
+      "Cider": "Siideri",
+      "energy drink": "Energiajuomat",
+      "non-alcoholic beer": "Alkoholiton olut",
+      "snacks": "Snacksit",
+      "sparkling wine": "Kuohuviini",
+      "Soft Drinks": "Virvoitusjuomat"
     },
     "customers": {
       "title": "Asiakkaille",
@@ -160,7 +163,7 @@
       "contacts": "Yhteystiedot"
     },
     "followUs": "Seuraa meitä",
-    "copyright": "© 2025 Craft Beer Store",
+    "copyright": "© {{year}} Craft Beer Store",
     "prodused": "Tuottanut DVI"
   },
   "CookieBanner": {

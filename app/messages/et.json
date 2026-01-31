@@ -1,12 +1,12 @@
 {
   "hero": {
-    "title": "Käsitööõlu. Suur maitse",
+    "title": "KAja jooksul tõestatud maitse",
     "subtitle": "Avasta sõltumatute pruulikodade piiratud partiid.",
     "cta": "Osta nüüd"
   },
   "TextBlockCategory": {
     "title": "Avasta uusi maitseid",
-    "subtitle": "Klassikud ja piiratud partiid, käsitöölemmikud, hooajalised väljalasked ja haruldused — mugavalt kureeritud valik õlle- ja siidristiilide ning snäkkide kaupa, kõik ühes kohas."
+    "subtitle": "Klassikalised ja piiratud seeriad, tõestatud lemmikud, hooajalised väljalasked ja haruldased valikud – mugavad valikud õlle ja siidri stiilide ning snäkkide järgi. Kõik ühes kohas."
   },
   "ShopCategory": {
     "title": "Osta kategooriate kaupa",
@@ -21,17 +21,17 @@
       "softDrinks": "Karastusjoogid"
     },
     "alts": {
-      "beerInBottles": "Valik pudelites käsitööõllesid riiulil.",
+      "beerInBottles": "Valik käsitööõlut pudelites riiulil.",
       "cider": "Valik pudelisiidreid.",
-      "energyDrink": "Külmad energiajoogid pudelites ja purkides.",
-      "nonAlcoholicBeer": "Valik alkoholivabasid õllesid.",
-      "snacks": "Maitsvad suupisted puidust alusel.",
+      "energyDrink": "Jahutatud energiajoogid pudelites ja purkides.",
+      "nonAlcoholicBeer": "Valik alkoholivabu õllesid.",
+      "snacks": "Maitsvad suupisted puidust aluse kõrval.",
       "sparklingWine": "Vahuveinipudelid ja mullid klaasis.",
-      "softDrinks": "Karastusjoogid, nagu mineraalvesi ja kali."
+      "softDrinks": "Karastusjoogid, sealhulgas mineraalvesi ja kali."
     }
   },
   "TrendingProducts": {
-    "title": "Trendikad tooted",
+    "title": "Populaarsed tooted",
     "stars": "5 tärnist",
     "reviews": "arvustust",
     "add": "Lisa ostukorvi",
@@ -44,16 +44,16 @@
     "add": "Lisa ostukorvi",
     "alcohol": "Alkoholivaba",
     "noProducts": "Tooteid ei leitud",
-    "noProductsDescription": "Selles kategoorias pole veel tooteid. Vaata hiljem uuesti või vali teine kategooria.",
+    "noProductsDescription": "Selles kategoorias ei ole praegu tooteid. Palun vaata hiljem uuesti või vali mõni muu kategooria.",
     "categories": {
-  "all": "Kõik tooted",
-  "beer in bottles": "Õlu",
-  "Cider": "Siider",
-  "energy drink": "Energiajoogid",
-  "non-alcoholic beer": "Alkoholivaba õlu",
-  "snacks": "Suupisted",
-  "sparkling wine": "Vahuvein",
-  "Soft Drinks": "Karastusjoogid"
+      "all": "Kõik tooted",
+      "beer in bottles": "Õlu",
+      "Cider": "Siider",
+      "energy drink": "Energiajoogid",
+      "non-alcoholic beer": "Alkoholivaba õlu",
+      "snacks": "Suupisted",
+      "sparkling wine": "Vahuvein",
+      "Soft Drinks": "Karastusjoogid"
 },
     "sort": {
       "label": "Sorteerimine",
@@ -137,14 +137,17 @@
   },
   "Footer": {
     "catalog": {
-      "title": "Kataloog",
-      "bottledBeer": "Pudelõlu",
-      "draftBeer": "Vaadiõlu",
-      "cider": "Siider",
-      "nonAlcoholic": "Alkoholivaba",
-      "snacks": "Suupisted",
-      "gifts": "Kingitused ja komplektid"
-    },
+  "title": "Kataloog",
+  "all": "Kõik tooted",
+  "beer in bottles": "Pudelõlu",
+  "Draft Beer": "Vaadiõlu",
+  "Cider": "Siider",
+  "energy drink": "Energiajoogid",
+  "non-alcoholic beer": "Alkoholivaba õlu",
+  "snacks": "Suupisted",
+  "sparkling wine": "Vahuvein",
+  "Soft Drinks": "Karastusjoogid"
+},
     "customers": {
       "title": "Klientidele",
       "faq": "Korduma kippuvad küsimused",
@@ -160,7 +163,7 @@
       "contacts": "Kontaktid"
     },
     "followUs": "Jälgi meid",
-    "copyright": "© 2025 Beer & Snacks",
+    "copyright": "© {{year}} Beer & Snacks",
     "prodused": "Valmistas DVI"
   },
   "CookieBanner": {
