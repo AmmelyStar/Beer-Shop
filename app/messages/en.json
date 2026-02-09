@@ -47,7 +47,8 @@
     "noProductsDescription": "There are no products in this category yet. Please check back later or choose another category.",
     "categories": {
       "all": "All products",
-      "beer in bottles": "Beer",
+      "beer in bottles": "Bottle beer",
+      "Draft Beer": "Draft beer",
       "Cider": "Cider",
       "energy drink": "Energy drinks",
       "non-alcoholic beer": "Non-alcoholic beer",
@@ -124,8 +125,8 @@
     "catalog": {
       "title": "Catalog",
       "all": "All Products",
-      "beer in bottles": "Beer",
-       "Draft Beer": "Draft beer",
+      "beer in bottles": "Bottle beer",
+      "Draft Beer": "Draft beer",
       "Cider": "Cider",
       "energy drink": "Energy drink",
       "non-alcoholic beer": "Non-alcoholic beer",

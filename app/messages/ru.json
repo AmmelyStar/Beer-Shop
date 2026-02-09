@@ -49,7 +49,8 @@
     "noProductsDescription": "В этой категории пока нет товаров. Загляните позже или выберите другую категорию.",
     "categories": {
       "all": "Все товары",
-      "beer in bottles": "Пиво",
+      "beer in bottles": "пиво в бутылках",
+  "Draft Beer": "пиво на розлив",
       "Cider": "Сидр",
       "energy drink": "Энергетические напитки",
       "non-alcoholic beer": "Безалкогольное пиво",
@@ -135,7 +136,7 @@
   "title": "Каталог",
   "all": "Все товары",
   "beer in bottles": "Пиво в бутылках",
-  "Draft Beer": "Разливное пиво",
+  "Draft Beer": "Пиво на розлив",
   "Cider": "Сидр",
   "energy drink": "Энергетические напитки",
   "non-alcoholic beer": "Безалкогольное пиво",

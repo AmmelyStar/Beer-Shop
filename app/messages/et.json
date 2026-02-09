@@ -47,7 +47,8 @@
     "noProductsDescription": "Selles kategoorias ei ole praegu tooteid. Palun vaata hiljem uuesti või vali mõni muu kategooria.",
     "categories": {
       "all": "Kõik tooted",
-      "beer in bottles": "Õlu",
+      "beer in bottles": "Pudelõlu",
+"Draft Beer": "Vaadiõlu",
       "Cider": "Siider",
       "energy drink": "Energiajoogid",
       "non-alcoholic beer": "Alkoholivaba õlu",
@@ -140,7 +141,7 @@
   "title": "Kataloog",
   "all": "Kõik tooted",
   "beer in bottles": "Pudelõlu",
-  "Draft Beer": "Vaadiõlu",
+"Draft Beer": "Vaadiõlu",
   "Cider": "Siider",
   "energy drink": "Energiajoogid",
   "non-alcoholic beer": "Alkoholivaba õlu",

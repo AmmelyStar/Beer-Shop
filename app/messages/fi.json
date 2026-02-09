@@ -47,7 +47,8 @@
     "noProductsDescription": "Tässä kategoriassa ei ole vielä tuotteita. Palaa myöhemmin tai valitse toinen kategoria.",
     "categories": {
       "all": "Kaikki tuotteet",
-      "beer in bottles": "Olut",
+      "beer in bottles": "Pullotettu olut",
+"Draft Beer": "Hanakalja",
       "Cider": "Siideri",
       "energy drink": "Energiajuomat",
       "non-alcoholic beer": "Alkoholiton olut",
@@ -139,8 +140,8 @@
     "catalog": {
       "title": "Valikoima",
       "all": "Kaikki tuotteet",
-      "beer in bottles": "Olut",
-       "Draft Beer": "Hanajuoma",
+      "beer in bottles": "Pullotettu olut",
+"Draft Beer": "Hanakalja",
       "Cider": "Siideri",
       "energy drink": "Energiajuomat",
       "non-alcoholic beer": "Alkoholiton olut",

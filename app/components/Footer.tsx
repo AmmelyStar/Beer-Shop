@@ -48,6 +48,7 @@ export default async function Footer({ lang }: FooterProps) {
   const catalogLinks: Array<{ label: string; href: string }> = [
     { label: t.catalog.all, href: `/${lang}/shop` },
     { label: t.catalog["beer in bottles"], href: `/${lang}/shop?category=beer%20in%20bottles` },
+     { label: t.catalog["Draft Beer"], href: `/${lang}/shop?category=Draft%20Beer` },
     { label: t.catalog["Cider"], href: `/${lang}/shop?category=Cider` },
     { label: t.catalog["energy drink"], href: `/${lang}/shop?category=energy%20drink` },
     { label: t.catalog["non-alcoholic beer"], href: `/${lang}/shop?category=non-alcoholic%20beer` },
