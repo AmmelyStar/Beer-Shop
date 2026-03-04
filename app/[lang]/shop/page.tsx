@@ -128,6 +128,18 @@ function matchesCategory(p: unknown, category: CategoryKey): boolean {
       "пиво",
       "bottled",
     ],
+      "Draft Beer": [
+    "draft beer",
+    "draft",
+    "tap",
+    "on tap",
+    "draught",
+    "fassbier",
+    "vom fass",
+    "fass",
+    "пиво разливное",
+    "разливное",
+  ],
 
     Cider: ["cider", "siider", "sidr", "сидр"],
 
