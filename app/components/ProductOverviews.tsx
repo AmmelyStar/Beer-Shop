@@ -1,4 +1,7 @@
+"use client";
+
 // components/ProductOverviews.tsx
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import { StarIcon } from "@heroicons/react/20/solid";
 import type { FlattenedProduct } from "../data/mappers";
@@ -28,19 +31,83 @@ function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-// ✅ расширяем тип продукта ровно тем, что нам нужно для кнопки
+function formatValue(value?: string | number | null) {
+  if (value === null || value === undefined || value === "") return null;
+  return String(value).replace(",", ".");
+}
+
 type ProductWithVariantId = FlattenedProduct & {
   variantId: string;
 };
 
-// ✅ type-guard без any
+type ProductVariant = {
+  id: string;
+  title?: string;
+  availableForSale?: boolean;
+  quantityAvailable?: number | null;
+  price?: {
+    amount?: string;
+    currencyCode?: string;
+  };
+  compareAtPrice?: {
+    amount?: string;
+    currencyCode?: string;
+  } | null;
+  selectedOptions?: Array<{
+    name: string;
+    value: string;
+  }>;
+};
+
 function hasVariantId(p: FlattenedProduct): p is ProductWithVariantId {
   return typeof (p as { variantId?: unknown }).variantId === "string";
 }
 
-// ✅ аккуратно пытаемся получить variantId из разных мест
+function normalizeVariants(product: FlattenedProduct): ProductVariant[] {
+  const rawVariants = (product as { variants?: unknown }).variants;
+
+  if (!rawVariants) return [];
+
+  if (Array.isArray(rawVariants)) {
+    return rawVariants.filter(
+      (variant): variant is ProductVariant =>
+        typeof variant === "object" && variant !== null && "id" in variant
+    );
+  }
+
+  const edges = (rawVariants as { edges?: Array<{ node?: ProductVariant }> }).edges;
+
+  if (Array.isArray(edges)) {
+    return edges
+      .map((edge) => edge?.node)
+      .filter((variant): variant is ProductVariant => Boolean(variant?.id));
+  }
+
+  return [];
+}
+
+function getSelectedOrFirstAvailableVariant(product: FlattenedProduct): ProductVariant | null {
+  const selectedOrFirst = (product as { selectedOrFirstAvailableVariant?: unknown })
+    .selectedOrFirstAvailableVariant;
+
+  if (
+    selectedOrFirst &&
+    typeof selectedOrFirst === "object" &&
+    "id" in selectedOrFirst &&
+    typeof (selectedOrFirst as { id?: unknown }).id === "string"
+  ) {
+    return selectedOrFirst as ProductVariant;
+  }
+
+  const variants = normalizeVariants(product);
+  return variants[0] ?? null;
+}
+
 function getVariantId(product: FlattenedProduct): string | null {
   if (hasVariantId(product)) return product.variantId;
+
+  const selectedOrFirst = getSelectedOrFirstAvailableVariant(product);
+  if (selectedOrFirst?.id) return selectedOrFirst.id;
 
   const shopifyVariantId =
     typeof (product as { shopify?: { variantId?: unknown } }).shopify?.variantId ===
@@ -50,13 +117,55 @@ function getVariantId(product: FlattenedProduct): string | null {
 
   if (shopifyVariantId) return shopifyVariantId;
 
-  const firstVariantId =
-    typeof (product as { variants?: Array<{ id?: unknown }> }).variants?.[0]?.id ===
-    "string"
-      ? (product as { variants?: Array<{ id: string }> }).variants![0].id
-      : null;
+  const variants = normalizeVariants(product);
+  return variants[0]?.id ?? null;
+}
 
-  return firstVariantId ?? null;
+function getVolumeOption(variant?: ProductVariant | null): string | null {
+  if (!variant?.selectedOptions?.length) return null;
+
+  const volumeOption = variant.selectedOptions.find((option) =>
+    ["volume", "size", "litre", "liter", "liters", "litres"].includes(
+      option.name.trim().toLowerCase()
+    )
+  );
+
+  return volumeOption?.value ?? null;
+}
+
+function getDisplayVolume(product: FlattenedProduct, variant?: ProductVariant | null): string | null {
+  const variantVolume = getVolumeOption(variant);
+  if (variantVolume) return variantVolume;
+
+  const productPackSize = formatValue(product.specs?.pack_size_l);
+  if (productPackSize) return `${productPackSize} L`;
+
+  return null;
+}
+
+function formatPrice(amount?: string | null) {
+  if (!amount) return "0.00";
+
+  const parsed = Number.parseFloat(amount);
+  if (Number.isNaN(parsed)) return "0.00";
+
+  return parsed.toFixed(2);
+}
+
+function getDefaultVariant(product: FlattenedProduct, variants: ProductVariant[]) {
+  const selectedOrFirst = getSelectedOrFirstAvailableVariant(product);
+  if (selectedOrFirst?.id) {
+    const exact = variants.find((variant) => variant.id === selectedOrFirst.id);
+    if (exact) return exact;
+  }
+
+  const variantId = getVariantId(product);
+  if (variantId) {
+    const exact = variants.find((variant) => variant.id === variantId);
+    if (exact) return exact;
+  }
+
+  return variants[0] ?? null;
 }
 
 export default function ProductOverviews({
@@ -78,22 +187,32 @@ export default function ProductOverviews({
   allergens,
   ingredients,
 }: ProductOverviewsProps) {
-  const price = product.priceRange.minVariantPrice.amount;
+  const variants = useMemo(() => normalizeVariants(product), [product]);
+  const defaultVariant = useMemo(() => getDefaultVariant(product, variants), [product, variants]);
 
-  // specs из метаполей
-  const packSize = product.specs?.pack_size_l;
-  const productAbv = product.specs?.abv;
-  const productIbu = product.specs?.ibu;
-  const productFg = product.specs?.fg;
+  const [selectedVariantId, setSelectedVariantId] = useState<string>(defaultVariant?.id ?? "");
+
+  const selectedVariant =
+    variants.find((variant) => variant.id === selectedVariantId) ?? defaultVariant;
+
+  const rawPrice =
+    selectedVariant?.price?.amount ?? product.priceRange?.minVariantPrice?.amount ?? null;
+  const price = formatPrice(rawPrice);
+
+  const displayVolume = getDisplayVolume(product, selectedVariant);
+
+  const productAbv = formatValue(product.specs?.abv);
+  const productIbu = formatValue(product.specs?.ibu);
+  const productFg = formatValue(product.specs?.fg);
   const productCountry = product.specs?.country;
   const productBrand = product.specs?.brand;
-  const productStyle = product.shopify?.["beer-style"];
+  const productStyle = product.specs?.style || product.shopify?.["beer-style"];
   const productAllergens = product.specs?.allergens;
   const productIngredients = product.specs?.ingredients;
   const productTastedBestWith = product.specs?.tasted_best_with;
-  const productBottleInBoxes = product.specs?.bottle_in_boxes;
+  const productBottleInBoxes = formatValue(product.specs?.bottle_in_boxes);
   const productPackType = product.specs?.pack_type;
-  const productShelfLifeDays = product.specs?.shelf_life_days;
+  const productShelfLifeDays = formatValue(product.specs?.shelf_life_days);
 
   const images =
     product.images?.edges.map((edge, index) => ({
@@ -106,7 +225,6 @@ export default function ProductOverviews({
   const rating = product.rating ?? 0;
   const reviewCount = product.reviewCount ?? 0;
 
-  // ✅ парсим tasted_best_with
   const tastedBestWithList = productTastedBestWith
     ? productTastedBestWith
         .split(",")
@@ -114,10 +232,36 @@ export default function ProductOverviews({
         .filter(Boolean)
     : [];
 
-  // ✅ достаём variantId и готовим продукт для AddToCartButton
-  const variantId = getVariantId(product);
-  const productForCart: ProductWithVariantId | null = variantId
-    ? { ...product, variantId }
+  const volumeOptions = useMemo(() => {
+    const mapped = variants
+      .map((variant) => {
+        const label = getVolumeOption(variant) || variant.title || "";
+
+        if (!label || label === "Default Title") return null;
+
+        return {
+          id: variant.id,
+          label,
+          availableForSale: variant.availableForSale ?? true,
+        };
+      })
+      .filter(Boolean) as Array<{
+      id: string;
+      label: string;
+      availableForSale: boolean;
+    }>;
+
+    const unique = mapped.filter(
+      (option, index, arr) =>
+        arr.findIndex((item) => item.label === option.label) === index
+    );
+
+    return unique;
+  }, [variants]);
+
+  const selectedVariantIdForCart = selectedVariant?.id ?? getVariantId(product);
+  const productForCart: ProductWithVariantId | null = selectedVariantIdForCart
+    ? { ...product, variantId: selectedVariantIdForCart }
     : null;
 
   return (
@@ -125,88 +269,134 @@ export default function ProductOverviews({
       <div className="pb-16 pt-6 sm:pb-24">
         <div className="mx-auto mt-8 max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
           <div className="lg:grid lg:auto-rows-min lg:grid-cols-12 lg:gap-x-8">
-            {/* RIGHT SIDE: TITLE + PRICE + SPECS + REVIEWS */}
             <div className="lg:col-span-5 lg:col-start-8">
               <div className="flex justify-between items-baseline gap-10">
-                <h1 className="text-3xl tracking-tight font-semibold text-yellow-400 max-w-md">
+                <h1 className="max-w-md text-3xl font-semibold tracking-tight text-yellow-400">
                   {product.title}
-                  {packSize && (
-                    <span className="ml-3 text-white text-xl">{packSize} L</span>
+                  {displayVolume && (
+                    <span className="ml-3 text-xl text-white">{displayVolume}</span>
                   )}
                 </h1>
 
                 <div className="flex flex-col items-end text-right">
-                  <span className="text-2xl font-medium text-white whitespace-nowrap">
-                    {parseFloat(price).toFixed(2)} €
+                  <span className="whitespace-nowrap text-2xl font-medium text-white">
+                    {price} €
                   </span>
-                  <span className="text-base text-gray-300 whitespace-nowrap">
+                  <span className="whitespace-nowrap text-base text-gray-300">
                     {perUnit}
                   </span>
                 </div>
               </div>
 
-              {/* ABV / IBU / FG */}
-              <div className="mt-10 w-full flex gap-5 justify-start items-center">
-                {productAbv && (
-                  <>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg text-white font-semibold whitespace-nowrap">
-                        {abv}:
-                      </span>
-                      <span className="text-base text-gray-300">{productAbv}%</span>
-                    </div>
-                    {(productIbu || productFg) && "|"}
-                  </>
-                )}
+              {volumeOptions.length > 1 && (
+                <div className="mt-6">
+                  <p className="mb-3 text-sm font-semibold text-white">Volume</p>
+                  <div className="flex flex-wrap gap-3">
+                    {volumeOptions.map((option) => {
+                      const isActive = selectedVariant?.id === option.id;
 
-                {productIbu && (
-                  <>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg text-white font-semibold whitespace-nowrap">
-                        {ibu}:
-                      </span>
-                      <span className="text-base text-gray-300">{productIbu}</span>
-                    </div>
-                    {productFg && "|"}
-                  </>
-                )}
-
-                {productFg && (
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-lg text-white font-semibold whitespace-nowrap">
-                      {fg}:
-                    </span>
-                    <span className="text-base text-gray-300">{productFg}°</span>
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => setSelectedVariantId(option.id)}
+                          disabled={!option.availableForSale}
+                          className={classNames(
+                            "rounded-md border px-4 py-2 text-sm transition",
+                            isActive
+                              ? "border-yellow-400 bg-yellow-400 text-black"
+                              : "border-gray-600 text-white hover:border-yellow-400",
+                            !option.availableForSale && "cursor-not-allowed opacity-50"
+                          )}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
-              {/* Country */}
+              {(productAbv || productIbu || productFg) && (
+                <div className="mt-10 flex w-full flex-wrap items-center justify-start gap-5">
+                  {productAbv && (
+                    <>
+                      <div className="flex items-baseline gap-2">
+                        <span className="whitespace-nowrap text-lg font-semibold text-white">
+                          {abv}:
+                        </span>
+                        <span className="text-base text-gray-300">{productAbv}%</span>
+                      </div>
+                      {(productIbu || productFg) && (
+                        <span className="text-gray-500">|</span>
+                      )}
+                    </>
+                  )}
+
+                  {productIbu && (
+                    <>
+                      <div className="flex items-baseline gap-2">
+                        <span className="whitespace-nowrap text-lg font-semibold text-white">
+                          {ibu}:
+                        </span>
+                        <span className="text-base text-gray-300">{productIbu}</span>
+                      </div>
+                      {productFg && <span className="text-gray-500">|</span>}
+                    </>
+                  )}
+
+                  {productFg && (
+                    <div className="flex items-baseline gap-2">
+                      <span className="whitespace-nowrap text-lg font-semibold text-white">
+                        {fg}:
+                      </span>
+                      <span className="text-base text-gray-300">{productFg}°</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {productCountry && (
-                <div className="w-full flex items-baseline gap-2 mt-2">
-                  <span className="text-lg text-white font-semibold whitespace-nowrap">
+                <div className="mt-4 flex w-full items-baseline gap-2">
+                  <span className="whitespace-nowrap text-lg font-semibold text-white">
                     {country}:
                   </span>
                   <span className="text-base text-gray-300">{productCountry}</span>
                 </div>
               )}
 
-              {/* Brand */}
               {productBrand && (
-                <div className="w-full flex items-baseline gap-2 mt-2">
-                  <span className="text-lg text-white font-semibold whitespace-nowrap">
+                <div className="mt-2 flex w-full items-baseline gap-2">
+                  <span className="whitespace-nowrap text-lg font-semibold text-white">
                     {brand}:
                   </span>
                   <span className="text-base text-gray-300">{productBrand}</span>
                 </div>
               )}
 
-              {/* Extra CSV info */}
-              {(productPackType || productBottleInBoxes || productShelfLifeDays) && (
+              {productStyle && (
+                <div className="mt-2 flex w-full items-baseline gap-2">
+                  <span className="whitespace-nowrap text-lg font-semibold text-white">
+                    {style}:
+                  </span>
+                  <span className="text-base text-gray-300">{productStyle}</span>
+                </div>
+              )}
+
+              {(displayVolume || productPackType || productBottleInBoxes || productShelfLifeDays) && (
                 <div className="mt-4 space-y-1">
+                  {displayVolume && (
+                    <div className="flex w-full items-baseline gap-2">
+                      <span className="whitespace-nowrap text-sm font-semibold text-white">
+                        Volume:
+                      </span>
+                      <span className="text-sm text-gray-300">{displayVolume}</span>
+                    </div>
+                  )}
+
                   {productPackType && (
-                    <div className="w-full flex items-baseline gap-2">
-                      <span className="text-sm text-white font-semibold whitespace-nowrap">
+                    <div className="flex w-full items-baseline gap-2">
+                      <span className="whitespace-nowrap text-sm font-semibold text-white">
                         Pack type:
                       </span>
                       <span className="text-sm text-gray-300">{productPackType}</span>
@@ -214,8 +404,8 @@ export default function ProductOverviews({
                   )}
 
                   {productBottleInBoxes && (
-                    <div className="w-full flex items-baseline gap-2">
-                      <span className="text-sm text-white font-semibold whitespace-nowrap">
+                    <div className="flex w-full items-baseline gap-2">
+                      <span className="whitespace-nowrap text-sm font-semibold text-white">
                         Bottles in box:
                       </span>
                       <span className="text-sm text-gray-300">{productBottleInBoxes}</span>
@@ -223,30 +413,21 @@ export default function ProductOverviews({
                   )}
 
                   {productShelfLifeDays && (
-                    <div className="w-full flex items-baseline gap-2">
-                      <span className="text-sm text-white font-semibold whitespace-nowrap">
+                    <div className="flex w-full items-baseline gap-2">
+                      <span className="whitespace-nowrap text-sm font-semibold text-white">
                         Shelf life:
                       </span>
-                      <span className="text-sm text-gray-300">{productShelfLifeDays} days</span>
+                      <span className="text-sm text-gray-300">
+                        {productShelfLifeDays} days
+                      </span>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Style */}
-              {productStyle && (
-                <div className="w-full flex items-baseline gap-2 mt-10">
-                  <span className="text-lg text-white font-semibold whitespace-nowrap">
-                    {style}:
-                  </span>
-                  <span className="text-base text-gray-300">{productStyle}</span>
-                </div>
-              )}
-
-              {/* Reviews */}
               <div className="mt-10">
                 <h2 className="sr-only">{reviews}</h2>
-                <button className="w-full flex items-center justify-between hover:opacity-80 transition-opacity">
+                <button className="flex w-full items-center justify-between transition-opacity hover:opacity-80">
                   <div className="flex items-center">
                     <div className="mr-2 flex items-center">
                       {[0, 1, 2, 3, 4].map((ratingValue) => (
@@ -266,23 +447,22 @@ export default function ProductOverviews({
                     </p>
                   </div>
 
-                  <span className="text-sm font-medium text-gray-400 hover:text-yellow-500 transition-colors">
+                  <span className="text-sm font-medium text-gray-400 transition-colors hover:text-yellow-500">
                     {reviewCount > 0 ? viewAllReviews : leaveAReview}
                   </span>
                 </button>
               </div>
             </div>
 
-            {/* LEFT SIDE: IMAGES */}
             <div className="mt-8 lg:col-span-7 lg:col-start-1 lg:row-span-3 lg:row-start-1 lg:-mt-6">
-              <div className="group grid grid-cols-1 lg:grid-cols-2 lg:gap-8 p-6">
+              <div className="group grid grid-cols-1 rounded-lg bg-white p-6 lg:grid-cols-2 lg:gap-8">
                 {images.length > 0 ? (
                   images.map((image) => (
                     <div
                       key={image.id}
                       className={classNames(
                         image.primary ? "lg:col-span-2 lg:row-span-2" : "hidden lg:block",
-                        "relative aspect-square w-full overflow-hidden rounded-lg bg-stone-200 transition-colors duration-300"
+                        "relative aspect-square w-full overflow-hidden rounded-lg bg-white transition-colors duration-300"
                       )}
                     >
                       <Image
@@ -296,16 +476,14 @@ export default function ProductOverviews({
                     </div>
                   ))
                 ) : (
-                  <div className="lg:col-span-2 lg:row-span-2 relative aspect-square w-full overflow-hidden rounded-lg bg-stone-200 flex items-center justify-center">
+                  <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg bg-white lg:col-span-2 lg:row-span-2">
                     <p className="text-gray-500">No images available</p>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* button and right side under */}
             <div className="mt-16 lg:col-span-5">
-              {/* ✅ counter + button (label) */}
               {productForCart ? (
                 <AddToCartButton product={productForCart} label={addToCart} />
               ) : (
@@ -314,10 +492,9 @@ export default function ProductOverviews({
                 </div>
               )}
 
-              {/* Product Description */}
               {product.descriptionHtml && (
                 <div className="mt-10">
-                  <h2 className="mx-auto mt-6 max-w-lg text-lg text-white font-semibold">
+                  <h2 className="mx-auto mt-6 max-w-lg text-lg font-semibold text-white">
                     {description}
                   </h2>
 
@@ -328,10 +505,9 @@ export default function ProductOverviews({
                 </div>
               )}
 
-              {/* Tasted best with */}
               {tastedBestWithList.length > 0 && (
                 <div className="mt-8 border-t border-gray-200 pt-8">
-                  <h2 className="mx-auto mt-6 max-w-lg text-pretty text-lg text-white font-semibold">
+                  <h2 className="mx-auto mt-6 max-w-lg text-pretty text-lg font-semibold text-white">
                     {tastedBestWith}
                   </h2>
                   <div className="mt-4">
@@ -349,20 +525,18 @@ export default function ProductOverviews({
                 </div>
               )}
 
-              {/* Allergens */}
               {productAllergens && (
-                <div className="w-full flex items-baseline gap-2 mt-6">
-                  <span className="text-lg text-white font-semibold whitespace-nowrap">
+                <div className="mt-6 flex w-full items-baseline gap-2">
+                  <span className="whitespace-nowrap text-lg font-semibold text-white">
                     {allergens}:
                   </span>
                   <span className="text-base text-gray-300">{productAllergens}</span>
                 </div>
               )}
 
-              {/* Ingredients */}
               {productIngredients && (
-                <div className="w-full flex items-baseline gap-2 mt-6">
-                  <span className="text-lg text-white font-semibold whitespace-nowrap">
+                <div className="mt-6 flex w-full items-baseline gap-2">
+                  <span className="whitespace-nowrap text-lg font-semibold text-white">
                     {ingredients}:
                   </span>
                   <span className="text-base text-gray-300">{productIngredients}</span>

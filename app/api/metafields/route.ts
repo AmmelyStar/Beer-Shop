@@ -1,11 +1,10 @@
 // app/api/metafields/route.ts
 import { NextResponse } from "next/server";
+import Papa from "papaparse";
 import { shopifyAdminRequest } from "../../lib/shopify/shopify";
 
-// Ищем именно beer.csv
 const FILE_NAME = "beer.csv";
 
-// (опционально) защита по токену ?token=...
 function checkAuth(req: Request) {
   const required = process.env.INTERNAL_SYNC_TOKEN;
   if (!required) return true;
@@ -19,264 +18,674 @@ type MetaDef = {
   type: "single_line_text_field" | "multi_line_text_field" | "number_integer";
 };
 
-const FIELD_MAP: Record<string, MetaDef> = {
-  "custom.tasted_best_with": { namespace: "custom", key: "tasted_best_with", type: "multi_line_text_field" },
-  "custom.pack_type":        { namespace: "custom", key: "pack_type",        type: "single_line_text_field" },
-  "custom.shelf_life_days":  { namespace: "custom", key: "shelf_life_days",  type: "single_line_text_field" },
-  "custom.country":          { namespace: "custom", key: "country",          type: "single_line_text_field" },
-  "custom.ingredients":      { namespace: "custom", key: "ingredients",      type: "multi_line_text_field" },
-  "custom.allergens":        { namespace: "custom", key: "allergens",        type: "multi_line_text_field" },
-  "custom.bottle_in_boxes":  { namespace: "custom", key: "bottle_in_boxes",  type: "single_line_text_field" },
+type CsvFieldMap = Record<string, MetaDef>;
+type CsvRow = Record<string, string>;
+
+const FIELD_MAP: CsvFieldMap = {
+  country: {
+    namespace: "custom",
+    key: "country",
+    type: "single_line_text_field",
+  },
+  "shelf life/days": {
+    namespace: "custom",
+    key: "shelf_life_days",
+    type: "single_line_text_field",
+  },
+  brand: {
+    namespace: "custom",
+    key: "brand",
+    type: "single_line_text_field",
+  },
+  style: {
+    namespace: "custom",
+    key: "style",
+    type: "single_line_text_field",
+  },
+  abv: {
+    namespace: "custom",
+    key: "abv",
+    type: "single_line_text_field",
+  },
+  ibu: {
+    namespace: "custom",
+    key: "ibu",
+    type: "single_line_text_field",
+  },
+  fg: {
+    namespace: "custom",
+    key: "fg",
+    type: "single_line_text_field",
+  },
+  // ВАЖНО:
+  // pack size (l) НЕ пишем в product metafields автоматически,
+  // потому что при нескольких variants у одного продукта объём должен жить в variant option.
+  "pack type": {
+    namespace: "custom",
+    key: "pack_type",
+    type: "single_line_text_field",
+  },
+  "bottle in the box": {
+    namespace: "custom",
+    key: "bottle_in_boxes",
+    type: "single_line_text_field",
+  },
+  "bottle in the boxes": {
+    namespace: "custom",
+    key: "bottle_in_boxes",
+    type: "single_line_text_field",
+  },
+  allergens: {
+    namespace: "custom",
+    key: "allergens",
+    type: "multi_line_text_field",
+  },
+  ingredients: {
+    namespace: "custom",
+    key: "ingredients",
+    type: "multi_line_text_field",
+  },
+  "tasted best with": {
+    namespace: "custom",
+    key: "tasted_best_with",
+    type: "multi_line_text_field",
+  },
+  ean: {
+    namespace: "custom",
+    key: "ean",
+    type: "single_line_text_field",
+  },
+  "box №": {
+    namespace: "custom",
+    key: "box_nr",
+    type: "single_line_text_field",
+  },
+  "box no": {
+    namespace: "custom",
+    key: "box_nr",
+    type: "single_line_text_field",
+  },
+  description: {
+    namespace: "custom",
+    key: "description_extra",
+    type: "multi_line_text_field",
+  },
 };
 
-// ── GraphQL — запросы ─────────────────────────────────────────────
 const Q_FILES = `
-  query Files($query: String, $first: Int!) {
-    files(first: $first, query: $query, sortKey: CREATED_AT, reverse: true) {
-      edges {
-        node {
-          __typename
+query Files($query: String!, $first: Int!) {
+  files(first: $first, query: $query) {
+    edges {
+      node {
+        ... on GenericFile {
           id
-          createdAt
-          ... on GenericFile { url }
-          ... on MediaImage { image { url } }
+          url
         }
       }
     }
   }
+}
 `;
 
 const Q_PRODUCT_BY_HANDLE = `
-  query ProductId($handle: String!) {
-    productByHandle(handle: $handle) { id title }
+query ProductId($handle: String!) {
+  productByHandle(handle: $handle) {
+    id
+    handle
+    title
   }
+}
+`;
+
+const Q_PRODUCTS_BY_TITLE = `
+query ProductsByTitle($query: String!, $first: Int!) {
+  products(first: $first, query: $query) {
+    edges {
+      node {
+        id
+        handle
+        title
+      }
+    }
+  }
+}
+`;
+
+const Q_PRODUCT_VARIANTS = `
+query ProductVariants($id: ID!) {
+  product(id: $id) {
+    id
+    title
+    variants(first: 20) {
+      edges {
+        node {
+          id
+          title
+          price
+          selectedOptions {
+            name
+            value
+          }
+        }
+      }
+    }
+  }
+}
 `;
 
 const M_METAFIELDS_SET = `
-  mutation SetMetafields($metafields: [MetafieldsSetInput!]!) {
-    metafieldsSet(metafields: $metafields) {
-      metafields { id namespace key }
-      userErrors { field message }
+mutation SetMetafields($metafields: [MetafieldsSetInput!]!) {
+  metafieldsSet(metafields: $metafields) {
+    metafields {
+      key
+      namespace
+      value
+    }
+    userErrors {
+      field
+      message
     }
   }
+}
 `;
 
-// ── Типы для ответов Admin GraphQL (без any) ─────────────────────
-type GenericFileNode = {
-  __typename: "GenericFile";
-  id: string;
-  createdAt: string;
-  url: string;
-};
+const M_VARIANT_PRICE_UPDATE = `
+mutation UpdateVariantPrice($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+  productVariantsBulkUpdate(productId: $productId, variants: $variants) {
+    productVariants {
+      id
+      price
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+`;
 
-type MediaImageNode = {
-  __typename: "MediaImage";
-  id: string;
-  createdAt: string;
-  image: { url: string };
-};
-
-// ВАЖНО: фикс — __typename строгий (не просто string),
-// чтобы TypeScript мог корректно сузить тип по проверке __typename
-type OtherFileNode = {
-  __typename: "Video" | "ExternalVideo" | "Model3d";
-  id: string;
-  createdAt: string;
-};
-
-type FilesNode = GenericFileNode | MediaImageNode | OtherFileNode;
-
-type FilesQueryResult = {
+type FilesResponse = {
   files: {
-    edges: Array<{ node: FilesNode }>;
+    edges: Array<{
+      node: {
+        id: string;
+        url: string;
+      };
+    }>;
   };
 };
 
-type ProductByHandleResult = {
-  productByHandle: { id: string; title: string } | null;
+type ProductHandleResponse = {
+  productByHandle: {
+    id: string;
+    handle: string;
+    title: string;
+  } | null;
 };
 
-type MetafieldsSetResult = {
+type ProductsByTitleResponse = {
+  products: {
+    edges: Array<{
+      node: {
+        id: string;
+        handle: string;
+        title: string;
+      };
+    }>;
+  };
+};
+
+type VariantNode = {
+  id: string;
+  title: string;
+  price: string;
+  selectedOptions: Array<{
+    name: string;
+    value: string;
+  }>;
+};
+
+type ProductVariantsResponse = {
+  product: {
+    id: string;
+    title: string;
+    variants: {
+      edges: Array<{
+        node: VariantNode;
+      }>;
+    };
+  } | null;
+};
+
+type MetafieldsSetResponse = {
   metafieldsSet: {
-    userErrors: Array<{ field: string[] | null; message: string }>;
+    metafields: Array<{
+      key: string;
+      namespace: string;
+      value: string;
+    }>;
+    userErrors: Array<{
+      field?: string[];
+      message: string;
+    }>;
   };
 };
 
-// ── Type guards ───────────────────────────────────────────────────
-function isGenericFile(node: FilesNode): node is GenericFileNode {
-  return node.__typename === "GenericFile";
+type VariantUpdateResponse = {
+  productVariantsBulkUpdate: {
+    productVariants: Array<{
+      id: string;
+      price: string;
+    }>;
+    userErrors: Array<{
+      field?: string[];
+      message: string;
+    }>;
+  };
+};
+
+function normalizeHeader(header: string): string {
+  return header.trim().toLowerCase();
 }
 
-function isMediaImage(node: FilesNode): node is MediaImageNode {
-  return node.__typename === "MediaImage";
+function normalizeCell(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
 }
 
-// ── Утилиты ───────────────────────────────────────────────────────
-function parseCsv(raw: string): Array<Record<string, string>> {
-  const lines = raw.split(/\r?\n/).filter((l) => l.trim().length > 0);
-  if (!lines.length) return [];
-  const headers = split(lines[0]).map((h) => h.trim());
+function normalizePrice(value: string): string {
+  return value.trim().replace(",", ".");
+}
 
-  return lines.slice(1).map((line) => {
-    const values = split(line);
-    const row: Record<string, string> = {};
-    headers.forEach((h, i) => (row[h] = values[i] ?? ""));
-    return row;
+function normalizeText(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function normalizeVolume(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(",", ".")
+    .replace(/\s*l(itre|iter|iters|itres)?$/i, " l")
+    .replace(/\s+/g, " ");
+}
+
+function escapeShopifySearchTerm(value: string): string {
+  return value.replace(/["\\]/g, "\\$&");
+}
+
+function parseCsv(raw: string): CsvRow[] {
+  const parsed = Papa.parse<Record<string, string>>(raw, {
+    header: true,
+    skipEmptyLines: true,
   });
 
-  function split(line: string): string[] {
-    const out: string[] = [];
-    let cur = "";
-    let inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') {
-        if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
-        else inQ = !inQ;
-      } else if (ch === "," && !inQ) {
-        out.push(cur); cur = "";
-      } else cur += ch;
+  return parsed.data.map((row: Record<string, string>) => {
+    const normalized: CsvRow = {};
+
+    for (const [key, value] of Object.entries(row)) {
+      normalized[normalizeHeader(key)] = normalizeCell(value);
     }
-    out.push(cur);
-    return out.map((s) => s.trim());
+
+    return normalized;
+  });
+}
+
+function getRowVolume(row: CsvRow): string {
+  return (
+    row["pack size (l)"] ||
+    row["pack size"] ||
+    row["volume"] ||
+    row["size"] ||
+    row["option1 value"] ||
+    ""
+  );
+}
+
+function getRowPrice(row: CsvRow): string {
+  return (
+    row["sale price"] ||
+    row["variant price"] ||
+    row["price"] ||
+    ""
+  );
+}
+
+async function findProduct(row: CsvRow): Promise<{
+  id: string;
+  handle: string;
+  title: string;
+  foundBy: "handle" | "title" | null;
+}> {
+  const handle = row["handle"];
+  const name = row["name"];
+
+  if (handle) {
+    const byHandle = await shopifyAdminRequest<ProductHandleResponse>(
+      Q_PRODUCT_BY_HANDLE,
+      { handle }
+    );
+
+    if (byHandle.productByHandle) {
+      return {
+        ...byHandle.productByHandle,
+        foundBy: "handle",
+      };
+    }
   }
-}
 
-function normalizeHeader(h: string): string {
-  const t = h.trim();
-  if (t.toLowerCase().startsWith("metafield:")) {
-    return t.split(":")[1]?.trim() ?? "";
+  if (name) {
+    const titleQuery = `title:"${escapeShopifySearchTerm(name)}"`;
+
+    const byTitle = await shopifyAdminRequest<ProductsByTitleResponse>(
+      Q_PRODUCTS_BY_TITLE,
+      {
+        query: titleQuery,
+        first: 10,
+      }
+    );
+
+    const exactMatch = byTitle.products.edges.find(
+      (edge) => normalizeText(edge.node.title) === normalizeText(name)
+    );
+
+    if (exactMatch) {
+      return {
+        ...exactMatch.node,
+        foundBy: "title",
+      };
+    }
+
+    const firstMatch = byTitle.products.edges[0]?.node;
+    if (firstMatch) {
+      return {
+        ...firstMatch,
+        foundBy: "title",
+      };
+    }
   }
-  return t;
+
+  return {
+    id: "",
+    handle: "",
+    title: "",
+    foundBy: null,
+  };
 }
 
-function pickUrl(node: FilesNode): string | undefined {
-  if (isGenericFile(node)) return node.url;
-  if (isMediaImage(node)) return node.image.url;
-  return undefined;
+function findMatchingVariant(
+  variants: VariantNode[],
+  row: CsvRow
+): VariantNode | null {
+  if (!variants.length) return null;
+
+  const csvVolumeRaw = getRowVolume(row);
+  const csvVolume = csvVolumeRaw ? normalizeVolume(csvVolumeRaw) : "";
+
+  if (!csvVolume) {
+    return variants[0] ?? null;
+  }
+
+  const bySelectedOption = variants.find((variant) =>
+    variant.selectedOptions?.some((option) => {
+      const optionName = option.name.trim().toLowerCase();
+      const optionValue = normalizeVolume(option.value);
+
+      const isVolumeOption = [
+        "volume",
+        "size",
+        "liter",
+        "litre",
+        "capacity",
+      ].includes(optionName);
+
+      return isVolumeOption && optionValue === csvVolume;
+    })
+  );
+
+  if (bySelectedOption) return bySelectedOption;
+
+  const byTitle = variants.find(
+    (variant) => normalizeVolume(variant.title) === csvVolume
+  );
+
+  if (byTitle) return byTitle;
+
+  const byTitleContains = variants.find((variant) =>
+    normalizeVolume(variant.title).includes(csvVolume)
+  );
+
+  if (byTitleContains) return byTitleContains;
+
+  return variants[0] ?? null;
 }
 
-function urlLooksLike(u: string, target: string): boolean {
-  const lower = u.toLowerCase();
-  const t = target.toLowerCase();
-  return lower.endsWith(`/${t}`) || lower.includes(`/${t}?`);
-}
-
-// ── Основной обработчик ───────────────────────────────────────────
 export async function GET(req: Request) {
   try {
     if (!checkAuth(req)) {
-      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { ok: false, error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    // 1) Пытаемся найти beer.csv через filename-фильтр (если Shopify сматчит по имени)
-    const byName = await shopifyAdminRequest<FilesQueryResult>(Q_FILES, {
-      query: `filename:${JSON.stringify(FILE_NAME)}`,
-      first: 5,
+    const files = await shopifyAdminRequest<FilesResponse>(Q_FILES, {
+      query: `filename:${FILE_NAME}`,
+      first: 10,
     });
 
-    let fileUrl =
-      byName.files.edges.length ? pickUrl(byName.files.edges[0].node) : undefined;
-
-    // 2) Если не нашли — ищем среди последних файлов по хвосту URL
-    let candidates: string[] = [];
-    if (!fileUrl) {
-      const latest = await shopifyAdminRequest<FilesQueryResult>(Q_FILES, {
-        query: undefined,
-        first: 100,
-      });
-
-      candidates = latest.files.edges
-        .map((e) => pickUrl(e.node))
-        .filter((u): u is string => typeof u === "string");
-
-      const match = candidates.find((u) => urlLooksLike(u, FILE_NAME));
-      if (match) fileUrl = match;
-    }
+    const matchedFiles = files.files.edges ?? [];
+    const fileUrl = matchedFiles[0]?.node?.url;
 
     if (!fileUrl) {
       return NextResponse.json(
-        { ok: false, error: `File "${FILE_NAME}" not found in Files`, candidates },
+        { ok: false, error: "CSV not found" },
         { status: 404 }
       );
     }
 
-    // 3) Скачиваем CSV
-    const csvText = await fetch(fileUrl, { cache: "no-store" }).then((r) => r.text());
-    const rowsRaw = parseCsv(csvText);
-    if (!rowsRaw.length) {
-      return NextResponse.json({ ok: true, updated: 0, skipped: 0, errors: [] });
-    }
-
-    // 4) Нормализуем заголовки
-    const rows = rowsRaw.map((row) => {
-      const out: Record<string, string> = {};
-      for (const [k, v] of Object.entries(row)) out[normalizeHeader(k)] = v ?? "";
-      return out;
-    });
+    const csv = await fetch(fileUrl).then((r) => r.text());
+    const rows = parseCsv(csv);
 
     let updated = 0;
-    let skipped = 0;
-    const errors: Array<{ handle: string; message: string }> = [];
+    const errors: Array<{ handle: string; error: string }> = [];
+    const debug: Array<Record<string, unknown>> = [];
 
-    // 5) По строкам: ищем товар и пишем метаполя
-    for (const row of rows) {
-      const handle = (row["Handle"] || row["handle"] || "").trim();
-      if (!handle) { skipped++; continue; }
+    for (const row of rows as CsvRow[]) {
+      const handle = row["handle"];
+      const name = row["name"];
 
-      // productId по handle
-      let productId: string | null = null;
-      try {
-        const p = await shopifyAdminRequest<ProductByHandleResult>(Q_PRODUCT_BY_HANDLE, { handle });
-        productId = p.productByHandle?.id ?? null;
-      } catch (e: unknown) {
-        errors.push({ handle, message: `Lookup error: ${String(e)}` });
+      if (!handle && !name) {
+        errors.push({
+          handle: "",
+          error: "Missing handle and name in CSV row",
+        });
         continue;
       }
-      if (!productId) { errors.push({ handle, message: "Product not found by handle" }); continue; }
 
-      // собрать метаполя
-      const inputs: Array<{
+      const foundProduct = await findProduct(row);
+      const productId = foundProduct.id || null;
+
+      if (!productId) {
+        errors.push({
+          handle: handle || name || "",
+          error: "Product not found by handle or title",
+        });
+
+        debug.push({
+          handle: handle ?? "",
+          titleFromCsv: name ?? "",
+          rowVolume: getRowVolume(row),
+          rowPrice: getRowPrice(row),
+          productFound: false,
+        });
+
+        continue;
+      }
+
+      const productWithVariants =
+        await shopifyAdminRequest<ProductVariantsResponse>(Q_PRODUCT_VARIANTS, {
+          id: productId,
+        });
+
+      const variants =
+        productWithVariants.product?.variants.edges.map((edge) => edge.node) ?? [];
+
+      if (!variants.length) {
+        errors.push({
+          handle: handle || name || "",
+          error: "No variants found for product",
+        });
+
+        debug.push({
+          handle: handle ?? "",
+          titleFromCsv: name ?? "",
+          matchedProductTitle: foundProduct.title,
+          matchedProductHandle: foundProduct.handle,
+          foundBy: foundProduct.foundBy,
+          rowVolume: getRowVolume(row),
+          rowPrice: getRowPrice(row),
+          productFound: true,
+          variantFound: false,
+        });
+
+        continue;
+      }
+
+      const matchedVariant = findMatchingVariant(variants, row);
+
+      if (!matchedVariant) {
+        errors.push({
+          handle: handle || name || "",
+          error: "Matching variant not found",
+        });
+
+        debug.push({
+          handle: handle ?? "",
+          titleFromCsv: name ?? "",
+          matchedProductTitle: foundProduct.title,
+          matchedProductHandle: foundProduct.handle,
+          foundBy: foundProduct.foundBy,
+          rowVolume: getRowVolume(row),
+          rowPrice: getRowPrice(row),
+          availableVariants: variants.map((variant) => ({
+            id: variant.id,
+            title: variant.title,
+            selectedOptions: variant.selectedOptions,
+            price: variant.price,
+          })),
+          productFound: true,
+          variantFound: false,
+        });
+
+        continue;
+      }
+
+      const metafields: Array<{
         ownerId: string;
         namespace: string;
         key: string;
-        type: MetaDef["type"];
+        type: "single_line_text_field" | "multi_line_text_field" | "number_integer";
         value: string;
       }> = [];
 
-      for (const [header, def] of Object.entries(FIELD_MAP)) {
-        const val = row[header]?.trim();
+      for (const [csvKey, def] of Object.entries(FIELD_MAP)) {
+        const val = row[csvKey];
         if (!val) continue;
 
-        // Если хочешь хранить shelf_life_days числом — раскомментируй блок ниже и поменяй type
-        // if (def.key === "shelf_life_days") {
-        //   const n = parseInt(val, 10);
-        //   if (!Number.isNaN(n)) {
-        //     inputs.push({ ownerId: productId, namespace: def.namespace, key: def.key, type: "number_integer", value: String(n) });
-        //   }
-        //   continue;
-        // }
-
-        inputs.push({ ownerId: productId, namespace: def.namespace, key: def.key, type: def.type, value: val });
+        metafields.push({
+          ownerId: productId,
+          namespace: def.namespace,
+          key: def.key,
+          type: def.type,
+          value: val,
+        });
       }
 
-      if (!inputs.length) { skipped++; continue; }
+      if (metafields.length) {
+        const metafieldResult =
+          await shopifyAdminRequest<MetafieldsSetResponse>(M_METAFIELDS_SET, {
+            metafields,
+          });
 
-      // записать в Shopify
-      try {
-        const r = await shopifyAdminRequest<MetafieldsSetResult>(M_METAFIELDS_SET, { metafields: inputs });
-        if (r.metafieldsSet.userErrors?.length) {
-          errors.push({ handle, message: JSON.stringify(r.metafieldsSet.userErrors) });
-        } else {
-          updated++;
+        if (metafieldResult.metafieldsSet.userErrors.length > 0) {
+          const message = metafieldResult.metafieldsSet.userErrors
+            .map((e) => e.message)
+            .join(", ");
+
+          errors.push({
+            handle: handle || name || "",
+            error: `Metafields: ${message}`,
+          });
         }
-      } catch (e: unknown) {
-        errors.push({ handle, message: `Mutation error: ${String(e)}` });
       }
+
+      const rowPrice = getRowPrice(row);
+
+      if (rowPrice) {
+        const normalizedPrice = normalizePrice(rowPrice);
+
+        const priceResult =
+          await shopifyAdminRequest<VariantUpdateResponse>(
+            M_VARIANT_PRICE_UPDATE,
+            {
+              productId,
+              variants: [
+                {
+                  id: matchedVariant.id,
+                  price: normalizedPrice,
+                },
+              ],
+            }
+          );
+
+        if (priceResult.productVariantsBulkUpdate.userErrors.length > 0) {
+          const message = priceResult.productVariantsBulkUpdate.userErrors
+            .map((e) => e.message)
+            .join(", ");
+
+          errors.push({
+            handle: handle || name || "",
+            error: `Price: ${message}`,
+          });
+        }
+      }
+
+      debug.push({
+        handle: handle ?? "",
+        titleFromCsv: name ?? "",
+        matchedProductTitle: foundProduct.title,
+        matchedProductHandle: foundProduct.handle,
+        foundBy: foundProduct.foundBy,
+        rowVolume: getRowVolume(row),
+        rowPrice: rowPrice,
+        matchedVariant: {
+          id: matchedVariant.id,
+          title: matchedVariant.title,
+          selectedOptions: matchedVariant.selectedOptions,
+          oldPrice: matchedVariant.price,
+        },
+        productFound: true,
+        variantFound: true,
+      });
+
+      updated++;
     }
 
-    return NextResponse.json({ ok: true, updated, skipped, errors });
-  } catch (e: unknown) {
-    return NextResponse.json({ ok: false, error: String(e) }, { status: 500 });
+    return NextResponse.json({
+      ok: true,
+      updated,
+      fileUrl,
+      totalRows: rows.length,
+      errors,
+      debug,
+    });
+  } catch (e) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: e instanceof Error ? e.message : String(e),
+      },
+      { status: 500 }
+    );
   }
 }
