@@ -2,45 +2,41 @@
 
 export type CategoryKey =
   | "all"
-  | "beer in bottles"
-  | "Draft Beer"
-  | "Cider"
-  | "energy drink"
-  | "non-alcoholic beer"
+  | "bottle-beer"
+  | "draft-beer"
+  | "cider"
+  | "energy-drinks"
+  | "non-alcoholic-beer"
   | "snacks"
-  | "sparkling wine"
-  | "Soft Drinks";
+  | "sparkling-wine"
+  | "soft-drinks";
 
 export const CATEGORY_KEYS: readonly CategoryKey[] = [
   "all",
-  "beer in bottles",
-  "Draft Beer",
-  "Cider",
-  "energy drink",
-  "non-alcoholic beer",
+  "bottle-beer",
+  "draft-beer",
+  "cider",
+  "energy-drinks",
+  "non-alcoholic-beer",
   "snacks",
-  "sparkling wine",
-  "Soft Drinks",
+  "sparkling-wine",
+  "soft-drinks",
 ] as const;
 
 export function isCategoryKey(x: unknown): x is CategoryKey {
   return typeof x === "string" && (CATEGORY_KEYS as readonly string[]).includes(x);
 }
 
-/**
- * Shopify collection handles (URL slugs) for each tab category.
- * IMPORTANT: these must match EXACT handles in Shopify Admin → Products → Collections.
- */
 export const CATEGORY_TO_COLLECTION_HANDLE: Record<
   Exclude<CategoryKey, "all">,
   string
 > = {
-  "beer in bottles": "bottle-beer",
-  "Draft Beer": "draft-beer",
-  "Cider": "cider",
-  "energy drink": "energy-drink",
-  "non-alcoholic beer": "non-alcoholic-beer",
+  "bottle-beer": "bottle-beer",
+  "draft-beer": "draft-beer",
+  "cider": "cider",
+  "energy-drinks": "energy-drinks",
+  "non-alcoholic-beer": "non-alcoholic-beer",
   "snacks": "snacks",
-  "sparkling wine": "sparkling-wine",
-  "Soft Drinks": "soft-drinks",
+  "sparkling-wine": "sparkling-wine",
+  "soft-drinks": "soft-drinks",
 };

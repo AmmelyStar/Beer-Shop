@@ -5,7 +5,11 @@ import Breadcrumbs from "@/app/components/ui/Breadcrumbs";
 import type { Locale } from "../../lib/locale";
 import { getMessages } from "../messages";
 import { getReviewSummaryByHandle } from "@/app/lib/reviews/getReviewSummaryByHandle";
-import { isCategoryKey, type CategoryKey } from "@/app/lib/shop/categories";
+import {
+  isCategoryKey,
+  type CategoryKey,
+  CATEGORY_TO_COLLECTION_HANDLE,
+} from "@/app/lib/shop/categories";
 
 type SortKey =
   | "best"
@@ -28,7 +32,6 @@ function isSortKey(x: unknown): x is SortKey {
   return typeof x === "string" && (SORT_KEYS as readonly string[]).includes(x);
 }
 
-// максимально безопасно достаём цену из FlattenedProduct (под разные мапперы)
 function getPriceNumber(p: unknown): number {
   if (!p || typeof p !== "object") return Number.POSITIVE_INFINITY;
 
@@ -73,7 +76,6 @@ function getCollectionHandlesLower(p: unknown): string[] {
     return fromHandles.map((x) => String(x).toLowerCase()).filter(Boolean);
   }
 
-  // collections может быть ["snacks","beer"] или [{handle,title}]
   const fromCollections = obj.collections;
   if (Array.isArray(fromCollections)) {
     return fromCollections
@@ -97,14 +99,14 @@ function getTagsLower(p: unknown): string[] {
   const obj = p as Record<string, unknown>;
   const tags = obj.tags;
   if (!Array.isArray(tags)) return [];
-  return tags.map((x) => String(x).toLowerCase()).filter(Boolean);
+  return tags.map((x) => String(x).toLowerCase().trim()).filter(Boolean);
 }
 
 function getProductTypeLower(p: unknown): string {
   if (!p || typeof p !== "object") return "";
   const obj = p as Record<string, unknown>;
   const pt = obj.productType ?? obj.product_type ?? obj.type;
-  return pt ? String(pt).toLowerCase() : "";
+  return pt ? String(pt).toLowerCase().trim() : "";
 }
 
 function matchesCategory(p: unknown, category: CategoryKey): boolean {
@@ -114,52 +116,58 @@ function matchesCategory(p: unknown, category: CategoryKey): boolean {
   const tags = getTagsLower(p);
   const pt = getProductTypeLower(p);
 
-  // алиасы под твои НОВЫЕ категории (и под возможные старые данные)
+  const targetHandle = CATEGORY_TO_COLLECTION_HANDLE[category].toLowerCase();
+
+  // Для bottle-beer и draft-beer только строгое совпадение.
+  // Это убирает ситуацию, когда draft-beer попадает в bottle-beer.
+  if (category === "bottle-beer") {
+    return tags.includes("bottle-beer") || handles.includes("bottle-beer");
+  }
+
+  if (category === "draft-beer") {
+    return tags.includes("draft-beer") || handles.includes("draft-beer");
+  }
+
+  // Сначала пробуем строгое совпадение для остальных категорий
+  if (tags.includes(targetHandle) || handles.includes(targetHandle)) {
+    return true;
+  }
+
   const aliases: Record<CategoryKey, string[]> = {
     all: ["all"],
 
-    "beer in bottles": [
-      "beer in bottles",
-      "bottled beer",
-      "bottle",
-      "bottles",
-      "beer",
-      "bier",
-      "пиво",
-      "bottled",
+    "bottle-beer": ["bottle-beer"],
+    "draft-beer": ["draft-beer"],
+
+    cider: ["cider", "siider", "sidr", "сидр"],
+
+    "energy-drinks": [
+      "energy-drinks",
+      "energy-drink",
+      "energy drink",
+      "energy drinks",
+      "red bull",
+      "monster",
+      "энерг",
     ],
-      "Draft Beer": [
-    "draft beer",
-    "draft",
-    "tap",
-    "on tap",
-    "draught",
-    "fassbier",
-    "vom fass",
-    "fass",
-    "пиво разливное",
-    "разливное",
-  ],
 
-    Cider: ["cider", "siider", "sidr", "сидр"],
-
-    "energy drink": ["energy drink", "energy", "энерг", "red bull", "monster"],
-
-    "non-alcoholic beer": [
-      "non-alcoholic beer",
+    "non-alcoholic-beer": [
+      "non-alcoholic-beer",
       "non alcoholic beer",
+      "non-alcoholic beer",
       "alcohol free beer",
-      "0.0",
-      "0%",
-      "безалког",
-      "alkoholfrei",
       "alcohol-free",
       "alcohol free",
+      "0.0",
+      "0%",
+      "alkoholfrei",
+      "безалког",
     ],
 
     snacks: ["snacks", "snack", "chips", "crisps", "nuts", "закус", "снеки"],
 
-    "sparkling wine": [
+    "sparkling-wine": [
+      "sparkling-wine",
       "sparkling wine",
       "sparkling",
       "prosecco",
@@ -168,9 +176,10 @@ function matchesCategory(p: unknown, category: CategoryKey): boolean {
       "игрист",
     ],
 
-    "Soft Drinks": [
-      "soft drinks",
+    "soft-drinks": [
+      "soft-drinks",
       "soft drink",
+      "soft drinks",
       "soda",
       "mineral",
       "mineral water",
@@ -184,15 +193,11 @@ function matchesCategory(p: unknown, category: CategoryKey): boolean {
     ],
   };
 
-  const needles = [String(category), ...(aliases[category] ?? [])].map((s) =>
+  const hay = [...tags, ...handles, pt].filter(Boolean);
+  const needles = [targetHandle, ...aliases[category]].map((s) =>
     s.toLowerCase()
   );
 
-  // 1) лучший вариант — точное совпадение handle (в lower)
-  if (handles.includes(String(category).toLowerCase())) return true;
-
-  // 2) запасной — частичное совпадение по алиасам
-  const hay = [...handles, ...tags, pt].filter(Boolean);
   return hay.some((h) => needles.some((n) => h.includes(n)));
 }
 
@@ -249,7 +254,10 @@ export default async function Page({
   const filtered = allProducts.filter((p) => matchesCategory(p, category));
   const finalProducts = sortProducts(filtered, sort);
 
-  const handles = finalProducts.map((p) => p.handle).filter(Boolean);
+  const handles = finalProducts
+    .map((p) => p.handle)
+    .filter((handle): handle is string => Boolean(handle));
+
   const reviewSummaries = await getReviewSummaryByHandle(handles);
 
   return (

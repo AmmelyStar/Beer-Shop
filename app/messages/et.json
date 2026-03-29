@@ -46,15 +46,15 @@
     "noProducts": "Tooteid ei leitud",
     "noProductsDescription": "Selles kategoorias ei ole praegu tooteid. Palun vaata hiljem uuesti või vali mõni muu kategooria.",
     "categories": {
-      "all": "Kõik tooted",
-      "beer in bottles": "Pudelõlu",
-"Draft Beer": "Vaadiõlu",
-      "Cider": "Siider",
-      "energy drink": "Energiajoogid",
-      "non-alcoholic beer": "Alkoholivaba õlu",
-      "snacks": "Suupisted",
-      "sparkling wine": "Vahuvein",
-      "Soft Drinks": "Karastusjoogid"
+  "all": "Kõik tooted",
+  "bottle-beer": "Pudeliõlu",
+  "draft-beer": "Vaadiõlu",
+  "cider": "Siider",
+  "energy-drinks": "Energiajoogid",
+  "non-alcoholic-beer": "Alkoholivaba õlu",
+  "snacks": "Suupisted",
+  "sparkling-wine": "Vahuvein",
+  "soft-drinks": "Karastusjoogid"
 },
     "sort": {
       "label": "Sorteerimine",
@@ -138,17 +138,17 @@
   },
   "Footer": {
     "catalog": {
-  "title": "Kataloog",
-  "all": "Kõik tooted",
-  "beer in bottles": "Pudelõlu",
-"Draft Beer": "Vaadiõlu",
-  "Cider": "Siider",
-  "energy drink": "Energiajoogid",
-  "non-alcoholic beer": "Alkoholivaba õlu",
-  "snacks": "Suupisted",
-  "sparkling wine": "Vahuvein",
-  "Soft Drinks": "Karastusjoogid"
-},
+    "title": "Kataloog",
+    "all": "Kõik tooted",
+    "bottle-beer": "Pudeliõlu",
+    "draft-beer": "Vaadiõlu",
+    "cider": "Siider",
+    "energy-drinks": "Energiajoogid",
+    "non-alcoholic-beer": "Alkoholivaba õlu",
+    "snacks": "Suupisted",
+    "sparkling-wine": "Vahuvein",
+    "soft-drinks": "Karastusjoogid"
+  },
     "customers": {
       "title": "Klientidele",
       "faq": "Korduma kippuvad küsimused",

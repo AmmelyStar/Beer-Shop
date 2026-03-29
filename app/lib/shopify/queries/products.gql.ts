@@ -11,11 +11,20 @@ const PRODUCT_METAFIELD_IDENTIFIERS = `
     { namespace: "specs", key: "gtin" }
     { namespace: "specs", key: "ingredients" }
     { namespace: "specs", key: "pack_size_l" }
+    { namespace: "specs", key: "weight" }
     { namespace: "specs", key: "pack_type" }
     { namespace: "specs", key: "pairing" }
     { namespace: "specs", key: "shelf_life_days" }
     { namespace: "specs", key: "tasted_best_with" }
     { namespace: "specs", key: "bottle_in_boxes" }
+    { namespace: "specs", key: "style" }
+    { namespace: "specs", key: "ean" }
+    { namespace: "specs", key: "box_nr" }
+    { namespace: "specs", key: "description_extra" }
+    { namespace: "specs", key: "volume" }
+    { namespace: "specs", key: "alcohol" }
+    { namespace: "specs", key: "alcohol_percentage" }
+    { namespace: "specs", key: "alcohol_content" }
 
     { namespace: "custom", key: "abv" }
     { namespace: "custom", key: "ibu" }
@@ -26,6 +35,7 @@ const PRODUCT_METAFIELD_IDENTIFIERS = `
     { namespace: "custom", key: "gtin" }
     { namespace: "custom", key: "ingredients" }
     { namespace: "custom", key: "pack_size_l" }
+    { namespace: "custom", key: "weight_g" }
     { namespace: "custom", key: "pack_type" }
     { namespace: "custom", key: "pairing" }
     { namespace: "custom", key: "shelf_life_days" }
@@ -35,6 +45,10 @@ const PRODUCT_METAFIELD_IDENTIFIERS = `
     { namespace: "custom", key: "ean" }
     { namespace: "custom", key: "box_nr" }
     { namespace: "custom", key: "description_extra" }
+    { namespace: "custom", key: "volume" }
+    { namespace: "custom", key: "alcohol" }
+    { namespace: "custom", key: "alcohol_percentage" }
+    { namespace: "custom", key: "alcohol_content" }
 
     { namespace: "shopify", key: "beer-style" }
     { namespace: "shopify", key: "package-type" }
@@ -129,6 +143,8 @@ const PRODUCT_CARD_FIELDS = `
   id
   title
   handle
+  productType
+  tags
   descriptionHtml
   featuredImage {
     url
@@ -168,6 +184,8 @@ const PRODUCT_FULL_FIELDS = `
   id
   title
   handle
+  productType
+  tags
   descriptionHtml
   featuredImage {
     url

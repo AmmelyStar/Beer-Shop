@@ -15,7 +15,11 @@ function checkAuth(req: Request) {
 type MetaDef = {
   namespace: string;
   key: string;
-  type: "single_line_text_field" | "multi_line_text_field" | "number_integer";
+  type:
+    | "single_line_text_field"
+    | "multi_line_text_field"
+    | "number_integer"
+    | "number_decimal";
 };
 
 type CsvFieldMap = Record<string, MetaDef>;
@@ -45,21 +49,33 @@ const FIELD_MAP: CsvFieldMap = {
   abv: {
     namespace: "custom",
     key: "abv",
-    type: "single_line_text_field",
+    type: "number_decimal",
   },
   ibu: {
     namespace: "custom",
     key: "ibu",
-    type: "single_line_text_field",
+    type: "number_decimal",
   },
   fg: {
     namespace: "custom",
     key: "fg",
-    type: "single_line_text_field",
+    type: "number_decimal",
   },
-  // ВАЖНО:
-  // pack size (l) НЕ пишем в product metafields автоматически,
-  // потому что при нескольких variants у одного продукта объём должен жить в variant option.
+
+  // fixed liters for products WITHOUT size variants
+  "product.metafields.custom.pack_size_l": {
+    namespace: "custom",
+    key: "pack_size_l",
+    type: "number_decimal",
+  },
+
+  // grams for snacks
+  "product.metafields.custom.weight_g": {
+    namespace: "custom",
+    key: "weight_g",
+    type: "number_decimal",
+  },
+
   "pack type": {
     namespace: "custom",
     key: "pack_type",
@@ -296,6 +312,10 @@ function normalizePrice(value: string): string {
   return value.trim().replace(",", ".");
 }
 
+function normalizeDecimal(value: string): string {
+  return value.trim().replace(",", ".");
+}
+
 function normalizeText(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
@@ -342,12 +362,7 @@ function getRowVolume(row: CsvRow): string {
 }
 
 function getRowPrice(row: CsvRow): string {
-  return (
-    row["sale price"] ||
-    row["variant price"] ||
-    row["price"] ||
-    ""
-  );
+  return row["sale price"] || row["variant price"] || row["price"] || "";
 }
 
 async function findProduct(row: CsvRow): Promise<{
@@ -462,10 +477,7 @@ function findMatchingVariant(
 export async function GET(req: Request) {
   try {
     if (!checkAuth(req)) {
-      return NextResponse.json(
-        { ok: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
 
     const files = await shopifyAdminRequest<FilesResponse>(Q_FILES, {
@@ -477,10 +489,7 @@ export async function GET(req: Request) {
     const fileUrl = matchedFiles[0]?.node?.url;
 
     if (!fileUrl) {
-      return NextResponse.json(
-        { ok: false, error: "CSV not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ ok: false, error: "CSV not found" }, { status: 404 });
     }
 
     const csv = await fetch(fileUrl).then((r) => r.text());
@@ -584,7 +593,11 @@ export async function GET(req: Request) {
         ownerId: string;
         namespace: string;
         key: string;
-        type: "single_line_text_field" | "multi_line_text_field" | "number_integer";
+        type:
+          | "single_line_text_field"
+          | "multi_line_text_field"
+          | "number_integer"
+          | "number_decimal";
         value: string;
       }> = [];
 
@@ -597,7 +610,10 @@ export async function GET(req: Request) {
           namespace: def.namespace,
           key: def.key,
           type: def.type,
-          value: val,
+          value:
+            def.type === "number_decimal" || def.type === "number_integer"
+              ? normalizeDecimal(val)
+              : val,
         });
       }
 
@@ -664,6 +680,7 @@ export async function GET(req: Request) {
           selectedOptions: matchedVariant.selectedOptions,
           oldPrice: matchedVariant.price,
         },
+        metafieldsSent: metafields,
         productFound: true,
         variantFound: true,
       });

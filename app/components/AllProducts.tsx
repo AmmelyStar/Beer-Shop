@@ -53,12 +53,141 @@ function getVariantId(p: FlattenedProduct): string | null {
     return variants[0].id as string;
   }
 
-  const selectedVariant = rec.selectedVariant as Record<string, unknown> | undefined;
+  const selectedVariant = rec.selectedVariant as
+    | Record<string, unknown>
+    | undefined;
+
   if (selectedVariant?.id && typeof selectedVariant.id === "string") {
     return selectedVariant.id;
   }
 
   return null;
+}
+
+function normalizeNumber(value: unknown): number | null {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const normalized = Number(value.replace(",", ".").trim());
+    return Number.isNaN(normalized) ? null : normalized;
+  }
+
+  return null;
+}
+
+function formatPrice(
+  amount?: string | number | null,
+  currencyCode?: string | null
+) {
+  if (amount == null || amount === "") return "—";
+
+  const n = normalizeNumber(amount);
+
+  if (n === null) {
+    return `${amount} ${currencyCode ?? "EUR"}`;
+  }
+
+  return `${n.toFixed(2)} ${currencyCode ?? "EUR"}`;
+}
+
+function trimTrailingZero(value: number): string {
+  return Number.isInteger(value) ? String(value) : String(value);
+}
+
+function formatWeight(weight: unknown): string | null {
+  const n = normalizeNumber(weight);
+  if (n !== null) {
+    return `${trimTrailingZero(n)} g`;
+  }
+
+  if (typeof weight === "string") {
+    const trimmed = weight.trim();
+    if (!trimmed) return null;
+
+    const normalized = trimmed.toLowerCase();
+
+    if (normalized.endsWith("g")) {
+      const numberPart = trimmed.slice(0, -1).trim();
+      const parsed = normalizeNumber(numberPart);
+      if (parsed !== null) {
+        return `${trimTrailingZero(parsed)} g`;
+      }
+      return trimmed.replace(/g$/i, " g");
+    }
+
+    if (normalized.endsWith("kg")) {
+      return trimmed;
+    }
+
+    const parsed = normalizeNumber(trimmed);
+    if (parsed !== null) {
+      return `${trimTrailingZero(parsed)} g`;
+    }
+  }
+
+  return null;
+}
+
+function formatVolume(volume: unknown): string | null {
+  const n = normalizeNumber(volume);
+  if (n !== null) {
+    return `${trimTrailingZero(n)} L`;
+  }
+
+  if (typeof volume === "string") {
+    const trimmed = volume.trim();
+    if (!trimmed) return null;
+
+    const normalized = trimmed.toLowerCase();
+
+    if (normalized.endsWith("l")) {
+      const numberPart = trimmed.slice(0, -1).trim();
+      const parsed = normalizeNumber(numberPart);
+      if (parsed !== null) {
+        return `${trimTrailingZero(parsed)} L`;
+      }
+      return trimmed.replace(/l$/i, " L");
+    }
+
+    const parsed = normalizeNumber(trimmed);
+    if (parsed !== null) {
+      return `${trimTrailingZero(parsed)} L`;
+    }
+  }
+
+  return null;
+}
+
+function formatAlcohol(abv: unknown): string | null {
+  const value = normalizeNumber(abv);
+  if (value === null) return null;
+
+  return `${trimTrailingZero(value)} %`;
+}
+
+function getMetaLabel(p: FlattenedProduct): string {
+  const parts: string[] = [];
+
+  const weight = formatWeight(p.specs?.weight_g);
+  const volume = formatVolume(p.specs?.pack_size_l);
+  const alcohol = formatAlcohol(p.specs?.abv);
+
+  if (weight) {
+    parts.push(weight);
+    return parts.join(" • ");
+  }
+
+  if (volume) {
+    parts.push(volume);
+  }
+
+  if (alcohol) {
+    parts.push(alcohol);
+  }
+
+  return parts.join(" • ");
 }
 
 export default function AllProducts({
@@ -76,25 +205,15 @@ export default function AllProducts({
     <div className="mx-auto max-w-2xl px-4 pt-6 sm:px-6 lg:max-w-7xl lg:px-8">
       <h2 className="text-2xl tracking-tight text-white">{title}</h2>
 
-      <div className="mt-8 grid grid-cols-1 gap-y-16 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8">
+      <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 xl:gap-8">
         {products.map((p) => {
           const img = p.featuredImage;
           const price = p.priceRange?.minVariantPrice;
 
-          const abvRaw = p.specs?.abv;
-          const abvNum =
-            abvRaw !== undefined && abvRaw !== "" ? Number(abvRaw) : null;
+          const abvNum = normalizeNumber(p.specs?.abv);
           const isAlcoholFree = abvNum === 0;
 
-          const metaParts: string[] = [];
-          if (abvNum !== null && !Number.isNaN(abvNum)) metaParts.push(`${abvNum} %`);
-          if (p.specs?.pack_size_l) metaParts.push(`${p.specs.pack_size_l} L`);
-          if (p.specs?.country) metaParts.push(p.specs.country);
-          if (p.specs?.pack_type) metaParts.push(p.specs.pack_type);
-          if (p.specs?.bottle_in_boxes)
-            metaParts.push(`${p.specs.bottle_in_boxes} pcs/box`);
-
-          const meta = metaParts.join(" • ");
+          const meta = getMetaLabel(p);
 
           const href = `/${lang}/product/${p.handle}${
             category ? `?category=${category}` : ""
@@ -108,10 +227,9 @@ export default function AllProducts({
           const productForCart = variantId ? ({ ...p, variantId } as const) : null;
 
           return (
-            <div key={p.id} className="group relative">
-              <Link href={href} className="block">
-                <div className="flex flex-col">
-                  {/* IMAGE */}
+            <div key={p.id} className="group flex h-full flex-col">
+              <Link href={href} className="block flex-1">
+                <div className="flex h-full flex-col">
                   <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-white">
                     {img?.url && (
                       <Image
@@ -119,7 +237,7 @@ export default function AllProducts({
                         alt={img.altText ?? p.title}
                         fill
                         sizes="(min-width:1024px) 25vw, (min-width:640px) 50vw, 100vw"
-                        className="object-contain p-3 transform-gpu scale-105 transition-transform duration-300 group-hover:scale-110"
+                        className="object-contain p-3 transition-transform duration-300 group-hover:scale-105"
                       />
                     )}
 
@@ -134,47 +252,49 @@ export default function AllProducts({
                     )}
                   </div>
 
-                  {/* TITLE + PRICE */}
-                  <div className="mt-4 flex items-start justify-between">
-                    <div>
-                      <h3 className="text-lg font-medium text-yellow-400">
-                        {p.title}
-                      </h3>
-                      {meta && <p className="text-sm text-gray-300">{meta}</p>}
+                  <div className="mt-4 flex flex-1 flex-col">
+                    <div className="min-h-[96px]">
+                      <div className="flex items-start justify-between gap-3">
+                        <h3 className="line-clamp-2 min-h-[56px] text-base font-medium leading-7 text-yellow-400">
+                          {p.title}
+                        </h3>
+
+                        <p className="shrink-0 whitespace-nowrap text-base font-semibold text-white">
+                          {formatPrice(price?.amount, price?.currencyCode)}
+                        </p>
+                      </div>
+
+                      <p className="mt-1 min-h-[20px] text-sm text-gray-300">
+                        {meta || "\u00A0"}
+                      </p>
                     </div>
 
-                    <p className="text-lg font-semibold text-white">
-                      {price ? `${price.amount} ${price.currencyCode}` : "—"}
-                    </p>
-                  </div>
+                    <div className="mt-3 min-h-[38px]">
+                      <span className="sr-only">
+                        {rating} {stars}
+                      </span>
 
-                  {/* RATING */}
-                  <div className="mt-3">
-                    <span className="sr-only">
-                      {rating} {stars}
-                    </span>
+                      <div className="flex">
+                        {[0, 1, 2, 3, 4].map((i) => (
+                          <StarIcon
+                            key={i}
+                            className={classNames(
+                              rating >= i + 1 ? "text-yellow-400" : "text-gray-500",
+                              "size-3"
+                            )}
+                          />
+                        ))}
+                      </div>
 
-                    <div className="flex">
-                      {[0, 1, 2, 3, 4].map((i) => (
-                        <StarIcon
-                          key={i}
-                          className={classNames(
-                            rating >= i + 1 ? "text-yellow-400" : "text-gray-500",
-                            "size-3"
-                          )}
-                        />
-                      ))}
+                      <p className="mt-1 text-sm text-gray-500">
+                        {count} {reviews}
+                      </p>
                     </div>
-
-                    <p className="mt-1 text-sm text-gray-500">
-                      {count} {reviews}
-                    </p>
                   </div>
                 </div>
               </Link>
 
-              {/* ADD TO CART */}
-              <div className="mt-6">
+              <div className="mt-4">
                 {productForCart ? (
                   <AddToCartButton product={productForCart} label={add} />
                 ) : (

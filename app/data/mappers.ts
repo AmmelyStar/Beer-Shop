@@ -25,6 +25,9 @@ export type FlattenedProduct = Omit<
   "metafields" | "collections" | "translations" | "variants"
 > & {
   collections: string[];
+  collectionHandles: string[];
+  tags: string[];
+  productType?: string;
   variantId: string;
   variants?: FlattenedVariant[];
   selectedOrFirstAvailableVariant?: FlattenedVariant;
@@ -36,6 +39,7 @@ export type FlattenedProduct = Omit<
     gtin: string;
     ingredients: string;
     pack_size_l: string;
+    weight_g: string;
     pack_type: string;
     pairing: string;
     shelf_life_days: string;
@@ -47,6 +51,10 @@ export type FlattenedProduct = Omit<
     ean: string;
     box_nr: string;
     description_extra: string;
+    volume: string;
+    alcohol: string;
+    alcohol_percentage: string;
+    alcohol_content: string;
   }>;
   shopify?: Partial<{
     "beer-style": string;
@@ -154,7 +162,14 @@ function buildSpecsFromGroups(
   const merged = buildNormalizedGroup(mergedRaw);
 
   const specs: FlattenedProduct["specs"] = {
-    abv: pickFirstValue(merged, ["abv"]),
+    abv: pickFirstValue(merged, [
+      "abv",
+      "alcohol",
+      "alcohol_percentage",
+      "alcohol_content",
+      "alcohol %",
+      "alc",
+    ]),
     allergens: pickFirstValue(merged, ["allergens", "allergen"]),
     brand: pickFirstValue(merged, ["brand"]),
     country: pickFirstValue(merged, ["country"]),
@@ -167,6 +182,19 @@ function buildSpecsFromGroups(
       "volume",
       "size_l",
       "size",
+      "volume_l",
+      "liters",
+      "litres",
+      "l",
+    ]),
+    weight_g: pickFirstValue(merged, [
+      "weight_g",
+      "weight",
+      "grams",
+      "gram",
+      "g",
+      "weight in g",
+      "weight_gross",
     ]),
     pack_type: pickFirstValue(merged, [
       "pack_type",
@@ -208,7 +236,51 @@ function buildSpecsFromGroups(
       "extra_description",
       "description extra",
     ]),
+    volume: pickFirstValue(merged, [
+      "volume",
+      "pack_size_l",
+      "pack size l",
+      "pack size (l)",
+      "volume_l",
+      "size_l",
+      "size",
+    ]),
+    alcohol: pickFirstValue(merged, [
+      "alcohol",
+      "abv",
+      "alcohol_percentage",
+      "alcohol_content",
+      "alcohol %",
+      "alc",
+    ]),
+    alcohol_percentage: pickFirstValue(merged, [
+      "alcohol_percentage",
+      "abv",
+      "alcohol",
+      "alcohol_content",
+      "alcohol %",
+      "alc",
+    ]),
+    alcohol_content: pickFirstValue(merged, [
+      "alcohol_content",
+      "abv",
+      "alcohol",
+      "alcohol_percentage",
+      "alcohol %",
+      "alc",
+    ]),
   };
+
+  if (!specs.abv) {
+    specs.abv =
+      specs.alcohol_percentage ??
+      specs.alcohol_content ??
+      specs.alcohol;
+  }
+
+  if (!specs.pack_size_l) {
+    specs.pack_size_l = specs.volume;
+  }
 
   const hasAnyValue = Object.values(specs).some(
     (value) => value !== undefined && value !== null && value !== ""
@@ -346,7 +418,20 @@ export function flattenMetafields(p: ProductNode): FlattenedProduct {
     }
   }
 
+  const productWithExtras = p as ProductNode & {
+    tags?: string[];
+    productType?: string;
+  };
+
   const collections = p.collections?.edges?.map((e) => e.node.handle) || [];
+  const collectionHandles = collections.map((handle) => String(handle).toLowerCase());
+  const tags = Array.isArray(productWithExtras.tags)
+    ? productWithExtras.tags.map((tag) => String(tag).toLowerCase().trim()).filter(Boolean)
+    : [];
+  const productType = productWithExtras.productType
+    ? String(productWithExtras.productType).toLowerCase().trim()
+    : "";
+
   const variants = flattenVariants(p);
   const selectedOrFirstAvailableVariant = flattenSelectedOrFirstAvailableVariant(p);
   const firstVariantId =
@@ -369,6 +454,9 @@ export function flattenMetafields(p: ProductNode): FlattenedProduct {
   return {
     ...base,
     collections,
+    collectionHandles,
+    tags,
+    productType,
     variants,
     selectedOrFirstAvailableVariant,
     variantId: firstVariantId,
@@ -405,6 +493,8 @@ export function getProductSpecs(product: FlattenedProduct): Array<{
       ibu: "IBU",
       fg: "FG",
       pack_size_l: "Volume",
+      weight_g: "Weight (g)",
+      volume: "Volume",
       country: "Country",
       brand: "Brand",
       allergens: "Allergens",

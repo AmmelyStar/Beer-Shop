@@ -33,7 +33,44 @@ function classNames(...classes: (string | boolean | undefined)[]) {
 
 function formatValue(value?: string | number | null) {
   if (value === null || value === undefined || value === "") return null;
-  return String(value).replace(",", ".");
+
+  const normalized = String(value).replace(",", ".").trim();
+  const parsed = Number(normalized);
+
+  if (!Number.isNaN(parsed)) {
+    return Number.isInteger(parsed) ? String(parsed) : String(parsed);
+  }
+
+  return normalized;
+}
+
+function formatMeasure(
+  value: string | number | null | undefined,
+  unit: "L" | "g"
+): string | null {
+  if (value === null || value === undefined || value === "") return null;
+
+  const normalized = String(value).replace(",", ".").trim();
+  const lower = normalized.toLowerCase();
+
+  if (
+    lower.includes(" g") ||
+    lower.endsWith("g") ||
+    lower.includes(" l") ||
+    lower.endsWith("l") ||
+    lower.includes("ml") ||
+    lower.includes("kg")
+  ) {
+    return normalized.replace(/\s+/g, " ");
+  }
+
+  const parsed = Number(normalized);
+  if (!Number.isNaN(parsed)) {
+    const clean = Number.isInteger(parsed) ? String(parsed) : String(parsed);
+    return `${clean} ${unit}`;
+  }
+
+  return normalized;
 }
 
 type ProductWithVariantId = FlattenedProduct & {
@@ -133,12 +170,21 @@ function getVolumeOption(variant?: ProductVariant | null): string | null {
   return volumeOption?.value ?? null;
 }
 
-function getDisplayVolume(product: FlattenedProduct, variant?: ProductVariant | null): string | null {
+function getDisplaySize(product: FlattenedProduct, variant?: ProductVariant | null): string | null {
   const variantVolume = getVolumeOption(variant);
-  if (variantVolume) return variantVolume;
+  if (variantVolume) {
+    return formatMeasure(variantVolume, "L");
+  }
 
-  const productPackSize = formatValue(product.specs?.pack_size_l);
-  if (productPackSize) return `${productPackSize} L`;
+  const productPackSize = product.specs?.pack_size_l;
+  if (productPackSize) {
+    return formatMeasure(productPackSize, "L");
+  }
+
+  const productWeight = (product.specs as { weight_g?: string } | undefined)?.weight_g;
+  if (productWeight) {
+    return formatMeasure(productWeight, "g");
+  }
 
   return null;
 }
@@ -171,7 +217,6 @@ function getDefaultVariant(product: FlattenedProduct, variants: ProductVariant[]
 export default function ProductOverviews({
   product,
   perUnit,
-  abv,
   ibu,
   fg,
   country,
@@ -199,7 +244,7 @@ export default function ProductOverviews({
     selectedVariant?.price?.amount ?? product.priceRange?.minVariantPrice?.amount ?? null;
   const price = formatPrice(rawPrice);
 
-  const displayVolume = getDisplayVolume(product, selectedVariant);
+  const displaySize = getDisplaySize(product, selectedVariant);
 
   const productAbv = formatValue(product.specs?.abv);
   const productIbu = formatValue(product.specs?.ibu);
@@ -246,10 +291,10 @@ export default function ProductOverviews({
         };
       })
       .filter(Boolean) as Array<{
-      id: string;
-      label: string;
-      availableForSale: boolean;
-    }>;
+        id: string;
+        label: string;
+        availableForSale: boolean;
+      }>;
 
     const unique = mapped.filter(
       (option, index, arr) =>
@@ -270,13 +315,12 @@ export default function ProductOverviews({
         <div className="mx-auto mt-8 max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
           <div className="lg:grid lg:auto-rows-min lg:grid-cols-12 lg:gap-x-8">
             <div className="lg:col-span-5 lg:col-start-8">
-              <div className="flex justify-between items-baseline gap-10">
-                <h1 className="max-w-md text-3xl font-semibold tracking-tight text-yellow-400">
-                  {product.title}
-                  {displayVolume && (
-                    <span className="ml-3 text-xl text-white">{displayVolume}</span>
-                  )}
-                </h1>
+              <div className="flex justify-between items-start gap-10">
+                <div className="min-w-0">
+                  <h1 className="max-w-md text-3xl font-semibold tracking-tight text-yellow-400">
+                    {product.title}
+                  </h1>
+                </div>
 
                 <div className="flex flex-col items-end text-right">
                   <span className="whitespace-nowrap text-2xl font-medium text-white">
@@ -317,22 +361,8 @@ export default function ProductOverviews({
                 </div>
               )}
 
-              {(productAbv || productIbu || productFg) && (
+              {(productIbu || productFg) && (
                 <div className="mt-10 flex w-full flex-wrap items-center justify-start gap-5">
-                  {productAbv && (
-                    <>
-                      <div className="flex items-baseline gap-2">
-                        <span className="whitespace-nowrap text-lg font-semibold text-white">
-                          {abv}:
-                        </span>
-                        <span className="text-base text-gray-300">{productAbv}%</span>
-                      </div>
-                      {(productIbu || productFg) && (
-                        <span className="text-gray-500">|</span>
-                      )}
-                    </>
-                  )}
-
                   {productIbu && (
                     <>
                       <div className="flex items-baseline gap-2">
@@ -383,14 +413,23 @@ export default function ProductOverviews({
                 </div>
               )}
 
-              {(displayVolume || productPackType || productBottleInBoxes || productShelfLifeDays) && (
+              {(displaySize || productAbv || productPackType || productBottleInBoxes || productShelfLifeDays) && (
                 <div className="mt-4 space-y-1">
-                  {displayVolume && (
+                  {displaySize && (
                     <div className="flex w-full items-baseline gap-2">
                       <span className="whitespace-nowrap text-sm font-semibold text-white">
-                        Volume:
+                        Size:
                       </span>
-                      <span className="text-sm text-gray-300">{displayVolume}</span>
+                      <span className="text-sm text-gray-300">{displaySize}</span>
+                    </div>
+                  )}
+
+                  {productAbv && (
+                    <div className="flex w-full items-baseline gap-2">
+                      <span className="whitespace-nowrap text-sm font-semibold text-white">
+                        Alcohol:
+                      </span>
+                      <span className="text-sm text-gray-300">{productAbv}% alc.</span>
                     </div>
                   )}
 

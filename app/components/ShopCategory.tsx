@@ -37,26 +37,26 @@ export default function ShopCategory({
   }> = [
     {
       key: "beerInBottles",
-      href: `/${lang}/shop?category=beer%20in%20bottles`,
+      href: `/${lang}/shop?category=bottle-beer`,
       img: "/category/fresh-light-beer-mug.jpg",
       alt: alts.beerInBottles,
       big: true,
     },
     {
       key: "cider",
-      href: `/${lang}/shop?category=Cider`,
+      href: `/${lang}/shop?category=cider`,
       img: "/category/photo_2025-11-02_14-54-50.jpg",
       alt: alts.cider,
     },
     {
       key: "energyDrink",
-      href: `/${lang}/shop?category=energy%20drink`,
+      href: `/${lang}/shop?category=energy-drinks`,
       img: "/category/energy.jpg",
       alt: alts.energyDrink,
     },
     {
       key: "nonAlcoholicBeer",
-      href: `/${lang}/shop?category=non-alcoholic%20beer`,
+      href: `/${lang}/shop?category=non-alcoholic-beer`,
       img: "/category/non-alcoholic-beer.jpg",
       alt: alts.nonAlcoholicBeer,
     },
@@ -68,13 +68,13 @@ export default function ShopCategory({
     },
     {
       key: "sparklingWine",
-      href: `/${lang}/shop?category=sparkling%20wine`,
+      href: `/${lang}/shop?category=sparkling-wine`,
       img: "/category/sparkling-wine.jpg",
       alt: alts.sparklingWine,
     },
     {
       key: "softDrinks",
-      href: `/${lang}/shop?category=Soft%20Drinks`,
+      href: `/${lang}/shop?category=soft-drinks`,
       img: "/category/soft-drinks.jpg",
       alt: alts.softDrinks,
     },

@@ -48,16 +48,16 @@
     "noProducts": "Товары не найдены",
     "noProductsDescription": "В этой категории пока нет товаров. Загляните позже или выберите другую категорию.",
     "categories": {
-      "all": "Все товары",
-      "beer in bottles": "пиво в бутылках",
-  "Draft Beer": "пиво на розлив",
-      "Cider": "Сидр",
-      "energy drink": "Энергетические напитки",
-      "non-alcoholic beer": "Безалкогольное пиво",
-      "snacks": "Снеки",
-      "sparkling wine": "Игристое вино",
-      "Soft Drinks": "Безалкогольные напитки"
-    },
+  "all": "Все товары",
+  "bottle-beer": "Пиво в бутылках",
+  "draft-beer": "Разливное пиво",
+  "cider": "Сидр",
+  "energy-drinks": "Энергетические напитки",
+  "non-alcoholic-beer": "Безалкогольное пиво",
+  "snacks": "Снеки",
+  "sparkling-wine": "Игристое вино",
+  "soft-drinks": "Безалкогольные напитки"
+},
     "sort": {
       "label": "Сортировка",
       "best": "Лучшее",
@@ -133,17 +133,17 @@
 
    "Footer": {
    "catalog": {
-  "title": "Каталог",
-  "all": "Все товары",
-  "beer in bottles": "Пиво в бутылках",
-  "Draft Beer": "Пиво на розлив",
-  "Cider": "Сидр",
-  "energy drink": "Энергетические напитки",
-  "non-alcoholic beer": "Безалкогольное пиво",
-  "snacks": "Снеки",
-  "sparkling wine": "Игристое вино",
-  "Soft Drinks": "Безалкогольные напитки"
-},
+    "title": "Каталог",
+    "all": "Все товары",
+    "bottle-beer": "Пиво в бутылках",
+    "draft-beer": "Разливное пиво",
+    "cider": "Сидр",
+    "energy-drinks": "Энергетические напитки",
+    "non-alcoholic-beer": "Безалкогольное пиво",
+    "snacks": "Снеки",
+    "sparkling-wine": "Игристое вино",
+    "soft-drinks": "Безалкогольные напитки"
+  },
     "customers": {
       "title": "Покупателям",
       "faq": "Часто задаваемые вопросы",

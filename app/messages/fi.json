@@ -46,15 +46,15 @@
     "noProducts": "Tuotteita ei löytynyt",
     "noProductsDescription": "Tässä kategoriassa ei ole vielä tuotteita. Palaa myöhemmin tai valitse toinen kategoria.",
     "categories": {
-      "all": "Kaikki tuotteet",
-      "beer in bottles": "Pullotettu olut",
-"Draft Beer": "Hanakalja",
-      "Cider": "Siideri",
-      "energy drink": "Energiajuomat",
-      "non-alcoholic beer": "Alkoholiton olut",
-      "snacks": "Välipalat",
-      "sparkling wine": "Kuohuviini",
-      "Soft Drinks": "Virvoitusjuomat"
+  "all": "Kaikki tuotteet",
+  "bottle-beer": "Pullotettu olut",
+  "draft-beer": "Hanaolut",
+  "cider": "Siideri",
+  "energy-drinks": "Energiajuomat",
+  "non-alcoholic-beer": "Alkoholiton olut",
+  "snacks": "Välipalat",
+  "sparkling-wine": "Kuohuviini",
+  "soft-drinks": "Virvoitusjuomat"
 },
     "sort": {
       "label": "Lajittelu",
@@ -138,17 +138,17 @@
   },
   "Footer": {
     "catalog": {
-      "title": "Valikoima",
-      "all": "Kaikki tuotteet",
-      "beer in bottles": "Pullotettu olut",
-"Draft Beer": "Hanakalja",
-      "Cider": "Siideri",
-      "energy drink": "Energiajuomat",
-      "non-alcoholic beer": "Alkoholiton olut",
-      "snacks": "Snacksit",
-      "sparkling wine": "Kuohuviini",
-      "Soft Drinks": "Virvoitusjuomat"
-    },
+    "title": "Katalogi",
+    "all": "Kaikki tuotteet",
+    "bottle-beer": "Pullotettu olut",
+    "draft-beer": "Hanaolut",
+    "cider": "Siideri",
+    "energy-drinks": "Energiajuomat",
+    "non-alcoholic-beer": "Alkoholiton olut",
+    "snacks": "Välipalat",
+    "sparkling-wine": "Kuohuviini",
+    "soft-drinks": "Virvoitusjuomat"
+  },
     "customers": {
       "title": "Asiakkaille",
       "faq": "Usein kysytyt kysymykset",
