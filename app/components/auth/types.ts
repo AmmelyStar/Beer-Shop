@@ -1,4 +1,5 @@
-// app/components/auth/types.ts (пример, можешь положить где удобно)
+// app/components/auth/types.ts
+
 export type AuthMessages = {
   signIn: string;
   signUp: string;
@@ -7,31 +8,26 @@ export type AuthMessages = {
   email: string;
   password: string;
   confirmPassword: string;
-
   passwordStrength: string;
   passwordHint: string;
   passwordStrengthWeak: string;
   passwordStrengthMedium: string;
   passwordStrengthStrong: string;
-
   showPasswordAria: string;
   hidePasswordAria: string;
-
   forgotPassword: string;
   submitSignIn: string;
   submitSignUp: string;
-
   passwordsDontMatch: string;
   enterEmailFirst: string;
   resetSent: string;
   weakPassword: string;
-
   accountCreated: string;
+  emailVerified: string;
+  emailVerificationFailed: string;
   signInFlowIncomplete: string;
   signUpFlowIncomplete: string;
-
   somethingWentWrong: string;
-
   forgotPasswordDescription: string;
   resetPasswordDescription: string;
   sendResetCodeButton: string;

@@ -1,10 +1,14 @@
-// app\components\LoginRegisterForm.tsx
+// app/components/LoginRegisterForm.tsx
 
 "use client";
 
 import { useState } from "react";
 import { useSignIn, useSignUp } from "@clerk/nextjs";
-import { useRouter, useParams } from "next/navigation";
+import {
+  useParams,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import type { Locale } from "@/app/lib/locale";
 
 import { AuthTabs } from "@/app/components/auth/AuthTabs";
@@ -14,57 +18,98 @@ import type { AuthMessages } from "@/app/components/auth/types";
 
 type Strength = "weak" | "medium" | "strong";
 
-function getPasswordStrength(pw: string): Strength | null {
-  if (!pw) return null;
+function getPasswordStrength(
+  password: string,
+): Strength | null {
+  if (!password) {
+    return null;
+  }
 
-  const hasLetter = /[A-Za-zА-Яа-я]/.test(pw);
-  const hasDigit = /\d/.test(pw);
-  const hasSpecial = /[^A-Za-zА-Яа-я0-9]/.test(pw);
+  const hasLetter = /[A-Za-zА-Яа-я]/.test(password);
+  const hasDigit = /\d/.test(password);
+  const hasSpecial =
+    /[^A-Za-zА-Яа-я0-9]/.test(password);
 
-  if (pw.length < 6 || !hasLetter || !hasDigit) return "weak";
-  if (pw.length >= 10 && hasLetter && hasDigit && hasSpecial) return "strong";
-  if (pw.length >= 8 && hasLetter && hasDigit) return "medium";
+  if (
+    password.length < 6 ||
+    !hasLetter ||
+    !hasDigit
+  ) {
+    return "weak";
+  }
+
+  if (
+    password.length >= 10 &&
+    hasLetter &&
+    hasDigit &&
+    hasSpecial
+  ) {
+    return "strong";
+  }
+
+  if (
+    password.length >= 8 &&
+    hasLetter &&
+    hasDigit
+  ) {
+    return "medium";
+  }
 
   return "weak";
 }
 
 function strengthMeta(
   strength: Strength | null,
-  messages: AuthMessages
-): { label: string; className: string } {
+  messages: AuthMessages,
+): {
+  label: string;
+  className: string;
+} {
   switch (strength) {
     case "weak":
       return {
         label: messages.passwordStrengthWeak,
         className: "text-red-500",
       };
+
     case "medium":
       return {
         label: messages.passwordStrengthMedium,
         className: "text-yellow-400",
       };
+
     case "strong":
       return {
         label: messages.passwordStrengthStrong,
         className: "text-green-500",
       };
+
     default:
-      return { label: "", className: "" };
+      return {
+        label: "",
+        className: "",
+      };
   }
 }
 
-// аккуратный тип под ошибки Clerk
 type ClerkErrorShape = {
-  errors?: { longMessage?: string; message?: string }[];
+  errors?: {
+    longMessage?: string;
+    message?: string;
+  }[];
   message?: string;
 };
 
-function getErrorMessage(err: unknown, fallback: string): string {
-  const e = err as ClerkErrorShape;
+function getErrorMessage(
+  error: unknown,
+  fallback: string,
+): string {
+  const clerkError = error as ClerkErrorShape;
+
   return (
-    e?.errors?.[0]?.longMessage ||
-    e?.errors?.[0]?.message ||
-    e?.message ||
+    clerkError?.errors?.[0]?.longMessage ||
+    clerkError?.errors?.[0]?.message ||
+    clerkError?.message ||
     fallback
   );
 }
@@ -76,34 +121,65 @@ export default function LoginRegisterForm({
 }) {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
 
-  // забираем lang из URL, на всякий случай приводим к строке и подстраховываемся
   const langFromParams = params?.lang;
+
   const lang = (
-    Array.isArray(langFromParams) ? langFromParams[0] : langFromParams
+    Array.isArray(langFromParams)
+      ? langFromParams[0]
+      : langFromParams
   ) as Locale | undefined;
 
   const effectiveLang = (lang || "en") as Locale;
 
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const emailVerified =
+    searchParams.get("verified") === "1"
+      ? messages.emailVerified
+      : null;
+
+  const emailVerificationFailed =
+    searchParams.get("verification") === "failed"
+      ? messages.emailVerificationFailed
+      : null;
+
+  const [mode, setMode] = useState<
+    "login" | "register"
+  >("login");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState<Strength | null>(
-    null
-  );
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [
+    confirmPassword,
+    setConfirmPassword,
+  ] = useState("");
+  const [showPassword, setShowPassword] =
+    useState(false);
+  const [
+    passwordStrength,
+    setPasswordStrength,
+  ] = useState<Strength | null>(null);
+  const [error, setError] =
+    useState<string | null>(null);
+  const [success, setSuccess] =
+    useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { isLoaded: signInLoaded, signIn, setActive } = useSignIn();
-  const { isLoaded: signUpLoaded, signUp } = useSignUp();
+  const {
+    isLoaded: signInLoaded,
+    signIn,
+    setActive,
+  } = useSignIn();
 
-  const { label: strengthLabel, className: strengthClass } = strengthMeta(
-    passwordStrength,
-    messages
-  );
+  const {
+    isLoaded: signUpLoaded,
+    signUp,
+  } = useSignUp();
+
+  const {
+    label: strengthLabel,
+    className: strengthClass,
+  } = strengthMeta(passwordStrength, messages);
 
   function resetPasswords() {
     setPassword("");
@@ -112,120 +188,147 @@ export default function LoginRegisterForm({
     setShowPassword(false);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleRegister() {
+    const strength =
+      getPasswordStrength(password);
+
+    if (strength === "weak") {
+      setError(messages.weakPassword);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError(messages.passwordsDontMatch);
+      return;
+    }
+
+    if (!signUpLoaded || !signUp) {
+      return;
+    }
+
+    const { startEmailLinkFlow } =
+      signUp.createEmailLinkFlow();
+
+    await signUp.create({
+      emailAddress: email,
+      password,
+    });
+
+    const verificationPromise =
+      startEmailLinkFlow({
+        redirectUrl: `${window.location.origin}/${effectiveLang}/verify-email`,
+      });
+
+    resetPasswords();
+    setMode("login");
+    setSuccess(messages.accountCreated);
+
+    void verificationPromise.catch(
+      (verificationError: unknown) => {
+        setSuccess(null);
+
+        setError(
+          getErrorMessage(
+            verificationError,
+            messages.somethingWentWrong,
+          ),
+        );
+      },
+    );
+  }
+
+  async function handleLogin() {
+    if (
+      !signInLoaded ||
+      !signIn ||
+      !setActive
+    ) {
+      return;
+    }
+
+    const result = await signIn.create({
+      identifier: email,
+      password,
+    });
+
+    if (result.status !== "complete") {
+      setError(messages.signInFlowIncomplete);
+      return;
+    }
+
+    await setActive({
+      session: result.createdSessionId,
+    });
+
+    resetPasswords();
+    router.refresh();
+  }
+
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
     setLoading(true);
     setError(null);
     setSuccess(null);
 
     try {
       if (mode === "register") {
-        const strength = getPasswordStrength(password);
-        if (strength === "weak") {
-          setError(messages.weakPassword);
-          setLoading(false);
-          return;
-        }
-        if (password !== confirmPassword) {
-          setError(messages.passwordsDontMatch);
-          setLoading(false);
-          return;
-        }
-
-        if (!signUpLoaded || !signUp || !setActive) {
-          setLoading(false);
-          return;
-        }
-
-        const result = await signUp.create({
-          emailAddress: email,
-          password,
-        });
-
-        if (result.status === "complete") {
-          await setActive({ session: result.createdSessionId });
-          resetPasswords();
-          setSuccess(messages.accountCreated);
-
-          setTimeout(() => {
-            router.push(`/${effectiveLang}/account`);
-            router.refresh();
-          }, 500);
-        } else {
-          setError(messages.signUpFlowIncomplete);
-        }
+        await handleRegister();
       } else {
-        // LOGIN
-        if (!signInLoaded || !signIn || !setActive) {
-          setLoading(false);
-          return;
-        }
-
-        const result = await signIn.create({
-          identifier: email,
-          password,
-        });
-
-        if (result.status === "complete") {
-          await setActive({ session: result.createdSessionId });
-          resetPasswords();
-
-          // просто перерисовываем текущую страницу с новым auth-состоянием
-          router.refresh();
-        } else {
-          setError(messages.signInFlowIncomplete);
-        }
+        await handleLogin();
       }
-    } catch (err: unknown) {
-      setError(getErrorMessage(err, messages.somethingWentWrong));
+    } catch (submitError: unknown) {
+      setError(
+        getErrorMessage(
+          submitError,
+          messages.somethingWentWrong,
+        ),
+      );
     } finally {
       setLoading(false);
     }
   }
 
-  // async function handleForgotPassword() {
-  //   setError(null);
-  //   setSuccess(null);
+  function handleModeChange(
+    nextMode: "login" | "register",
+  ) {
+    setMode(nextMode);
+    setError(null);
+    setSuccess(null);
+    resetPasswords();
 
-  //   if (!email) {
-  //     setError(messages.enterEmailFirst);
-  //     return;
-  //   }
-
-  //   if (!signInLoaded || !signIn) return;
-
-  //   try {
-  //     await signIn.create({
-  //       strategy: "reset_password_email_code",
-  //       identifier: email,
-  //     });
-
-  //     setSuccess(messages.resetSent);
-  //   } catch (err: unknown) {
-  //     setError(getErrorMessage(err, messages.somethingWentWrong));
-  //   }
-  // }
+    if (
+      searchParams.has("verified") ||
+      searchParams.has("verification")
+    ) {
+      router.replace(
+        `/${effectiveLang}/login`,
+        { scroll: false },
+      );
+    }
+  }
 
   return (
-    <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-[480px] px-8 py-10">
+    <div className="mt-6 px-8 py-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
       <AuthTabs
         mode={mode}
-        onChange={(nextMode: "login" | "register") => {
-          setMode(nextMode);
-          setError(null);
-          setSuccess(null);
-          resetPasswords();
-        }}
+        onChange={handleModeChange}
         signInLabel={messages.signIn}
         signUpLabel={messages.signUp}
       />
 
       <p className="mt-6 text-center text-base text-gray-300">
-        {mode === "login" ? messages.welcomeBack : messages.createAccount}
+        {mode === "login"
+          ? messages.welcomeBack
+          : messages.createAccount}
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-        {/* Email */}
+      <form
+        onSubmit={handleSubmit}
+        className="mt-6 space-y-6"
+      >
         <div>
           <label
             htmlFor="email"
@@ -233,6 +336,7 @@ export default function LoginRegisterForm({
           >
             {messages.email}
           </label>
+
           <div className="mt-2">
             <input
               id="email"
@@ -241,35 +345,59 @@ export default function LoginRegisterForm({
               required
               autoComplete="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) =>
+                setEmail(event.target.value)
+              }
               className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
             />
           </div>
         </div>
 
-        {/* Password */}
         <PasswordField
           id="password"
           name="password"
           label={messages.password}
           value={password}
-          onChange={(v) => {
-            setPassword(v);
-            setPasswordStrength(getPasswordStrength(v));
+          onChange={(value) => {
+            setPassword(value);
+            setPasswordStrength(
+              getPasswordStrength(value),
+            );
           }}
           showPassword={showPassword}
-          onToggleShow={() => setShowPassword((prev) => !prev)}
-          autoComplete={mode === "login" ? "current-password" : "new-password"}
-          showPasswordLabel={messages.showPasswordAria}
-          hidePasswordLabel={messages.hidePasswordAria}
-          hint={mode === "register" ? messages.passwordHint : undefined}
+          onToggleShow={() =>
+            setShowPassword(
+              (previous) => !previous,
+            )
+          }
+          autoComplete={
+            mode === "login"
+              ? "current-password"
+              : "new-password"
+          }
+          showPasswordLabel={
+            messages.showPasswordAria
+          }
+          hidePasswordLabel={
+            messages.hidePasswordAria
+          }
+          hint={
+            mode === "register"
+              ? messages.passwordHint
+              : undefined
+          }
         />
 
-        {mode === "register" && password && passwordStrength && (
-          <p className={`mt-1 text-xs font-medium ${strengthClass}`}>
-            {messages.passwordStrength}: {strengthLabel}
-          </p>
-        )}
+        {mode === "register" &&
+          password &&
+          passwordStrength && (
+            <p
+              className={`mt-1 text-xs font-medium ${strengthClass}`}
+            >
+              {messages.passwordStrength}:{" "}
+              {strengthLabel}
+            </p>
+          )}
 
         {mode === "register" && (
           <PasswordField
@@ -279,36 +407,60 @@ export default function LoginRegisterForm({
             value={confirmPassword}
             onChange={setConfirmPassword}
             showPassword={showPassword}
-            onToggleShow={() => setShowPassword((prev) => !prev)}
+            onToggleShow={() =>
+              setShowPassword(
+                (previous) => !previous,
+              )
+            }
             autoComplete="new-password"
-            showPasswordLabel={messages.showPasswordAria}
-            hidePasswordLabel={messages.hidePasswordAria}
+            showPasswordLabel={
+              messages.showPasswordAria
+            }
+            hidePasswordLabel={
+              messages.hidePasswordAria
+            }
           />
         )}
 
-        <AuthAlert error={error} success={success} />
+        <AuthAlert
+          error={
+            error || emailVerificationFailed
+          }
+          success={
+            success || emailVerified
+          }
+        />
 
         <div>
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex w-full items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading
               ? "..."
               : mode === "login"
-              ? messages.submitSignIn
-              : messages.submitSignUp}
+                ? messages.submitSignIn
+                : messages.submitSignUp}
           </button>
         </div>
 
-        {mode === "register" && <div id="clerk-captcha" className="mt-4" />}
+        {mode === "register" && (
+          <div
+            id="clerk-captcha"
+            className="mt-4"
+          />
+        )}
 
         {mode === "login" && (
           <div className="flex items-center">
             <button
               type="button"
-              onClick={() => router.push(`/${effectiveLang}/forgot-password`)}
+              onClick={() =>
+                router.push(
+                  `/${effectiveLang}/forgot-password`,
+                )
+              }
               className="text-center text-base text-gray-500 hover:text-yellow-500"
             >
               {messages.forgotPassword}
