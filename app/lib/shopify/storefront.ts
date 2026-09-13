@@ -1,25 +1,31 @@
 // app/lib/shopify/storefront.ts
 
-const domain = process.env.SHOPIFY_STORE_DOMAIN!;
-const token = process.env.SHOPIFY_STOREFRONT_API_TOKEN!;
-const apiVersion = process.env.SHOPIFY_STOREFRONT_API_VERSION || "2024-04";
+const SHOPIFY_STORE_DOMAIN =
+  process.env.SHOPIFY_STORE_DOMAIN;
 
-if (!domain || !token) {
-  console.warn("⚠️ Shopify Storefront env vars are missing");
-}
+const SHOPIFY_STOREFRONT_ACCESS_TOKEN =
+  process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN;
 
-type ShopifyStorefrontVariables = Record<string, unknown>;
+const SHOPIFY_STOREFRONT_API_VERSION =
+  process.env.SHOPIFY_STOREFRONT_API_VERSION ??
+  "2024-04";
 
-type ShopifyStorefrontGraphQLError = {
+type ShopifyStorefrontVariables =
+  Record<string, unknown>;
+
+type ShopifyGraphQLError = {
   message: string;
   extensions?: Record<string, unknown>;
-  locations?: Array<{ line: number; column: number }>;
-  path?: (string | number)[];
+  locations?: Array<{
+    line: number;
+    column: number;
+  }>;
+  path?: Array<string | number>;
 };
 
-type ShopifyStorefrontResponse<T> = {
+type ShopifyGraphQLResponse<T> = {
   data?: T;
-  errors?: ShopifyStorefrontGraphQLError[];
+  errors?: ShopifyGraphQLError[];
 };
 
 type ShopifyStorefrontRequest = {
@@ -29,33 +35,66 @@ type ShopifyStorefrontRequest = {
 
 export async function shopifyStorefrontFetch<T>({
   query,
-  variables,
+  variables = {},
 }: ShopifyStorefrontRequest): Promise<T> {
-  const res = await fetch(
-    `https://${domain}/api/${apiVersion}/graphql.json`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Storefront-Access-Token": token,
-      },
-      body: JSON.stringify({ query, variables }),
-    }
-  );
-
-  const json = (await res.json()) as ShopifyStorefrontResponse<T>;
-
-  if (!res.ok || (json.errors && json.errors.length > 0)) {
+  if (!SHOPIFY_STORE_DOMAIN) {
     throw new Error(
-      `Shopify Storefront API error: ${JSON.stringify(
-        json.errors ?? json,
-      )}`
+      "SHOPIFY_STORE_DOMAIN is missing"
     );
   }
 
-  if (!json.data) {
-    throw new Error("Shopify Storefront API response has no data");
+  if (!SHOPIFY_STOREFRONT_ACCESS_TOKEN) {
+    throw new Error(
+      "SHOPIFY_STOREFRONT_ACCESS_TOKEN is missing"
+    );
   }
 
-  return json.data;
+  const endpoint =
+    `https://${SHOPIFY_STORE_DOMAIN}/api/` +
+    `${SHOPIFY_STOREFRONT_API_VERSION}/graphql.json`;
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Shopify-Storefront-Access-Token":
+        SHOPIFY_STOREFRONT_ACCESS_TOKEN,
+    },
+    body: JSON.stringify({
+      query,
+      variables,
+    }),
+    cache: "no-store",
+  });
+
+  const result =
+    (await response.json()) as
+      ShopifyGraphQLResponse<T>;
+
+  if (!response.ok) {
+    throw new Error(
+      `Shopify Storefront API error ${response.status}: ` +
+        JSON.stringify(result)
+    );
+  }
+
+  if (result.errors?.length) {
+    console.error(
+      "Shopify Storefront GraphQL errors:",
+      JSON.stringify(result.errors, null, 2)
+    );
+
+    throw new Error(
+      result.errors[0]?.message ??
+        "Shopify Storefront GraphQL error"
+    );
+  }
+
+  if (!result.data) {
+    throw new Error(
+      "Shopify Storefront API response has no data"
+    );
+  }
+
+  return result.data;
 }
