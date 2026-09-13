@@ -19,15 +19,17 @@ export default async function Home({
   const { lang } = await params;
   const t = await getMessages(lang);
 
-  // ✅ оставляем: тебе нужны все продукты
   const allProducts = await fetchAllProductsFlattened(lang);
 
-  // ✅ добавляем: trending по тегу (быстро и независимо от allProducts)
   let trendingProducts = await fetchTrendingProductsFlattened(lang, 4);
 
-  // ✅ fallback: если по тегу пока пусто — берём твой старый вариант (по метафилду)
   if (!trendingProducts.length) {
-    trendingProducts = allProducts.filter((p) => (p as any).trending).slice(0, 4);
+    trendingProducts = allProducts
+      .filter(
+        (product) =>
+          "trending" in product && Boolean(product.trending)
+      )
+      .slice(0, 4);
   }
 
   const shopHref = `/${lang}/shop`;
@@ -52,7 +54,6 @@ export default async function Home({
         names={t.ShopCategory.names}
         alts={t.ShopCategory.alts}
         lang={lang}
-        visibleKeys={["beer in bottles", "Cider", "snacks"]}
       />
 
       <TrendingProducts
