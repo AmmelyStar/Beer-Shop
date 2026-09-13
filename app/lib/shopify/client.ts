@@ -3,6 +3,7 @@
 import type { Locale } from "@/app/lib/locale";
 
 type ShopifyLanguageCode = "EN" | "RU" | "UK" | "ET" | "FI";
+type ShopifyCountryCode = "EE";
 
 const LOCALE_TO_SHOPIFY: Record<Locale, ShopifyLanguageCode> = {
   en: "EN",
@@ -19,6 +20,8 @@ const LOCALE_TO_ACCEPT_LANGUAGE: Record<Locale, string> = {
   et: "et-EE",
   fi: "fi-FI",
 };
+
+const SHOPIFY_COUNTRY: ShopifyCountryCode = "EE";
 
 export async function shopifyFetch<T>(
   query: string,
@@ -106,10 +109,8 @@ export async function shopifyFetch<T>(
 }
 
 /**
- * Добавляет Shopify language в GraphQL variables.
- *
- * Страну здесь специально не передаём:
- * язык интерфейса не означает страну покупателя.
+ * Добавляет язык и страну магазина
+ * в переменные GraphQL-запроса Shopify.
  */
 export async function shopifyFetchWithLocale<T>(
   query: string,
@@ -125,6 +126,7 @@ export async function shopifyFetchWithLocale<T>(
     {
       ...variables,
       language,
+      country: SHOPIFY_COUNTRY,
     },
     revalidate,
     `shopify:${locale}`,
