@@ -10,12 +10,20 @@ import AddToCartButton from "./ui/AddToCartButton";
 type ProductOverviewsProps = {
   product: FlattenedProduct;
   perUnit: string;
+  volume: string;
+  size: string;
   abv: string;
   ibu: string;
   fg: string;
   country: string;
   brand: string;
   style: string;
+  packType: string;
+  bottlesInBox: string;
+  shelfLife: string;
+  days: string;
+  noImages: string;
+  missingVariant: string;
   addToCart: string;
   reviews: string;
   outOf5Stars: string;
@@ -217,11 +225,20 @@ function getDefaultVariant(product: FlattenedProduct, variants: ProductVariant[]
 export default function ProductOverviews({
   product,
   perUnit,
+  volume,
+  size,
+  abv,
   ibu,
   fg,
   country,
   brand,
   style,
+  packType,
+  bottlesInBox,
+  shelfLife,
+  days,
+  noImages,
+  missingVariant,
   addToCart,
   reviews,
   outOf5Stars,
@@ -334,7 +351,7 @@ export default function ProductOverviews({
 
               {volumeOptions.length > 1 && (
                 <div className="mt-6">
-                  <p className="mb-3 text-sm font-semibold text-white">Volume</p>
+                  <p className="mb-3 text-sm font-semibold text-white">{volume}</p>
                   <div className="flex flex-wrap gap-3">
                     {volumeOptions.map((option) => {
                       const isActive = selectedVariant?.id === option.id;
@@ -418,7 +435,7 @@ export default function ProductOverviews({
                   {displaySize && (
                     <div className="flex w-full items-baseline gap-2">
                       <span className="whitespace-nowrap text-sm font-semibold text-white">
-                        Size:
+                        {size}:
                       </span>
                       <span className="text-sm text-gray-300">{displaySize}</span>
                     </div>
@@ -427,16 +444,16 @@ export default function ProductOverviews({
                   {productAbv && (
                     <div className="flex w-full items-baseline gap-2">
                       <span className="whitespace-nowrap text-sm font-semibold text-white">
-                        Alcohol:
+                        {abv}:
                       </span>
-                      <span className="text-sm text-gray-300">{productAbv}% alc.</span>
+                      <span className="text-sm text-gray-300">{productAbv}%</span>
                     </div>
                   )}
 
                   {productPackType && (
                     <div className="flex w-full items-baseline gap-2">
                       <span className="whitespace-nowrap text-sm font-semibold text-white">
-                        Pack type:
+                        {packType}:
                       </span>
                       <span className="text-sm text-gray-300">{productPackType}</span>
                     </div>
@@ -445,7 +462,7 @@ export default function ProductOverviews({
                   {productBottleInBoxes && (
                     <div className="flex w-full items-baseline gap-2">
                       <span className="whitespace-nowrap text-sm font-semibold text-white">
-                        Bottles in box:
+                        {bottlesInBox}:
                       </span>
                       <span className="text-sm text-gray-300">{productBottleInBoxes}</span>
                     </div>
@@ -454,10 +471,10 @@ export default function ProductOverviews({
                   {productShelfLifeDays && (
                     <div className="flex w-full items-baseline gap-2">
                       <span className="whitespace-nowrap text-sm font-semibold text-white">
-                        Shelf life:
+                        {shelfLife}:
                       </span>
                       <span className="text-sm text-gray-300">
-                        {productShelfLifeDays} days
+                        {productShelfLifeDays} {days}
                       </span>
                     </div>
                   )}
@@ -466,7 +483,10 @@ export default function ProductOverviews({
 
               <div className="mt-10">
                 <h2 className="sr-only">{reviews}</h2>
-                <button className="flex w-full items-center justify-between transition-opacity hover:opacity-80">
+               <a
+  href="#customer-reviews"
+  className="flex w-full items-center justify-between transition-opacity hover:opacity-80"
+>
                   <div className="flex items-center">
                     <div className="mr-2 flex items-center">
                       {[0, 1, 2, 3, 4].map((ratingValue) => (
@@ -489,7 +509,7 @@ export default function ProductOverviews({
                   <span className="text-sm font-medium text-gray-400 transition-colors hover:text-yellow-500">
                     {reviewCount > 0 ? viewAllReviews : leaveAReview}
                   </span>
-                </button>
+                </a>
               </div>
             </div>
 
@@ -516,7 +536,7 @@ export default function ProductOverviews({
                   ))
                 ) : (
                   <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg bg-white lg:col-span-2 lg:row-span-2">
-                    <p className="text-gray-500">No images available</p>
+                    <p className="text-gray-500">{noImages}</p>
                   </div>
                 )}
               </div>
@@ -527,7 +547,7 @@ export default function ProductOverviews({
                 <AddToCartButton product={productForCart} label={addToCart} />
               ) : (
                 <div className="mt-8 text-sm text-red-300">
-                  Missing variantId — cannot add this product to cart.
+                  {missingVariant}
                 </div>
               )}
 

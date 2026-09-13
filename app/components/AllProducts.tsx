@@ -11,10 +11,16 @@ import type { FlattenedProduct } from "../data/mappers";
 import type { Locale } from "@/app/[lang]/messages";
 import type { ReviewSummary } from "@/app/lib/reviews/getReviewSummaryByHandle";
 
-const classNames = (...xs: Array<string | false | null | undefined>) =>
-  xs.filter(Boolean).join(" ");
+const classNames = (
+  ...xs: Array<string | false | null | undefined>
+) => xs.filter(Boolean).join(" ");
 
-type CategoryKey = "beer" | "cider" | "snacks" | "gifts-sets" | "alcohol-free";
+type CategoryKey =
+  | "beer"
+  | "cider"
+  | "snacks"
+  | "gifts-sets"
+  | "alcohol-free";
 
 type AllProductsProps = {
   title: string;
@@ -28,156 +34,359 @@ type AllProductsProps = {
   reviewSummaries?: Record<string, ReviewSummary>;
 };
 
-const EMPTY_SUMMARY: ReviewSummary = { average: 0, count: 0 };
+type CardVariant =
+  NonNullable<FlattenedProduct["variants"]>[number];
 
-function getVariantId(p: FlattenedProduct): string | null {
-  const rec = p as unknown as Record<string, unknown>;
+const EMPTY_SUMMARY: ReviewSummary = {
+  average: 0,
+  count: 0,
+};
 
-  const direct = rec.variantId;
-  if (typeof direct === "string" && direct.trim()) return direct;
+function getCardVariant(
+  product: FlattenedProduct,
+): CardVariant | undefined {
+  const selected =
+    product.selectedOrFirstAvailableVariant;
+
+  if (
+    selected &&
+    selected.availableForSale !== false
+  ) {
+    return selected;
+  }
+
+  return (
+    product.variants?.find(
+      (variant) => variant.availableForSale,
+    ) ??
+    selected ??
+    product.variants?.[0]
+  );
+}
+
+function getVariantId(
+  product: FlattenedProduct,
+  cardVariant?: CardVariant,
+): string | null {
+  if (cardVariant?.id?.trim()) {
+    return cardVariant.id;
+  }
+
+  if (product.variantId?.trim()) {
+    return product.variantId;
+  }
+
+  const record =
+    product as unknown as Record<string, unknown>;
 
   const candidates = [
-    rec.merchandiseId,
-    rec.selectedVariantId,
-    rec.firstVariantId,
-    rec.defaultVariantId,
-    rec.shopifyVariantId,
+    record.merchandiseId,
+    record.selectedVariantId,
+    record.firstVariantId,
+    record.defaultVariantId,
+    record.shopifyVariantId,
   ];
 
-  for (const c of candidates) {
-    if (typeof c === "string" && c.trim()) return c;
-  }
-
-  const variants = rec.variants;
-  if (Array.isArray(variants) && variants[0]?.id) {
-    return variants[0].id as string;
-  }
-
-  const selectedVariant = rec.selectedVariant as
-    | Record<string, unknown>
-    | undefined;
-
-  if (selectedVariant?.id && typeof selectedVariant.id === "string") {
-    return selectedVariant.id;
+  for (const candidate of candidates) {
+    if (
+      typeof candidate === "string" &&
+      candidate.trim()
+    ) {
+      return candidate;
+    }
   }
 
   return null;
 }
 
-function normalizeNumber(value: unknown): number | null {
+function normalizeNumber(
+  value: unknown,
+): number | null {
   if (typeof value === "number") {
-    return Number.isFinite(value) ? value : null;
+    return Number.isFinite(value)
+      ? value
+      : null;
   }
 
-  if (typeof value === "string" && value.trim()) {
-    const normalized = Number(value.replace(",", ".").trim());
-    return Number.isNaN(normalized) ? null : normalized;
+  if (
+    typeof value === "string" &&
+    value.trim()
+  ) {
+    const normalized = Number(
+      value.replace(",", ".").trim(),
+    );
+
+    return Number.isNaN(normalized)
+      ? null
+      : normalized;
   }
 
   return null;
+}
+
+function trimTrailingZero(
+  value: number,
+): string {
+  return Number.isInteger(value)
+    ? String(value)
+    : String(value);
 }
 
 function formatPrice(
   amount?: string | number | null,
-  currencyCode?: string | null
-) {
-  if (amount == null || amount === "") return "—";
+  currencyCode?: string | null,
+): string {
+  if (
+    amount === null ||
+    amount === undefined ||
+    amount === ""
+  ) {
+    return "—";
+  }
 
-  const n = normalizeNumber(amount);
+  const number = normalizeNumber(amount);
 
-  if (n === null) {
+  if (number === null) {
     return `${amount} ${currencyCode ?? "EUR"}`;
   }
 
-  return `${n.toFixed(2)} ${currencyCode ?? "EUR"}`;
+  return `${number.toFixed(2)} ${
+    currencyCode ?? "EUR"
+  }`;
 }
 
-function trimTrailingZero(value: number): string {
-  return Number.isInteger(value) ? String(value) : String(value);
-}
+function formatWeight(
+  weight: unknown,
+): string | null {
+  const number = normalizeNumber(weight);
 
-function formatWeight(weight: unknown): string | null {
-  const n = normalizeNumber(weight);
-  if (n !== null) {
-    return `${trimTrailingZero(n)} g`;
+  if (number !== null) {
+    return `${trimTrailingZero(number)} g`;
   }
 
-  if (typeof weight === "string") {
-    const trimmed = weight.trim();
-    if (!trimmed) return null;
+  if (typeof weight !== "string") {
+    return null;
+  }
 
-    const normalized = trimmed.toLowerCase();
+  const trimmed = weight.trim();
 
-    if (normalized.endsWith("g")) {
-      const numberPart = trimmed.slice(0, -1).trim();
-      const parsed = normalizeNumber(numberPart);
-      if (parsed !== null) {
-        return `${trimTrailingZero(parsed)} g`;
-      }
-      return trimmed.replace(/g$/i, " g");
-    }
+  if (!trimmed) {
+    return null;
+  }
 
-    if (normalized.endsWith("kg")) {
-      return trimmed;
-    }
+  const normalized = trimmed.toLowerCase();
 
-    const parsed = normalizeNumber(trimmed);
+  if (normalized.endsWith("kg")) {
+    return trimmed;
+  }
+
+  if (normalized.endsWith("g")) {
+    const numberPart = trimmed
+      .slice(0, -1)
+      .trim();
+
+    const parsed =
+      normalizeNumber(numberPart);
+
     if (parsed !== null) {
       return `${trimTrailingZero(parsed)} g`;
     }
+
+    return trimmed.replace(/g$/i, " g");
   }
 
-  return null;
+  const parsed = normalizeNumber(trimmed);
+
+  if (parsed !== null) {
+    return `${trimTrailingZero(parsed)} g`;
+  }
+
+  return trimmed;
 }
 
-function formatVolume(volume: unknown): string | null {
-  const n = normalizeNumber(volume);
-  if (n !== null) {
-    return `${trimTrailingZero(n)} L`;
+function formatVolume(
+  volume: unknown,
+): string | null {
+  const number = normalizeNumber(volume);
+
+  if (number !== null) {
+    return `${trimTrailingZero(number)} L`;
   }
 
-  if (typeof volume === "string") {
-    const trimmed = volume.trim();
-    if (!trimmed) return null;
+  if (typeof volume !== "string") {
+    return null;
+  }
 
-    const normalized = trimmed.toLowerCase();
+  const trimmed = volume.trim();
 
-    if (normalized.endsWith("l")) {
-      const numberPart = trimmed.slice(0, -1).trim();
-      const parsed = normalizeNumber(numberPart);
-      if (parsed !== null) {
-        return `${trimTrailingZero(parsed)} L`;
-      }
-      return trimmed.replace(/l$/i, " L");
+  if (!trimmed) {
+    return null;
+  }
+
+  const normalized = trimmed.toLowerCase();
+
+  if (normalized.endsWith("ml")) {
+    const numberPart = trimmed
+      .slice(0, -2)
+      .trim();
+
+    const parsed =
+      normalizeNumber(numberPart);
+
+    if (parsed !== null) {
+      return `${trimTrailingZero(parsed)} ml`;
     }
 
-    const parsed = normalizeNumber(trimmed);
+    return trimmed;
+  }
+
+  if (normalized.endsWith("l")) {
+    const numberPart = trimmed
+      .slice(0, -1)
+      .trim();
+
+    const parsed =
+      normalizeNumber(numberPart);
+
     if (parsed !== null) {
       return `${trimTrailingZero(parsed)} L`;
     }
+
+    return trimmed.replace(/l$/i, " L");
   }
 
-  return null;
+  const parsed = normalizeNumber(trimmed);
+
+  if (parsed !== null) {
+    return `${trimTrailingZero(parsed)} L`;
+  }
+
+  return trimmed;
 }
 
-function formatAlcohol(abv: unknown): string | null {
-  const value = normalizeNumber(abv);
-  if (value === null) return null;
+function formatAlcohol(
+  alcohol: unknown,
+): string | null {
+  const value = normalizeNumber(alcohol);
+
+  if (value === null) {
+    return null;
+  }
 
   return `${trimTrailingZero(value)} %`;
 }
 
-function getMetaLabel(p: FlattenedProduct): string {
-  const parts: string[] = [];
+function normalizeOptionName(
+  name: string,
+): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ");
+}
 
-  const weight = formatWeight(p.specs?.weight_g);
-  const volume = formatVolume(p.specs?.pack_size_l);
-  const alcohol = formatAlcohol(p.specs?.abv);
+function getVariantOption(
+  variant: CardVariant | undefined,
+  aliases: string[],
+): string | null {
+  if (!variant?.selectedOptions?.length) {
+    return null;
+  }
+
+  const normalizedAliases = aliases.map(
+    normalizeOptionName,
+  );
+
+  const option = variant.selectedOptions.find(
+    ({ name }) =>
+      normalizedAliases.includes(
+        normalizeOptionName(name),
+      ),
+  );
+
+  return option?.value?.trim() || null;
+}
+
+function getVolumeFromVariantTitle(
+  variant: CardVariant | undefined,
+): string | null {
+  if (!variant?.title) {
+    return null;
+  }
+
+  const match = variant.title.match(
+    /(\d+(?:[.,]\d+)?)\s*(ml|l)\b/i,
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  return `${match[1]} ${match[2]}`;
+}
+
+function getWeightFromVariantTitle(
+  variant: CardVariant | undefined,
+): string | null {
+  if (!variant?.title) {
+    return null;
+  }
+
+  const match = variant.title.match(
+    /(\d+(?:[.,]\d+)?)\s*(g|kg)\b/i,
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  return `${match[1]} ${match[2]}`;
+}
+
+function getMetaLabel(
+  product: FlattenedProduct,
+  variant: CardVariant | undefined,
+): string {
+  const variantWeight =
+    getVariantOption(variant, [
+      "weight",
+      "weight g",
+      "weight (g)",
+      "package weight",
+    ]) ??
+    getWeightFromVariantTitle(variant);
+
+  const variantVolume =
+    getVariantOption(variant, [
+      "volume",
+      "size",
+      "pack size",
+      "pack size l",
+      "pack size (l)",
+      "package size",
+    ]) ??
+    getVolumeFromVariantTitle(variant);
+
+  const weight = formatWeight(
+    variantWeight ??
+      product.specs?.weight_g,
+  );
+
+  const volume = formatVolume(
+    variantVolume ??
+      product.specs?.pack_size_l,
+  );
+
+  const alcohol = formatAlcohol(
+    product.specs?.abv,
+  );
 
   if (weight) {
-    parts.push(weight);
-    return parts.join(" • ");
+    return weight;
   }
+
+  const parts: string[] = [];
 
   if (volume) {
     parts.push(volume);
@@ -203,38 +412,82 @@ export default function AllProducts({
 }: AllProductsProps) {
   return (
     <div className="mx-auto max-w-2xl px-4 pt-6 sm:px-6 lg:max-w-7xl lg:px-8">
-      <h2 className="text-2xl tracking-tight text-white">{title}</h2>
+      <h2 className="text-2xl tracking-tight text-white">
+        {title}
+      </h2>
 
       <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 xl:gap-8">
-        {products.map((p) => {
-          const img = p.featuredImage;
-          const price = p.priceRange?.minVariantPrice;
+        {products.map((product) => {
+          const image =
+            product.featuredImage;
 
-          const abvNum = normalizeNumber(p.specs?.abv);
-          const isAlcoholFree = abvNum === 0;
+          const cardVariant =
+            getCardVariant(product);
 
-          const meta = getMetaLabel(p);
+          const price =
+            cardVariant?.price ??
+            product.priceRange?.minVariantPrice;
 
-          const href = `/${lang}/product/${p.handle}${
-            category ? `?category=${category}` : ""
-          }`;
+          const alcoholNumber =
+            normalizeNumber(
+              product.specs?.abv,
+            );
 
-          const summary = reviewSummaries?.[p.handle] ?? EMPTY_SUMMARY;
+          const isAlcoholFree =
+            alcoholNumber === 0;
+
+          const meta = getMetaLabel(
+            product,
+            cardVariant,
+          );
+
+          const href =
+            `/${lang}/product/${product.handle}` +
+            (category
+              ? `?category=${category}`
+              : "");
+
+          const summary =
+            reviewSummaries?.[
+              product.handle
+            ] ?? EMPTY_SUMMARY;
+
           const rating = summary.average;
           const count = summary.count;
 
-          const variantId = getVariantId(p);
-          const productForCart = variantId ? ({ ...p, variantId } as const) : null;
+          const variantId = getVariantId(
+            product,
+            cardVariant,
+          );
+
+          const productForCart = variantId
+            ? {
+                ...product,
+                variantId,
+                selectedOrFirstAvailableVariant:
+                  cardVariant ??
+                  product.selectedOrFirstAvailableVariant,
+              }
+            : null;
 
           return (
-            <div key={p.id} className="group flex h-full flex-col">
-              <Link href={href} className="block flex-1">
+            <div
+              key={product.id}
+              className="group flex h-full flex-col"
+            >
+              <Link
+                href={href}
+                className="block flex-1"
+              >
                 <div className="flex h-full flex-col">
                   <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-white">
-                    {img?.url && (
+                    {image?.url && (
                       <Image
-                        src={img.url}
-                        alt={img.altText ?? p.title}
+                        src={image.url}
+                        alt={
+                          image.altText ??
+                          product.title
+                        }
                         fill
                         sizes="(min-width:1024px) 25vw, (min-width:640px) 50vw, 100vw"
                         className="object-contain p-3 transition-transform duration-300 group-hover:scale-105"
@@ -256,11 +509,14 @@ export default function AllProducts({
                     <div className="min-h-[96px]">
                       <div className="flex items-start justify-between gap-3">
                         <h3 className="line-clamp-2 min-h-[56px] text-base font-medium leading-7 text-yellow-400">
-                          {p.title}
+                          {product.title}
                         </h3>
 
                         <p className="shrink-0 whitespace-nowrap text-base font-semibold text-white">
-                          {formatPrice(price?.amount, price?.currencyCode)}
+                          {formatPrice(
+                            price?.amount,
+                            price?.currencyCode,
+                          )}
                         </p>
                       </div>
 
@@ -275,15 +531,20 @@ export default function AllProducts({
                       </span>
 
                       <div className="flex">
-                        {[0, 1, 2, 3, 4].map((i) => (
-                          <StarIcon
-                            key={i}
-                            className={classNames(
-                              rating >= i + 1 ? "text-yellow-400" : "text-gray-500",
-                              "size-3"
-                            )}
-                          />
-                        ))}
+                        {[0, 1, 2, 3, 4].map(
+                          (index) => (
+                            <StarIcon
+                              key={index}
+                              className={classNames(
+                                rating >=
+                                  index + 1
+                                  ? "text-yellow-400"
+                                  : "text-gray-500",
+                                "size-3",
+                              )}
+                            />
+                          ),
+                        )}
                       </div>
 
                       <p className="mt-1 text-sm text-gray-500">
@@ -296,12 +557,15 @@ export default function AllProducts({
 
               <div className="mt-4">
                 {productForCart ? (
-                  <AddToCartButton product={productForCart} label={add} />
+                  <AddToCartButton
+                    product={productForCart}
+                    label={add}
+                  />
                 ) : (
                   <button
                     type="button"
                     disabled
-                    className="inline-flex w-full items-center justify-center rounded-md border border-white/10 bg-white/5 px-8 py-3 text-sm font-semibold text-gray-500 cursor-not-allowed"
+                    className="inline-flex w-full cursor-not-allowed items-center justify-center rounded-md border border-white/10 bg-white/5 px-8 py-3 text-sm font-semibold text-gray-500"
                   >
                     {add}
                   </button>

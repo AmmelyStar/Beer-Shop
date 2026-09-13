@@ -123,7 +123,10 @@ export default function CustomerReviews({
   }, [reviews]);
 
   return (
-    <section className="mx-auto max-w-4xl border-t border-gray-400 pt-12">
+    <section
+  id="customer-reviews"
+  className="mx-auto max-w-4xl scroll-mt-24 border-t border-gray-400 pt-12"
+>
       <h2 className="text-2xl font-bold tracking-tight text-white">{title}</h2>
 
       {/* ⭐ Average rating */}

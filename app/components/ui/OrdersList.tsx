@@ -1,9 +1,11 @@
 // app/components/OrdersList.tsx
+
 "use client";
 
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+
 import type { Locale } from "@/app/lib/locale";
 
 export type AccountOrdersMessages = {
@@ -25,6 +27,18 @@ export type AccountOrdersMessages = {
   emptyTitle: string;
   emptyDescription: string;
   emptyCta: string;
+
+  statusPaid: string;
+  statusPending: string;
+  statusAuthorized: string;
+  statusPartiallyPaid: string;
+  statusRefunded: string;
+  statusPartiallyRefunded: string;
+  statusVoided: string;
+  statusFulfilled: string;
+  statusUnfulfilled: string;
+  statusPartiallyFulfilled: string;
+  statusUnknown: string;
 };
 
 export type OrderProduct = {
@@ -43,7 +57,6 @@ export type OrderForUi = {
   datetime: string;
   total: string;
   products: OrderProduct[];
-
   statusUrl?: string | null;
 };
 
@@ -58,10 +71,13 @@ export default function OrdersList({
   lang,
   orders,
 }: OrdersListProps) {
-  const [openOrderNumber, setOpenOrderNumber] = useState<string | null>(null);
+  const [openOrderNumber, setOpenOrderNumber] =
+    useState<string | null>(null);
 
   const toggleOrder = (number: string) => {
-    setOpenOrderNumber((current) => (current === number ? null : number));
+    setOpenOrderNumber((current) =>
+      current === number ? null : number,
+    );
   };
 
   const hasOrders = orders.length > 0;
@@ -74,17 +90,28 @@ export default function OrdersList({
             <h1 className="text-xl font-semibold text-white">
               {messages.title}
             </h1>
-            <p className="mt-4 text-base text-gray-400">{messages.intro}</p>
+
+            <p className="mt-4 text-base text-gray-400">
+              {messages.intro}
+            </p>
           </div>
         </div>
 
         <div className="mt-10">
-          <h2 className="sr-only">{messages.recentOrdersSrOnly}</h2>
+          <h2 className="sr-only">
+            {messages.recentOrdersSrOnly}
+          </h2>
 
           {!hasOrders ? (
             <div className="py-16">
-              <p className="text-gray-400 text-lg">{messages.emptyTitle}</p>
-              <p className="text-gray-500 my-2">{messages.emptyDescription}</p>
+              <p className="text-lg text-gray-400">
+                {messages.emptyTitle}
+              </p>
+
+              <p className="my-2 text-gray-500">
+                {messages.emptyDescription}
+              </p>
+
               <Link
                 href={`/${lang}/shop`}
                 className="relative mt-10 flex w-fit items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
@@ -95,14 +122,25 @@ export default function OrdersList({
           ) : (
             <div className="space-y-6">
               {orders.map((order) => {
-                const isOpen = openOrderNumber === order.number;
-                const detailsId = `order-${order.number}-details`;
+                const isOpen =
+                  openOrderNumber === order.number;
+
+                const safeOrderNumber =
+                  order.number.replace(
+                    /[^a-zA-Z0-9_-]/g,
+                    "",
+                  );
+
+                const detailsId =
+                  `order-${safeOrderNumber}-details`;
 
                 return (
                   <div key={order.number}>
                     <h3 className="sr-only">
                       {messages.orderPlacedOnSrOnly}{" "}
-                      <time dateTime={order.datetime}>{order.date}</time>
+                      <time dateTime={order.datetime}>
+                        {order.date}
+                      </time>
                     </h3>
 
                     <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-6 text-sm text-gray-200 sm:flex sm:items-center sm:justify-between sm:space-x-6 sm:px-6">
@@ -111,36 +149,50 @@ export default function OrdersList({
                           <dt className="font-medium text-gray-400">
                             {messages.datePlaced}
                           </dt>
-                          <dd className="sm:mt-1 text-white">
-                            <time dateTime={order.datetime}>{order.date}</time>
+
+                          <dd className="text-white sm:mt-1">
+                            <time dateTime={order.datetime}>
+                              {order.date}
+                            </time>
                           </dd>
                         </div>
+
                         <div className="max-sm:flex max-sm:justify-between max-sm:py-6 max-sm:first:pt-0 max-sm:last:pb-0">
                           <dt className="font-medium text-gray-400">
                             {messages.orderNumber}
                           </dt>
-                          <dd className="sm:mt-1 text-white">{order.number}</dd>
+
+                          <dd className="text-white sm:mt-1">
+                            {order.number}
+                          </dd>
                         </div>
                       </dl>
 
-                      <div className="flex gap-6 items-center">
-                        <div className="max-sm:flex max-sm:justify-between max-sm:py-6 max-sm:first:pt-0 max-sm:last:pb-0 text-right">
-                          <dt className="font-medium text-white">
-                            {messages.totalAmount}
-                          </dt>
-                          <dd className="font-medium text-yellow-400 sm:mt-1">
-                            {order.total}
-                          </dd>
+                      <div className="flex items-center gap-6">
+                        <div className="text-right max-sm:flex max-sm:justify-between max-sm:py-6">
+                          <div>
+                            <p className="font-medium text-white">
+                              {messages.totalAmount}
+                            </p>
+
+                            <p className="font-medium text-yellow-400 sm:mt-1">
+                              {order.total}
+                            </p>
+                          </div>
                         </div>
 
                         <button
                           type="button"
-                          onClick={() => toggleOrder(order.number)}
+                          onClick={() =>
+                            toggleOrder(order.number)
+                          }
                           aria-expanded={isOpen}
                           aria-controls={detailsId}
                           className="mt-6 inline-flex shrink-0 items-center justify-center rounded-md border border-white/25 px-4 py-3 text-sm font-medium text-white hover:bg-white/10 sm:ml-8 sm:mt-0 lg:ml-0 lg:w-auto"
                         >
-                          {isOpen ? messages.hideDetails : messages.viewDetails}
+                          {isOpen
+                            ? messages.hideDetails
+                            : messages.viewDetails}
                         </button>
                       </div>
                     </div>
@@ -153,6 +205,7 @@ export default function OrdersList({
                         <caption className="sr-only">
                           {messages.productsSrOnly}
                         </caption>
+
                         <thead className="sr-only text-left text-sm text-gray-400 sm:not-sr-only">
                           <tr>
                             <th
@@ -161,18 +214,21 @@ export default function OrdersList({
                             >
                               {messages.productHeader}
                             </th>
+
                             <th
                               scope="col"
                               className="hidden w-1/5 py-3 pr-8 font-normal sm:table-cell"
                             >
                               {messages.priceHeader}
                             </th>
+
                             <th
                               scope="col"
                               className="hidden py-3 pr-8 font-normal sm:table-cell"
                             >
                               {messages.statusHeader}
                             </th>
+
                             <th
                               scope="col"
                               className="w-0 py-3 text-right font-normal"
@@ -181,46 +237,57 @@ export default function OrdersList({
                             </th>
                           </tr>
                         </thead>
+
                         <tbody className="divide-y divide-gray-500 border-b border-gray-500 text-sm sm:border-t">
                           {order.products.map((product) => (
                             <tr key={product.id}>
                               <td className="py-6 pr-8">
                                 <div className="flex items-center">
-                                  <div className="mr-6 relative size-16 rounded-lg bg-stone-600 overflow-hidden">
+                                  <div className="relative mr-6 size-16 shrink-0 overflow-hidden rounded-lg bg-stone-600">
                                     <Image
                                       src={product.imageSrc}
                                       alt={product.imageAlt}
                                       fill
                                       sizes="64px"
-                                      className="object-contain p-3"
+                                      className="object-contain p-2"
                                     />
                                   </div>
+
                                   <div>
                                     <div className="font-medium text-white">
                                       {product.name}
                                     </div>
+
                                     <div className="mt-1 sm:hidden">
                                       {product.price}
+                                    </div>
+
+                                    <div className="mt-1 text-xs text-gray-500 sm:hidden">
+                                      {product.status}
                                     </div>
                                   </div>
                                 </div>
                               </td>
+
                               <td className="hidden py-6 pr-8 sm:table-cell">
                                 {product.price}
                               </td>
+
                               <td className="hidden py-6 pr-8 sm:table-cell">
                                 {product.status}
                               </td>
+
                               <td className="whitespace-nowrap py-6 text-right font-medium">
-                                <a
+                                <Link
                                   href={product.href}
-                                  className="text-yellow-400 hover:text-white focus:text-white transition-colors duration-200"
+                                  className="text-yellow-400 transition-colors duration-200 hover:text-white focus:text-white"
                                 >
                                   {messages.viewProduct}
+
                                   <span className="sr-only">
                                     , {product.name}
                                   </span>
-                                </a>
+                                </Link>
                               </td>
                             </tr>
                           ))}

@@ -16,7 +16,7 @@
       "cider": "Siider",
       "energyDrink": "Energiajoogid",
       "nonAlcoholicBeer": "Alkoholivaba õlu",
-      "snacks": "Suupisted",
+      "snacks": "Snäkid",
       "sparklingWine": "Vahuvein",
       "softDrinks": "Karastusjoogid"
     },
@@ -25,7 +25,7 @@
       "cider": "Valik pudelisiidreid.",
       "energyDrink": "Jahutatud energiajoogid pudelites ja purkides.",
       "nonAlcoholicBeer": "Valik alkoholivabu õllesid.",
-      "snacks": "Maitsvad suupisted puidust aluse kõrval.",
+      "snacks": "Maitsvad snäkid puidust aluse kõrval.",
       "sparklingWine": "Vahuveinipudelid ja mullid klaasis.",
       "softDrinks": "Karastusjoogid, sealhulgas mineraalvesi ja kali."
     }
@@ -52,7 +52,7 @@
   "cider": "Siider",
   "energy-drinks": "Energiajoogid",
   "non-alcoholic-beer": "Alkoholivaba õlu",
-  "snacks": "Suupisted",
+  "snacks": "Snäkid",
   "sparkling-wine": "Vahuvein",
   "soft-drinks": "Karastusjoogid"
 },
@@ -66,36 +66,33 @@
       "titleDesc": "Z–A"
     }
   },
-  "OneProduct": {
-    "perUnit": "1 tk kohta",
-    "abv": "ABV",
-    "ibu": "IBU",
-    "fg": "FG",
-    "country": "Riik",
-    "brand": "Bränd",
-    "style": "Stiil",
-    "addToCart": "Lisa ostukorvi",
-    "reviews": "Arvustused",
-    "outOf5Stars": "5 tärnist",
-    "viewAllReviews": "Vaata kõiki arvustusi",
-    "leaveAReview": "Jäta arvustus",
-    "description": "Kirjeldus",
-    "tastedBestWith": "Sobib kõige paremini",
-    "allergens": "Allergeenid",
-    "ingredients": "Koostisosad"
-  },
-  "CustomerReviews": {
-    "title": "Klientide arvustused",
-    "stars": "5 tärnist",
-    "base1": "Põhineb ",
-    "base2": "arvustusel",
-    "starRew": "tärni arvustused",
-    "CTATitle": "Jaga oma arvamust",
-    "CTASubtitle": "Kui oled seda toodet proovinud, jaga oma mõtteid teiste klientidega",
-    "button": "Kirjuta arvustus",
-    "loginToReview": "Arvustuse jätmiseks logi sisse",
-    "recentReviews": "Viimased arvustused"
-  },
+ "OneProduct": {
+  "perUnit": "1 tk kohta",
+  "volume": "Maht",
+  "size": "Suurus",
+  "abv": "Alkohol",
+  "ibu": "IBU",
+  "fg": "FG",
+  "country": "Riik",
+  "brand": "Bränd",
+  "style": "Stiil",
+  "packType": "Pakendi tüüp",
+  "bottlesInBox": "Pudelite arv kastis",
+  "shelfLife": "Säilivusaeg",
+  "days": "päeva",
+  "noImages": "Pilt puudub",
+  "missingVariant": "Tootevarianti ei leitud — toodet ei saa ostukorvi lisada.",
+  "addToCart": "Lisa ostukorvi",
+  "reviews": "Arvustused",
+  "outOf5Stars": "5 tärnist",
+  "viewAllReviews": "Vaata kõiki arvustusi",
+  "leaveAReview": "Jäta arvustus",
+  "description": "Kirjeldus",
+  "tastedBestWith": "Sobib kõige paremini",
+  "allergens": "Allergeenid",
+  "ingredients": "Koostisosad"
+},
+ 
   "LeaveReviewModal": {
     "title": "Jäta arvustus",
     "loading": "Laadimine...",
@@ -121,11 +118,11 @@
     "checkoutButton": "Mine kassasse",
     "itemsInCart": "toodet ostukorvis, vaata korvi"
   },
-  "BannerSection": {
-    "title": "Töölaua kollektsioon",
-    "subtitle": "Täienda oma töölauda esemetega, mis aitavad sul püsida organiseerituna ja selge peaga.",
-    "cta": "Vaata kollektsiooni"
-  },
+ "BannerSection": {
+  "title": "Leia oma uus lemmik",
+  "subtitle": "Õlu, siider ja snäkid õhtuteks, mida tasub nautida.",
+  "cta": "Tutvu valikuga"
+},
   "LogoSection": {
     "title": "Sinu lemmikbrändid — meie riiulitel",
     "subtitle": "Oleme uhked koostöö üle juhtivate sõltumatute pruulikodade ja snäkitarnijatega."
@@ -145,7 +142,7 @@
     "cider": "Siider",
     "energy-drinks": "Energiajoogid",
     "non-alcoholic-beer": "Alkoholivaba õlu",
-    "snacks": "Suupisted",
+    "snacks": "Snäkid",
     "sparkling-wine": "Vahuvein",
     "soft-drinks": "Karastusjoogid"
   },
@@ -230,26 +227,37 @@
     "saving": "Salvestamine...",
     "saveUnknownError": "Me ei saanud sinu aadressi salvestada. Palun proovi uuesti."
   },
-  "AccountOrders": {
-    "title": "Tellimuste ajalugu",
-    "intro": "Kontrolli viimaste tellimuste staatust, halda tagastusi ja laadi arveid alla.",
-    "recentOrdersSrOnly": "Viimased tellimused",
-    "orderPlacedOnSrOnly": "Tellimus esitatud",
-    "datePlaced": "Esitamise kuupäev",
-    "orderNumber": "Tellimuse number",
-    "totalAmount": "Kogusumma",
-    "hideDetails": "Peida detailid",
-    "viewDetails": "Vaata detaile",
-    "productsSrOnly": "Tooted",
-    "productHeader": "Toode",
-    "priceHeader": "Hind",
-    "statusHeader": "Staatus",
-    "infoHeader": "Info",
-    "viewProduct": "Vaata toodet",
-    "emptyTitle": "Sul pole veel ühtegi tellimust",
-    "emptyDescription": "Kui teed oma esimese ostu, kuvatakse tellimused siin.",
-    "emptyCta": "Mine poodi"
-  },
+ "AccountOrders": {
+  "title": "Tellimuste ajalugu",
+  "intro": "Kontrolli viimaste tellimuste staatust, halda tagastusi ja laadi arveid alla.",
+  "recentOrdersSrOnly": "Viimased tellimused",
+  "orderPlacedOnSrOnly": "Tellimus esitatud",
+  "datePlaced": "Esitamise kuupäev",
+  "orderNumber": "Tellimuse number",
+  "totalAmount": "Kogusumma",
+  "hideDetails": "Peida detailid",
+  "viewDetails": "Vaata detaile",
+  "productsSrOnly": "Tooted",
+  "productHeader": "Toode",
+  "priceHeader": "Hind",
+  "statusHeader": "Staatus",
+  "infoHeader": "Info",
+  "viewProduct": "Vaata toodet",
+  "emptyTitle": "Sul pole veel ühtegi tellimust",
+  "emptyDescription": "Kui teed oma esimese ostu, kuvatakse tellimused siin.",
+  "emptyCta": "Mine poodi",
+  "statusPaid": "Makstud",
+  "statusPending": "Ootab tasumist",
+  "statusAuthorized": "Makse autoriseeritud",
+  "statusPartiallyPaid": "Osaliselt makstud",
+  "statusRefunded": "Tagastatud",
+  "statusPartiallyRefunded": "Osaliselt tagastatud",
+  "statusVoided": "Tühistatud",
+  "statusFulfilled": "Täidetud",
+  "statusUnfulfilled": "Täitmata",
+  "statusPartiallyFulfilled": "Osaliselt täidetud",
+  "statusUnknown": "Olek pole saadaval"
+},
   "AccountReview": {
     "title": "Minu arvustused",
     "empty": "Sul ei ole veel arvustusi.",
@@ -354,10 +362,19 @@
     "successUpdate": "Sinu arvustus on uuendatud.",
     "closeAria": "Sulge"
   },
-  "customerReviews": {
-    "recentReviewsLabel": "Värsked arvustused",
-    "emptyReviewsText": "Arvustusi veel pole. Ole esimene, kes jätab arvustuse."
-  },
+  "CustomerReviews": {
+  "title": "Klientide arvustused",
+  "stars": "5 tärnist",
+  "base1": "Põhineb",
+  "base2": "arvustusel",
+  "starRew": "tärni arvustused",
+  "CTATitle": "Jaga oma arvamust",
+  "CTASubtitle": "Kui oled seda toodet proovinud, jaga oma mõtteid teiste klientidega",
+  "button": "Kirjuta arvustus",
+  "loginToReview": "Arvustuse jätmiseks logi sisse",
+  "recentReviews": "Viimased arvustused",
+  "emptyReviewsText": "Arvustusi veel ei ole. Ole esimene, kes arvustuse jätab."
+},
   "leaveReviewModal": {
     "title": "Jäta arvustus",
     "subtitle": "Jaga oma kogemust selle tootega.",

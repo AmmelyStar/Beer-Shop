@@ -1,12 +1,20 @@
 // app/lib/shopify/customerAdmin.ts
-import { currentUser, clerkClient } from "@clerk/nextjs/server";
+
+import {
+  clerkClient,
+  currentUser,
+} from "@clerk/nextjs/server";
+
 import { shopifyAdminRestFetch } from "./admin";
 
-// Типизируем минимально
 type ShopifyCustomer = {
   id: number;
   email?: string | null;
   orders_count?: number | null;
+};
+
+type CustomerResponse = {
+  customer: ShopifyCustomer;
 };
 
 type CustomersSearchResponse = {
@@ -17,18 +25,12 @@ type CustomerCreateResponse = {
   customer: ShopifyCustomer;
 };
 
-type OrdersSearchResponse = {
-  orders: Array<{
-    id: number;
-    customer: { id: number } | null;
-  }>;
-};
-
-// Типизируем минимально то, что нам нужно от Clerk client
 type ClerkUsersApi = {
   updateUser: (
     userId: string,
-    data: { publicMetadata: Record<string, unknown> }
+    data: {
+      publicMetadata: Record<string, unknown>;
+    },
   ) => Promise<unknown>;
 };
 
@@ -36,149 +38,419 @@ type ClerkClientLike = {
   users: ClerkUsersApi;
 };
 
-function hasUpdateUser(x: unknown): x is ClerkClientLike {
-  if (!x || typeof x !== "object") return false;
-  if (!("users" in x)) return false;
+function hasUpdateUser(
+  value: unknown,
+): value is ClerkClientLike {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
 
-  const users = (x as { users?: unknown }).users;
-  if (!users || typeof users !== "object") return false;
+  if (!("users" in value)) {
+    return false;
+  }
 
-  const updateUser = (users as { updateUser?: unknown }).updateUser;
+  const users = (
+    value as { users?: unknown }
+  ).users;
+
+  if (!users || typeof users !== "object") {
+    return false;
+  }
+
+  const updateUser = (
+    users as { updateUser?: unknown }
+  ).updateUser;
+
   return typeof updateUser === "function";
 }
 
-// Универсальный хелпер: clerkClient может быть объектом или функцией (в зависимости от версии).
 async function getClerkClient(): Promise<ClerkClientLike> {
-  const cc: unknown = clerkClient;
+  const client: unknown = clerkClient;
 
-  if (typeof cc === "function") {
-    const produced = await (cc as () => Promise<unknown>)();
-    if (hasUpdateUser(produced)) return produced;
-    throw new Error("clerkClient() did not return expected client shape");
+  if (typeof client === "function") {
+    const result = await (
+      client as () => Promise<unknown>
+    )();
+
+    if (hasUpdateUser(result)) {
+      return result;
+    }
+
+    throw new Error(
+      "clerkClient() did not return expected client shape",
+    );
   }
 
-  if (hasUpdateUser(cc)) return cc;
+  if (hasUpdateUser(client)) {
+    return client;
+  }
 
-  throw new Error("clerkClient has unexpected shape");
-}
-
-function isLikelyHtmlJsonParseError(err: unknown): boolean {
-  return (
-    err instanceof SyntaxError &&
-    typeof err.message === "string" &&
-    err.message.includes("Unexpected token") &&
-    err.message.includes("<")
+  throw new Error(
+    "clerkClient has unexpected shape",
   );
 }
 
-async function countOrdersForCustomer(customerId: string): Promise<number> {
-  const q = `orders.json?customer_id=${customerId}&status=any&limit=1&fields=id`;
-  const data = await shopifyAdminRestFetch<{ orders: Array<{ id: number }> }>(q);
-  return data.orders?.length ?? 0;
+function normalizeEmail(
+  email: string | null | undefined,
+): string {
+  return (email ?? "").trim().toLowerCase();
 }
 
-/**
- * Возвращаем Shopify customer id для текущего Clerk-пользователя.
- * Если Admin API недоступен/нет прав — возвращаем null, чтобы не ломать страницу.
- */
-export async function getOrCreateShopifyCustomer(): Promise<string | null> {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress;
-  if (!user || !email) return null;
+function getErrorMessage(
+  error: unknown,
+): string {
+  return error instanceof Error
+    ? error.message
+    : String(error);
+}
 
-  const publicMetadata = (user.publicMetadata || {}) as Record<string, unknown>;
-  const existingId = publicMetadata.shopifyCustomerId as string | undefined;
+function isNotFoundError(
+  error: unknown,
+): boolean {
+  const message =
+    getErrorMessage(error).toLowerCase();
 
+  return (
+    message.includes("404") ||
+    message.includes("not found")
+  );
+}
+
+function isEmailAlreadyTakenError(
+  error: unknown,
+): boolean {
+  const message =
+    getErrorMessage(error).toLowerCase();
+
+  return (
+    message.includes("422") &&
+    message.includes("email") &&
+    (
+      message.includes("already been taken") ||
+      message.includes("has been taken") ||
+      message.includes("is taken")
+    )
+  );
+}
+
+function isLikelyHtmlJsonParseError(
+  error: unknown,
+): boolean {
+  return (
+    error instanceof SyntaxError &&
+    error.message.includes("Unexpected token") &&
+    error.message.includes("<")
+  );
+}
+
+function wait(
+  milliseconds: number,
+): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, milliseconds);
+  });
+}
+
+async function getCustomerById(
+  customerId: string,
+): Promise<ShopifyCustomer | null> {
   try {
-    // 1) Если уже есть сохранённый customerId — используем его только если у него реально есть заказы
-    if (existingId) {
-      const n = await countOrdersForCustomer(existingId);
-      if (n > 0) return existingId;
-      // иначе ищем правильного по email
-    }
+    const endpoint =
+      `customers/${customerId}.json` +
+      "?fields=id,email,orders_count";
 
-    // 2) Ищем customer(s) по email
-    const searchQuery = `email:${email}`;
-    const searchPath = `customers/search.json?query=${encodeURIComponent(searchQuery)}`;
-
-    const searchData = await shopifyAdminRestFetch<CustomersSearchResponse>(searchPath);
-    const customers = Array.isArray(searchData.customers) ? searchData.customers : [];
-
-    // если несколько — берём с максимальным orders_count
-    let bestCustomer: ShopifyCustomer | null = null;
-    for (const c of customers) {
-      if (!bestCustomer) {
-        bestCustomer = c;
-        continue;
-      }
-      const a = bestCustomer.orders_count ?? 0;
-      const b = c.orders_count ?? 0;
-      if (b > a) bestCustomer = c;
-    }
-
-    let shopifyCustomerId: string | null = bestCustomer ? String(bestCustomer.id) : null;
-
-    // 3) Если customer найден, но заказы могли быть guest/непривязанные —
-    // пробуем найти заказ по email и взять order.customer.id
-    if (shopifyCustomerId) {
-      const orderSearch =
-        `orders.json?status=any&limit=1&order=created_at%20desc` +
-        `&query=email:${encodeURIComponent(email)}` +
-        `&fields=id,customer`;
-
-      const ordersByEmail = await shopifyAdminRestFetch<OrdersSearchResponse>(orderSearch);
-
-      const first = ordersByEmail.orders?.[0];
-      const fromOrderCustomerId = first?.customer?.id ? String(first.customer.id) : null;
-
-      if (fromOrderCustomerId) {
-        shopifyCustomerId = fromOrderCustomerId;
-      }
-    }
-
-    // 4) Если customer не найден вообще — создаём
-    if (!shopifyCustomerId) {
-      const createPayload = {
-        customer: {
-          email,
-          first_name: user.firstName ?? undefined,
-          last_name: user.lastName ?? undefined,
-        },
-      };
-
-      const createData = await shopifyAdminRestFetch<CustomerCreateResponse>(
-        "customers.json",
-        { method: "POST", body: JSON.stringify(createPayload) }
+    const data =
+      await shopifyAdminRestFetch<CustomerResponse>(
+        endpoint,
       );
 
-      shopifyCustomerId = String(createData.customer.id);
+    return data.customer ?? null;
+  } catch (error: unknown) {
+    if (isNotFoundError(error)) {
+      return null;
     }
 
-    if (!shopifyCustomerId) return null;
+    throw error;
+  }
+}
 
-    // 5) Сохраняем customerId в Clerk
-    try {
-      const client = await getClerkClient();
-      await client.users.updateUser(user.id, {
+function chooseCustomer(
+  customers: ShopifyCustomer[],
+): ShopifyCustomer | null {
+  if (customers.length === 0) {
+    return null;
+  }
+
+  return customers.reduce(
+    (bestCustomer, currentCustomer) => {
+      const bestOrders =
+        bestCustomer.orders_count ?? 0;
+
+      const currentOrders =
+        currentCustomer.orders_count ?? 0;
+
+      return currentOrders > bestOrders
+        ? currentCustomer
+        : bestCustomer;
+    },
+  );
+}
+
+async function findCustomerByEmail(
+  email: string,
+): Promise<ShopifyCustomer | null> {
+  const normalizedEmail =
+    normalizeEmail(email);
+
+  const queries = [
+    `email:${normalizedEmail}`,
+    normalizedEmail,
+  ];
+
+  for (const query of queries) {
+    const endpoint =
+      "customers/search.json" +
+      `?query=${encodeURIComponent(query)}` +
+      "&limit=10" +
+      "&fields=id,email,orders_count";
+
+    const data =
+      await shopifyAdminRestFetch<CustomersSearchResponse>(
+        endpoint,
+      );
+
+    const customers = Array.isArray(
+      data.customers,
+    )
+      ? data.customers
+      : [];
+
+    const exactMatches = customers.filter(
+      (customer) =>
+        normalizeEmail(customer.email) ===
+        normalizedEmail,
+    );
+
+    const exactCustomer =
+      chooseCustomer(exactMatches);
+
+    if (exactCustomer) {
+      return exactCustomer;
+    }
+
+    // Shopify может скрыть email в ответе,
+    // хотя поиск по email нашёл одного клиента.
+    if (
+      customers.length === 1 &&
+      !customers[0].email
+    ) {
+      return customers[0];
+    }
+  }
+
+  return null;
+}
+
+async function findCustomerByEmailWithRetry(
+  email: string,
+): Promise<ShopifyCustomer | null> {
+  const attempts = 5;
+
+  for (
+    let attempt = 0;
+    attempt < attempts;
+    attempt += 1
+  ) {
+    const customer =
+      await findCustomerByEmail(email);
+
+    if (customer) {
+      return customer;
+    }
+
+    if (attempt < attempts - 1) {
+      await wait(250);
+    }
+  }
+
+  return null;
+}
+
+async function createCustomer(
+  email: string,
+  firstName?: string | null,
+  lastName?: string | null,
+): Promise<ShopifyCustomer> {
+  const payload = {
+    customer: {
+      email,
+      first_name: firstName || undefined,
+      last_name: lastName || undefined,
+    },
+  };
+
+  const data =
+    await shopifyAdminRestFetch<CustomerCreateResponse>(
+      "customers.json",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    );
+
+  return data.customer;
+}
+
+async function saveCustomerIdToClerk(
+  userId: string,
+  customerId: string,
+  currentMetadata: Record<string, unknown>,
+): Promise<void> {
+  try {
+    const client =
+      await getClerkClient();
+
+    await client.users.updateUser(
+      userId,
+      {
         publicMetadata: {
-          ...publicMetadata,
-          shopifyCustomerId,
-          shopifySyncedAt: new Date().toISOString(),
+          ...currentMetadata,
+          shopifyCustomerId: customerId,
+          shopifySyncedAt:
+            new Date().toISOString(),
         },
-      });
-    } catch (err: unknown) {
-      console.error("Failed to save shopifyCustomerId to Clerk:", err);
+      },
+    );
+  } catch (error: unknown) {
+    console.error(
+      "Failed to save Shopify customer ID to Clerk:",
+      getErrorMessage(error),
+    );
+  }
+}
+
+export async function getOrCreateShopifyCustomer(): Promise<
+  string | null
+> {
+  const user = await currentUser();
+
+  const email =
+    user?.primaryEmailAddress?.emailAddress;
+
+  if (!user || !email) {
+    return null;
+  }
+
+  const normalizedCurrentEmail =
+    normalizeEmail(email);
+
+  const publicMetadata = (
+    user.publicMetadata ?? {}
+  ) as Record<string, unknown>;
+
+  const savedCustomerId =
+    typeof publicMetadata.shopifyCustomerId ===
+    "string"
+      ? publicMetadata.shopifyCustomerId
+      : null;
+
+  try {
+    let customer: ShopifyCustomer | null =
+      null;
+
+    // Проверяем, что сохранённый Shopify ID
+    // действительно принадлежит текущему email.
+    if (savedCustomerId) {
+      const savedCustomer =
+        await getCustomerById(savedCustomerId);
+
+      if (
+        savedCustomer &&
+        normalizeEmail(savedCustomer.email) ===
+          normalizedCurrentEmail
+      ) {
+        customer = savedCustomer;
+      } else {
+        console.warn(
+          "Saved Shopify customer ID does not belong to current Clerk email",
+        );
+      }
+    }
+
+    // Ищем существующего Shopify-клиента.
+    if (!customer) {
+      customer =
+        await findCustomerByEmail(email);
+    }
+
+    // Если клиента нет, создаём нового.
+    if (!customer) {
+      try {
+        customer = await createCustomer(
+          email,
+          user.firstName,
+          user.lastName,
+        );
+      } catch (error: unknown) {
+        if (
+          !isEmailAlreadyTakenError(error)
+        ) {
+          throw error;
+        }
+
+        // Параллельный запрос мог успеть создать
+        // клиента раньше текущего запроса.
+        customer =
+          await findCustomerByEmailWithRetry(
+            email,
+          );
+
+        if (!customer) {
+          throw error;
+        }
+      }
+    }
+
+    const shopifyCustomerId =
+      String(customer.id);
+
+    // Сохраняем правильный ID у текущего
+    // пользователя Clerk.
+    if (
+      savedCustomerId !==
+      shopifyCustomerId
+    ) {
+      await saveCustomerIdToClerk(
+        user.id,
+        shopifyCustomerId,
+        publicMetadata,
+      );
     }
 
     return shopifyCustomerId;
-  } catch (err: unknown) {
-    console.error("getOrCreateShopifyCustomer Admin error:", err);
+  } catch (error: unknown) {
+    const message =
+      getErrorMessage(error);
 
-    const msg = err instanceof Error ? err.message : String(err);
+    console.error(
+      "getOrCreateShopifyCustomer Admin error:",
+      message,
+    );
 
-    if (isLikelyHtmlJsonParseError(err)) return null;
-    if (msg.includes("ACCESS_DENIED") || msg.includes("401") || msg.includes("403")) return null;
+    if (
+      isLikelyHtmlJsonParseError(error)
+    ) {
+      return null;
+    }
 
-    throw err;
+    if (
+      message.includes("ACCESS_DENIED") ||
+      message.includes("401") ||
+      message.includes("403")
+    ) {
+      return null;
+    }
+
+    throw new Error(message);
   }
 }

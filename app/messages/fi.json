@@ -16,7 +16,7 @@
       "cider": "Siideri",
       "energyDrink": "Energiajuomat",
       "nonAlcoholicBeer": "Alkoholiton olut",
-      "snacks": "Välipalat",
+      "snacks": "Snacksit",
       "sparklingWine": "Kuohuviini",
       "softDrinks": "Virvoitusjuomat"
     },
@@ -25,7 +25,7 @@
       "cider": "Valikoima pullotettua siideriä.",
       "energyDrink": "Viileät energiajuomat pulloissa ja tölkeissä.",
       "nonAlcoholicBeer": "Valikoima alkoholittomia oluita.",
-      "snacks": "Herkullisia välipaloja puualustan vieressä.",
+      "snacks": "Valikoima herkullisia snackseja.",
       "sparklingWine": "Kuohuviinipulloja ja kuplia lasissa.",
       "softDrinks": "Virvoitusjuomia, mukaan lukien kivennäisvesi ja kvassi."
     }
@@ -52,7 +52,7 @@
   "cider": "Siideri",
   "energy-drinks": "Energiajuomat",
   "non-alcoholic-beer": "Alkoholiton olut",
-  "snacks": "Välipalat",
+  "snacks": "Snacksit",
   "sparkling-wine": "Kuohuviini",
   "soft-drinks": "Virvoitusjuomat"
 },
@@ -66,24 +66,32 @@
       "titleDesc": "Ö–A"
     }
   },
-  "OneProduct": {
-    "perUnit": "per 1 kpl",
-    "abv": "ABV",
-    "ibu": "IBU",
-    "fg": "FG",
-    "country": "Maa",
-    "brand": "Brändi",
-    "style": "Tyyli",
-    "addToCart": "Lisää ostoskoriin",
-    "reviews": "Arvostelut",
-    "outOf5Stars": "5 tähdestä",
-    "viewAllReviews": "Näytä kaikki arvostelut",
-    "leaveAReview": "Jätä arvostelu",
-    "description": "Kuvaus",
-    "tastedBestWith": "Parhaimmillaan yhdessä",
-    "allergens": "Allergeenit",
-    "ingredients": "Ainesosat"
-  },
+"OneProduct": {
+  "perUnit": "per 1 kpl",
+  "volume": "Tilavuus",
+  "size": "Koko",
+  "abv": "Alkoholi",
+  "ibu": "IBU",
+  "fg": "FG",
+  "country": "Maa",
+  "brand": "Brändi",
+  "style": "Tyyli",
+  "packType": "Pakkaustyyppi",
+  "bottlesInBox": "Pulloja laatikossa",
+  "shelfLife": "Säilyvyysaika",
+  "days": "päivää",
+  "noImages": "Kuvaa ei ole saatavilla",
+  "missingVariant": "Tuoteversiota ei löytynyt — tuotetta ei voi lisätä ostoskoriin.",
+  "addToCart": "Lisää ostoskoriin",
+  "reviews": "Arvostelut",
+  "outOf5Stars": "5 tähdestä",
+  "viewAllReviews": "Näytä kaikki arvostelut",
+  "leaveAReview": "Jätä arvostelu",
+  "description": "Kuvaus",
+  "tastedBestWith": "Parhaimmillaan yhdessä",
+  "allergens": "Allergeenit",
+  "ingredients": "Ainesosat"
+},
   "CustomerReviews": {
     "title": "Asiakasarvostelut",
     "stars": "5 tähdestä",
@@ -94,7 +102,8 @@
     "CTASubtitle": "Jos olet käyttänyt tätä tuotetta, jaa kokemuksesi muiden asiakkaiden kanssa",
     "button": "Kirjoita arvostelu",
     "loginToReview": "Kirjaudu sisään jättääksesi arvostelun",
-    "recentReviews": "Uusimmat arvostelut"
+    "recentReviews": "Uusimmat arvostelut",
+    "emptyReviewsText": "Arvosteluja ei vielä ole. Jätä ensimmäinen arvostelu."
   },
   "LeaveReviewModal": {
     "title": "Jätä arvostelu",
@@ -122,10 +131,10 @@
     "itemsInCart": "tuotetta ostoskorissa, näytä kori"
   },
   "BannerSection": {
-    "title": "Työpöytäkokoelma",
-    "subtitle": "Päivitä työpöytäsi esineillä, jotka auttavat pysymään järjestyksessä ja keskittyneenä.",
-    "cta": "Katso kokoelma"
-  },
+  "title": "Löydä uudet suosikkisi",
+  "subtitle": "Olutta, siideriä ja snackseja nautinnollisiin iltoihin.",
+  "cta": "Tutustu valikoimaan"
+},
   "LogoSection": {
     "title": "Suosikkibrändisi — meidän hyllyillämme",
     "subtitle": "Olemme ylpeitä yhteistyöstä johtavien riippumattomien panimoiden ja välipalatoimittajien kanssa."
@@ -145,7 +154,7 @@
     "cider": "Siideri",
     "energy-drinks": "Energiajuomat",
     "non-alcoholic-beer": "Alkoholiton olut",
-    "snacks": "Välipalat",
+    "snacks": "Snacksit",
     "sparkling-wine": "Kuohuviini",
     "soft-drinks": "Virvoitusjuomat"
   },
@@ -164,7 +173,7 @@
       "contacts": "Yhteystiedot"
     },
     "followUs": "Seuraa meitä",
-    "copyright": "© {{year}} Craft Beer Store",
+    "copyright": "© {{year}} Beer & Snacks",
     "prodused": "Tuottanut DVI"
   },
   "CookieBanner": {
@@ -231,25 +240,36 @@
     "saveUnknownError": "Emme voineet tallentaa osoitetta. Yritä uudelleen."
   },
   "AccountOrders": {
-    "title": "Tilaushistoria",
-    "intro": "Tarkista viimeisimpien tilausten tila, hallinnoi palautuksia ja lataa laskuja.",
-    "recentOrdersSrOnly": "Viimeisimmät tilaukset",
-    "orderPlacedOnSrOnly": "Tilaus tehty",
-    "datePlaced": "Tilauspäivä",
-    "orderNumber": "Tilausnumero",
-    "totalAmount": "Kokonaissumma",
-    "hideDetails": "Piilota tiedot",
-    "viewDetails": "Näytä tiedot",
-    "productsSrOnly": "Tuotteet",
-    "productHeader": "Tuote",
-    "priceHeader": "Hinta",
-    "statusHeader": "Tila",
-    "infoHeader": "Tiedot",
-    "viewProduct": "Näytä tuote",
-    "emptyTitle": "Sinulla ei ole vielä tilauksia",
-    "emptyDescription": "Kun teet ensimmäisen tilauksesi, se näkyy täällä.",
-    "emptyCta": "Siirry kauppaan"
-  },
+  "title": "Tilaushistoria",
+  "intro": "Tarkista viimeisimpien tilausten tila, hallitse palautuksia ja lataa laskuja.",
+  "recentOrdersSrOnly": "Viimeisimmät tilaukset",
+  "orderPlacedOnSrOnly": "Tilaus tehty",
+  "datePlaced": "Tilauspäivä",
+  "orderNumber": "Tilausnumero",
+  "totalAmount": "Yhteensä",
+  "hideDetails": "Piilota tiedot",
+  "viewDetails": "Näytä tiedot",
+  "productsSrOnly": "Tuotteet",
+  "productHeader": "Tuote",
+  "priceHeader": "Hinta",
+  "statusHeader": "Tila",
+  "infoHeader": "Tiedot",
+  "viewProduct": "Näytä tuote",
+  "emptyTitle": "Sinulla ei ole vielä tilauksia",
+  "emptyDescription": "Kun teet ensimmäisen ostoksesi, tilauksesi näkyvät täällä.",
+  "emptyCta": "Siirry kauppaan",
+  "statusPaid": "Maksettu",
+  "statusPending": "Odottaa maksua",
+  "statusAuthorized": "Maksu valtuutettu",
+  "statusPartiallyPaid": "Osittain maksettu",
+  "statusRefunded": "Hyvitetty",
+  "statusPartiallyRefunded": "Osittain hyvitetty",
+  "statusVoided": "Mitätöity",
+  "statusFulfilled": "Toimitettu",
+  "statusUnfulfilled": "Ei toimitettu",
+  "statusPartiallyFulfilled": "Osittain toimitettu",
+  "statusUnknown": "Tila ei ole saatavilla"
+},
   "AccountReview": {
     "title": "Omat arvostelusi",
     "empty": "Sinulla ei ole vielä arvosteluja.",
