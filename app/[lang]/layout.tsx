@@ -45,7 +45,7 @@ const CLERK_LOCALIZATIONS: Record<Locale, ClerkLocale> = {
 };
 
 export const metadata: Metadata = {
- metadataBase: new URL("https://beer-snacks-coral.vercel.app"),
+ metadataBase: new URL("www.beersnacks.ee"),
   
 
   title: {
