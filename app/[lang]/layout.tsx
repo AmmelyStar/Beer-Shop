@@ -45,9 +45,8 @@ const CLERK_LOCALIZATIONS: Record<Locale, ClerkLocale> = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-  ),
+ metadataBase: new URL("https://beer-snacks-coral.vercel.app"),
+  
 
   title: {
     default: "Beer & Snacks",
