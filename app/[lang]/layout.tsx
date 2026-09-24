@@ -45,7 +45,7 @@ const CLERK_LOCALIZATIONS: Record<Locale, ClerkLocale> = {
 };
 
 export const metadata: Metadata = {
- metadataBase: new URL("www.beersnacks.ee"),
+ metadataBase: new URL("https://www.beersnacks.ee"),
   
 
   title: {
