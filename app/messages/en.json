@@ -362,7 +362,23 @@
       "submitting": "Sending...",
       "success": "Thank you! We received your inquiry and will get back to you shortly.",
       "error": "Oops! Something went wrong. Please try again later."
-    }
+    },
+    "validation": {
+  "firstNameRequired": "First name is required.",
+  "firstNameMin": "First name must be at least 2 characters.",
+  "lastNameRequired": "Last name is required.",
+  "lastNameMin": "Last name must be at least 2 characters.",
+  "lettersOnly": "Only letters, spaces, hyphens and apostrophes are allowed.",
+  "emailRequired": "Email is required.",
+  "emailInvalid": "Please enter a valid email address.",
+  "emailDisposable": "Please use a valid email address.",
+  "messageRequired": "Message is required.",
+  "messageMin": "Message must be at least 10 characters.",
+  "messageMax": "Message must be no more than 500 characters.",
+  "phoneInvalid": "Invalid phone number format.",
+  "phoneMin": "Phone number must contain at least 7 digits.",
+  "phoneMax": "Phone number must contain no more than 15 digits."
+}
   },
   "HeaderNav": {
     "home": "Home",

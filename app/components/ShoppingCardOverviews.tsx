@@ -3,14 +3,14 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import {
   QuestionMarkCircleIcon,
   XMarkIcon as XMarkIconMini,
 } from "@heroicons/react/20/solid";
-import { useCart } from "@/app/context/CartContext";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
 
+import { useCart } from "@/app/context/CartContext";
 import type { Locale } from "../lib/locale";
 
 type ShoppingCardOverviewsProps = {
@@ -30,7 +30,9 @@ type ShoppingCardOverviewsProps = {
   lang: Locale;
 };
 
-function getContinueShoppingText(lang: Locale) {
+function getContinueShoppingText(
+  lang: Locale
+): string {
   switch (lang) {
     case "ru":
       return "← Продолжить покупки";
@@ -45,22 +47,121 @@ function getContinueShoppingText(lang: Locale) {
   }
 }
 
-function productHref(lang: Locale, handle: string) {
+function getClearCartText(
+  lang: Locale
+): string {
+  switch (lang) {
+    case "ru":
+      return "Очистить корзину";
+    case "uk":
+      return "Очистити кошик";
+    case "et":
+      return "Tühjenda ostukorv";
+    case "fi":
+      return "Tyhjennä ostoskori";
+    default:
+      return "Clear cart";
+  }
+}
+
+function getLoadingText(
+  lang: Locale
+): string {
+  switch (lang) {
+    case "ru":
+      return "Загрузка корзины...";
+    case "uk":
+      return "Завантаження кошика...";
+    case "et":
+      return "Ostukorvi laadimine...";
+    case "fi":
+      return "Ostoskoria ladataan...";
+    default:
+      return "Loading cart...";
+  }
+}
+
+function getRemoveText(
+  lang: Locale
+): string {
+  switch (lang) {
+    case "ru":
+      return "Удалить товар";
+    case "uk":
+      return "Видалити товар";
+    case "et":
+      return "Eemalda toode";
+    case "fi":
+      return "Poista tuote";
+    default:
+      return "Remove product";
+  }
+}
+
+function getDecreaseQuantityText(
+  lang: Locale
+): string {
+  switch (lang) {
+    case "ru":
+      return "Уменьшить количество";
+    case "uk":
+      return "Зменшити кількість";
+    case "et":
+      return "Vähenda kogust";
+    case "fi":
+      return "Vähennä määrää";
+    default:
+      return "Decrease quantity";
+  }
+}
+
+function getIncreaseQuantityText(
+  lang: Locale
+): string {
+  switch (lang) {
+    case "ru":
+      return "Увеличить количество";
+    case "uk":
+      return "Збільшити кількість";
+    case "et":
+      return "Suurenda kogust";
+    case "fi":
+      return "Lisää määrää";
+    default:
+      return "Increase quantity";
+  }
+}
+
+function productHref(
+  lang: Locale,
+  handle: string
+): string {
   return `/${lang}/product/${handle}`;
 }
 
-function getProductHandle(value: unknown): string | null {
-  if (!value || typeof value !== "object") return null;
+function getProductHandle(
+  value: unknown
+): string | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
 
-  const rec = value as Record<string, unknown>;
-  const candidate = rec.handle ?? rec.productHandle;
+  const record =
+    value as Record<string, unknown>;
 
-  return typeof candidate === "string" && candidate.length > 0
+  const candidate =
+    record.handle ??
+    record.productHandle;
+
+  return typeof candidate === "string" &&
+    candidate.length > 0
     ? candidate
     : null;
 }
 
-function getViewProductText(lang: Locale) {
+function getViewProductText(
+  lang: Locale
+): string {
   switch (lang) {
     case "ru":
       return "Просмотреть товар";
@@ -75,18 +176,49 @@ function getViewProductText(lang: Locale) {
   }
 }
 
-function getPaginationLabels(lang: Locale) {
+function getPaginationLabels(
+  lang: Locale
+) {
   switch (lang) {
     case "ru":
-      return { prev: "Назад", next: "Вперёд", page: "Стр.", of: "из" };
+      return {
+        prev: "Назад",
+        next: "Вперёд",
+        page: "Стр.",
+        of: "из",
+      };
+
     case "uk":
-      return { prev: "Назад", next: "Далі", page: "Стор.", of: "з" };
+      return {
+        prev: "Назад",
+        next: "Далі",
+        page: "Стор.",
+        of: "з",
+      };
+
     case "et":
-      return { prev: "Eelmine", next: "Järgmine", page: "Lk", of: "/" };
+      return {
+        prev: "Eelmine",
+        next: "Järgmine",
+        page: "Lk",
+        of: "/",
+      };
+
     case "fi":
-      return { prev: "Edellinen", next: "Seuraava", page: "Sivu", of: "/" };
+      return {
+        prev: "Edellinen",
+        next: "Seuraava",
+        page: "Sivu",
+        of: "/",
+      };
+
     default:
-      return { prev: "Prev", next: "Next", page: "Page", of: "of" };
+      return {
+        prev: "Prev",
+        next: "Next",
+        page: "Page",
+        of: "of",
+      };
   }
 }
 
@@ -106,78 +238,172 @@ export default function ShoppingCardOverviews({
   CTAAdd,
   lang,
 }: ShoppingCardOverviewsProps) {
-  const { cart, isLoading, removeLine, updateLineQuantity, clearCart } =
-    useCart();
+  const {
+    cart,
+    isLoading,
+    removeLine,
+    updateLineQuantity,
+    clearCart,
+    resetLocalCart,
+  } = useCart();
+
+  const router = useRouter();
+  const { isSignedIn } = useAuth();
+
+  const [page, setPage] = useState(1);
 
   const items = cart.lines;
   const hasItems = items.length > 0;
 
   const totalPrice = items.reduce(
-    (sum, line) => sum + line.unitPrice * line.quantity,
+    (sum, line) =>
+      sum +
+      line.unitPrice *
+        line.quantity,
     0
   );
 
-  const shippingCost = hasItems ? 5.0 : 0;
-  const taxRate = 0.084;
-  const taxAmount = hasItems ? totalPrice * taxRate : 0;
-  const orderTotal = totalPrice + shippingCost + taxAmount;
+  const shippingCost =
+    hasItems ? 5 : 0;
 
-  const router = useRouter();
-  const { isSignedIn } = useAuth();
+  const taxRate = 0.084;
+
+  const taxAmount = hasItems
+    ? totalPrice * taxRate
+    : 0;
+
+  const orderTotal =
+    totalPrice +
+    shippingCost +
+    taxAmount;
 
   const handleCheckoutClick = () => {
-    if (!cart.checkoutUrl) return;
+    const checkoutUrl =
+      cart.checkoutUrl;
 
-    if (isSignedIn) {
-      router.push(cart.checkoutUrl);
-    } else {
-      const redirectTo = encodeURIComponent(cart.checkoutUrl);
-      router.push(`/account?redirectTo=${redirectTo}`);
+    if (!checkoutUrl) return;
+
+    /*
+     * Сбрасываем только локальное состояние.
+     * Товары в Shopify Checkout при этом
+     * остаются на месте.
+     */
+    resetLocalCart();
+
+    if (!isSignedIn) {
+      const redirectTo =
+        encodeURIComponent(
+          checkoutUrl
+        );
+
+      router.push(
+        `/${lang}/account?redirectTo=${redirectTo}`
+      );
+
+      return;
     }
+
+    window.location.assign(
+      checkoutUrl
+    );
   };
 
   const PAGE_SIZE = 4;
-  const labels = getPaginationLabels(lang);
-  const [page, setPage] = useState(1);
+  const labels =
+    getPaginationLabels(lang);
 
   const totalItems = items.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
 
-  const startIdx = (safePage - 1) * PAGE_SIZE;
-  const endIdx = startIdx + PAGE_SIZE;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(
+      totalItems / PAGE_SIZE
+    )
+  );
 
-  const visibleItems = useMemo(() => {
-    return items.slice(startIdx, endIdx);
-  }, [items, startIdx, endIdx]);
+  const safePage = Math.min(
+    page,
+    totalPages
+  );
 
-  const showPagination = hasItems && totalItems > PAGE_SIZE;
+  const startIndex =
+    (safePage - 1) *
+    PAGE_SIZE;
 
-  const goPrev = () => setPage((p) => Math.max(1, p - 1));
-  const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
+  const endIndex =
+    startIndex +
+    PAGE_SIZE;
+
+  const visibleItems = useMemo(
+    () =>
+      items.slice(
+        startIndex,
+        endIndex
+      ),
+    [
+      items,
+      startIndex,
+      endIndex,
+    ]
+  );
+
+  const showPagination =
+    hasItems &&
+    totalItems > PAGE_SIZE;
+
+  const goPrev = () => {
+    setPage((currentPage) =>
+      Math.max(
+        1,
+        currentPage - 1
+      )
+    );
+  };
+
+  const goNext = () => {
+    setPage((currentPage) =>
+      Math.min(
+        totalPages,
+        currentPage + 1
+      )
+    );
+  };
 
   return (
     <div>
       <main className="mx-auto max-w-2xl px-4 pb-24 pt-16 sm:px-6 lg:max-w-7xl lg:px-8">
-        <h1 className="text-3xl tracking-tight font-semibold text-yellow-400 max-w-md">
+        <h1 className="max-w-md text-3xl font-semibold tracking-tight text-yellow-400">
           {shoppingCart}
         </h1>
 
-        {isLoading && !cart.cartId ? (
-          <p className="mt-8 text-gray-400">Loading cart...</p>
+        {isLoading &&
+        !cart.cartId ? (
+          <p className="mt-8 text-gray-400">
+            {getLoadingText(lang)}
+          </p>
         ) : (
           <form className="mt-12 lg:grid lg:grid-cols-12 lg:items-start lg:gap-x-12 xl:gap-x-16">
-            <section aria-labelledby="cart-heading" className="lg:col-span-7">
-              <h2 id="cart-heading" className="sr-only">
+            <section
+              aria-labelledby="cart-heading"
+              className="lg:col-span-7"
+            >
+              <h2
+                id="cart-heading"
+                className="sr-only"
+              >
                 {description}
               </h2>
 
               {!hasItems ? (
                 <div className="py-16">
-                  <p className="text-gray-400 text-lg">{empty}</p>
-                  <p className="text-gray-500 my-2">{emptyDescription}</p>
+                  <p className="text-lg text-gray-400">
+                    {empty}
+                  </p>
 
-                  {/* ✅ FIX #1: language-aware link */}
+                  <p className="my-2 text-gray-500">
+                    {emptyDescription}
+                  </p>
+
                   <Link
                     href={`/${lang}/shop`}
                     prefetch={false}
@@ -191,26 +417,43 @@ export default function ShoppingCardOverviews({
                   {showPagination && (
                     <div className="mt-6 flex items-center justify-between">
                       <p className="text-sm text-gray-400">
-                        {labels.page} {safePage} {labels.of} {totalPages}
+                        {labels.page}{" "}
+                        {safePage}{" "}
+                        {labels.of}{" "}
+                        {totalPages}
                       </p>
 
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
-                          onClick={goPrev}
-                          disabled={safePage === 1}
+                          onClick={
+                            goPrev
+                          }
+                          disabled={
+                            safePage ===
+                            1
+                          }
                           className="rounded-md border border-white/20 bg-transparent px-3 py-1.5 text-sm font-semibold text-gray-200 hover:bg-white/5 disabled:opacity-40 disabled:hover:bg-transparent"
                         >
-                          {labels.prev}
+                          {
+                            labels.prev
+                          }
                         </button>
 
                         <button
                           type="button"
-                          onClick={goNext}
-                          disabled={safePage === totalPages}
+                          onClick={
+                            goNext
+                          }
+                          disabled={
+                            safePage ===
+                            totalPages
+                          }
                           className="rounded-md border border-white/20 bg-transparent px-3 py-1.5 text-sm font-semibold text-gray-200 hover:bg-white/5 disabled:opacity-40 disabled:hover:bg-transparent"
                         >
-                          {labels.next}
+                          {
+                            labels.next
+                          }
                         </button>
                       </div>
                     </div>
@@ -220,151 +463,265 @@ export default function ShoppingCardOverviews({
                     role="list"
                     className="mt-4 divide-y divide-gray-200 border-b border-t border-gray-200"
                   >
-                    {visibleItems.map((product) => {
-                      const handle = getProductHandle(product);
-                      const href = handle ? productHref(lang, handle) : null;
+                    {visibleItems.map(
+                      (product) => {
+                        const handle =
+                          getProductHandle(
+                            product
+                          );
 
-                      return (
-                        <li key={product.id} className="flex py-6 sm:py-10">
-                          <div className="shrink-0 size-24 sm:size-48 relative rounded-lg bg-stone-600 overflow-hidden">
-                            {product.imageUrl && href ? (
-                              <Link
-                                href={href}
-                                prefetch={false}
-                                className="block w-full h-full"
-                                aria-label={product.title}
-                              >
+                        const href =
+                          handle
+                            ? productHref(
+                                lang,
+                                handle
+                              )
+                            : null;
+
+                        return (
+                          <li
+                            key={
+                              product.id
+                            }
+                            className="flex py-6 sm:py-10"
+                          >
+                            <div className="relative size-24 shrink-0 overflow-hidden rounded-lg bg-stone-600 sm:size-48">
+                              {product.imageUrl &&
+                              href ? (
+                                <Link
+                                  href={
+                                    href
+                                  }
+                                  prefetch={
+                                    false
+                                  }
+                                  className="block h-full w-full"
+                                  aria-label={
+                                    product.title
+                                  }
+                                >
+                                  <Image
+                                    width={
+                                      640
+                                    }
+                                    height={
+                                      640
+                                    }
+                                    alt={
+                                      product.imageAlt
+                                    }
+                                    src={
+                                      product.imageUrl
+                                    }
+                                    className="h-full w-full object-contain p-3"
+                                  />
+                                </Link>
+                              ) : product.imageUrl ? (
                                 <Image
-                                  width={640}
-                                  height={640}
-                                  alt={product.imageAlt}
-                                  src={product.imageUrl}
-                                  className="object-contain p-3 w-full h-full"
+                                  width={
+                                    640
+                                  }
+                                  height={
+                                    640
+                                  }
+                                  alt={
+                                    product.imageAlt
+                                  }
+                                  src={
+                                    product.imageUrl
+                                  }
+                                  className="h-full w-full object-contain p-3"
                                 />
-                              </Link>
-                            ) : product.imageUrl ? (
-                              <Image
-                                width={640}
-                                height={640}
-                                alt={product.imageAlt}
-                                src={product.imageUrl}
-                                className="object-contain p-3 w-full h-full"
-                              />
-                            ) : null}
-                          </div>
+                              ) : null}
+                            </div>
 
-                          <div className="ml-4 flex flex-1 flex-col justify-between sm:ml-6">
-                            <div className="relative pr-9 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:pr-0">
-                              <div>
-                                <div className="flex justify-between">
-                                  <h3 className="text-lg font-medium pr-6">
-                                    {href ? (
+                            <div className="ml-4 flex flex-1 flex-col justify-between sm:ml-6">
+                              <div className="relative pr-9 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:pr-0">
+                                <div>
+                                  <div className="flex justify-between">
+                                    <h3 className="pr-6 text-lg font-medium">
+                                      {href ? (
+                                        <Link
+                                          href={
+                                            href
+                                          }
+                                          prefetch={
+                                            false
+                                          }
+                                          className="text-yellow-400 hover:opacity-80"
+                                        >
+                                          {
+                                            product.title
+                                          }
+                                        </Link>
+                                      ) : (
+                                        <span className="text-yellow-400">
+                                          {
+                                            product.title
+                                          }
+                                        </span>
+                                      )}
+                                    </h3>
+                                  </div>
+
+                                  {href && (
+                                    <div className="mt-1">
                                       <Link
-                                        href={href}
-                                        prefetch={false}
-                                        className="text-yellow-400 hover:opacity-80"
+                                        href={
+                                          href
+                                        }
+                                        prefetch={
+                                          false
+                                        }
+                                        className="text-sm text-gray-300 underline underline-offset-4 hover:text-white"
                                       >
-                                        {product.title}
+                                        {getViewProductText(
+                                          lang
+                                        )}
                                       </Link>
-                                    ) : (
-                                      <span className="text-yellow-400">
-                                        {product.title}
-                                      </span>
-                                    )}
-                                  </h3>
+                                    </div>
+                                  )}
                                 </div>
 
-                                {href && (
-                                  <div className="mt-1">
-                                    <Link
-                                      href={href}
-                                      prefetch={false}
-                                      className="text-sm text-gray-300 underline underline-offset-4 hover:text-white"
-                                    >
-                                      {getViewProductText(lang)}
-                                    </Link>
-                                  </div>
-                                )}
-                              </div>
+                                <div className="absolute right-0 top-0 mt-4 flex flex-col gap-5 sm:mt-0 sm:pr-9">
+                                  <div>
+                                    <div className="flex items-center gap-8">
+                                      <p className="mt-1 text-base font-medium text-gray-300">
+                                        {(
+                                          product.unitPrice *
+                                          product.quantity
+                                        ).toFixed(
+                                          2
+                                        )}{" "}
+                                        €
+                                      </p>
 
-                              <div className="absolute right-0 top-0 mt-4 sm:mt-0 sm:pr-9 flex flex-col gap-5">
-                                <div>
-                                  <div className="flex gap-8 items-center">
-                                    <p className="mt-1 text-base font-medium text-gray-300">
-                                      {(product.unitPrice * product.quantity).toFixed(2)} €
-                                    </p>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          removeLine(
+                                            product.id
+                                          )
+                                        }
+                                        className="-m-2 inline-flex p-2 text-gray-400 hover:text-gray-500"
+                                      >
+                                        <span className="sr-only">
+                                          {getRemoveText(
+                                            lang
+                                          )}
+                                        </span>
+
+                                        <XMarkIconMini
+                                          aria-hidden="true"
+                                          className="size-5"
+                                        />
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
                                     <button
                                       type="button"
-                                      onClick={() => removeLine(product.id)}
-                                      className="-m-2 inline-flex p-2 text-gray-400 hover:text-gray-500"
+                                      onClick={() =>
+                                        updateLineQuantity(
+                                          product.id,
+                                          Math.max(
+                                            1,
+                                            product.quantity -
+                                              1
+                                          )
+                                        )
+                                      }
+                                      className="flex size-8 items-center justify-center rounded-md border border-gray-400 text-gray-300 transition-colors hover:bg-white/10"
                                     >
-                                      <span className="sr-only">Remove</span>
-                                      <XMarkIconMini aria-hidden="true" className="size-5" />
+                                      <span className="sr-only">
+                                        {getDecreaseQuantityText(
+                                          lang
+                                        )}
+                                      </span>
+
+                                      <span className="text-lg font-medium">
+                                        −
+                                      </span>
+                                    </button>
+
+                                    <span className="w-8 text-center text-base text-gray-200">
+                                      {
+                                        product.quantity
+                                      }
+                                    </span>
+
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        updateLineQuantity(
+                                          product.id,
+                                          product.quantity +
+                                            1
+                                        )
+                                      }
+                                      className="flex size-8 items-center justify-center rounded-md border border-gray-400 text-gray-300 transition-colors hover:bg-white/10"
+                                    >
+                                      <span className="sr-only">
+                                        {getIncreaseQuantityText(
+                                          lang
+                                        )}
+                                      </span>
+
+                                      <span className="text-lg font-medium">
+                                        +
+                                      </span>
                                     </button>
                                   </div>
                                 </div>
-
-                                <div className="flex items-center gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      updateLineQuantity(
-                                        product.id,
-                                        Math.max(1, product.quantity - 1)
-                                      )
-                                    }
-                                    className="flex size-8 items-center justify-center rounded-md border border-gray-400 text-gray-300 hover:bg-white/10 transition-colors"
-                                  >
-                                    <span className="sr-only">Decrease quantity</span>
-                                    <span className="text-lg font-medium">−</span>
-                                  </button>
-
-                                  <span className="w-8 text-center text-base text-gray-200">
-                                    {product.quantity}
-                                  </span>
-
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      updateLineQuantity(product.id, product.quantity + 1)
-                                    }
-                                    className="flex size-8 items-center justify-center rounded-md border border-gray-400 text-gray-300 hover:bg-white/10 transition-colors"
-                                  >
-                                    <span className="sr-only">Increase quantity</span>
-                                    <span className="text-lg font-medium">+</span>
-                                  </button>
-                                </div>
                               </div>
                             </div>
-                          </div>
-                        </li>
-                      );
-                    })}
+                          </li>
+                        );
+                      }
+                    )}
                   </ul>
 
                   {showPagination && (
                     <div className="mt-6 flex items-center justify-between">
                       <p className="text-sm text-gray-400">
-                        {labels.page} {safePage} {labels.of} {totalPages}
+                        {labels.page}{" "}
+                        {safePage}{" "}
+                        {labels.of}{" "}
+                        {totalPages}
                       </p>
 
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
-                          onClick={goPrev}
-                          disabled={safePage === 1}
+                          onClick={
+                            goPrev
+                          }
+                          disabled={
+                            safePage ===
+                            1
+                          }
                           className="rounded-md border border-white/20 bg-transparent px-3 py-1.5 text-sm font-semibold text-gray-200 hover:bg-white/5 disabled:opacity-40 disabled:hover:bg-transparent"
                         >
-                          {labels.prev}
+                          {
+                            labels.prev
+                          }
                         </button>
 
                         <button
                           type="button"
-                          onClick={goNext}
-                          disabled={safePage === totalPages}
+                          onClick={
+                            goNext
+                          }
+                          disabled={
+                            safePage ===
+                            totalPages
+                          }
                           className="rounded-md border border-white/20 bg-transparent px-3 py-1.5 text-sm font-semibold text-gray-200 hover:bg-white/5 disabled:opacity-40 disabled:hover:bg-transparent"
                         >
-                          {labels.next}
+                          {
+                            labels.next
+                          }
                         </button>
                       </div>
                     </div>
@@ -377,59 +734,107 @@ export default function ShoppingCardOverviews({
               <div className="mt-16 lg:col-span-5 lg:mt-0">
                 <section
                   aria-labelledby="summary-heading"
-                  className="rounded-lg bg-white/5 border border-white/10 sm:p-6 lg:p-8"
+                  className="rounded-lg border border-white/10 bg-white/5 sm:p-6 lg:p-8"
                 >
                   <h2
                     id="summary-heading"
-                    className="text-lg text-white font-semibold whitespace-nowrap"
+                    className="whitespace-nowrap text-lg font-semibold text-white"
                   >
                     {orderSummary}
                   </h2>
 
                   <dl className="mt-6 space-y-4 pb-8">
                     <div className="flex items-center justify-between">
-                      <dt className="text-base text-gray-300">{subtotal}</dt>
+                      <dt className="text-base text-gray-300">
+                        {
+                          subtotal
+                        }
+                      </dt>
+
                       <dd className="text-sm font-medium text-gray-300">
-                        {totalPrice.toFixed(2)} €
+                        {totalPrice.toFixed(
+                          2
+                        )}{" "}
+                        €
                       </dd>
                     </div>
 
                     <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                       <dt className="flex items-center text-base text-gray-400">
-                        <span>{shippingEstimate}</span>
+                        <span>
+                          {
+                            shippingEstimate
+                          }
+                        </span>
+
                         <button
                           type="button"
                           className="ml-2 shrink-0 text-gray-400 hover:text-gray-300"
                         >
-                          <span className="sr-only">{shippingEstimateInfo}</span>
-                          <QuestionMarkCircleIcon aria-hidden="true" className="size-5" />
+                          <span className="sr-only">
+                            {
+                              shippingEstimateInfo
+                            }
+                          </span>
+
+                          <QuestionMarkCircleIcon
+                            aria-hidden="true"
+                            className="size-5"
+                          />
                         </button>
                       </dt>
+
                       <dd className="text-base font-medium text-gray-400">
-                        {shippingCost.toFixed(2)} €
+                        {shippingCost.toFixed(
+                          2
+                        )}{" "}
+                        €
                       </dd>
                     </div>
 
                     <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                       <dt className="flex text-base text-gray-400">
-                        <span>{taxEstimate}</span>
+                        <span>
+                          {
+                            taxEstimate
+                          }
+                        </span>
+
                         <button
                           type="button"
                           className="ml-2 shrink-0 text-gray-400 hover:text-gray-500"
                         >
-                          <span className="sr-only">{taxEstimateInfo}</span>
-                          <QuestionMarkCircleIcon aria-hidden="true" className="size-5" />
+                          <span className="sr-only">
+                            {
+                              taxEstimateInfo
+                            }
+                          </span>
+
+                          <QuestionMarkCircleIcon
+                            aria-hidden="true"
+                            className="size-5"
+                          />
                         </button>
                       </dt>
+
                       <dd className="text-base font-medium text-gray-400">
-                        {taxAmount.toFixed(2)} €
+                        {taxAmount.toFixed(
+                          2
+                        )}{" "}
+                        €
                       </dd>
                     </div>
 
                     <div className="flex items-center justify-between border-t border-gray-200 pt-4">
-                      <dt className="text-base font-medium text-yellow-400">{total}</dt>
+                      <dt className="text-base font-medium text-yellow-400">
+                        {total}
+                      </dt>
+
                       <dd className="text-base font-medium text-yellow-400">
-                        {orderTotal.toFixed(2)} €
+                        {orderTotal.toFixed(
+                          2
+                        )}{" "}
+                        €
                       </dd>
                     </div>
                   </dl>
@@ -438,8 +843,13 @@ export default function ShoppingCardOverviews({
                     {cart.checkoutUrl && (
                       <button
                         type="button"
-                        onClick={handleCheckoutClick}
-                        className="inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-8 py-2 text-sm font-semibold text-gray-900 hover:bg-yellow-500 hover:border-yellow-600 lg:w-full duration-300"
+                        onClick={
+                          handleCheckoutClick
+                        }
+                        disabled={
+                          isLoading
+                        }
+                        className="inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-8 py-2 text-sm font-semibold text-gray-900 duration-300 hover:border-yellow-600 hover:bg-yellow-500 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {checkout}
                       </button>
@@ -447,21 +857,29 @@ export default function ShoppingCardOverviews({
 
                     <button
                       type="button"
-                      onClick={() => clearCart()}
-                      className="inline-flex w-full items-center justify-center rounded-md border border-white/20 bg-transparent px-8 py-2 text-sm font-semibold text-gray-200 hover:bg-white/5 lg:w-full duration-300"
+                      onClick={() =>
+                        void clearCart()
+                      }
+                      disabled={
+                        isLoading
+                      }
+                      className="inline-flex w-full items-center justify-center rounded-md border border-white/20 bg-transparent px-8 py-2 text-sm font-semibold text-gray-200 duration-300 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Clear cart
+                      {getClearCartText(
+                        lang
+                      )}
                     </button>
                   </div>
                 </section>
 
-                {/* ✅ FIX #2: language-aware link */}
                 <Link
                   href={`/${lang}/shop`}
                   prefetch={false}
-                  className="mt-3 inline-flex w-full items-center justify-center rounded-md border border-white/20 bg-transparent px-8 py-2 text-sm font-semibold text-gray-200 hover:bg-white/5 duration-300"
+                  className="mt-3 inline-flex w-full items-center justify-center rounded-md border border-white/20 bg-transparent px-8 py-2 text-sm font-semibold text-gray-200 duration-300 hover:bg-white/5"
                 >
-                  {getContinueShoppingText(lang)}
+                  {getContinueShoppingText(
+                    lang
+                  )}
                 </Link>
               </div>
             )}

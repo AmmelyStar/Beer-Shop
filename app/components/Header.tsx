@@ -119,7 +119,7 @@ export default function Header({ lang, messages }: Props) {
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {/* bigger on desktop */}
-        <div className="grid h-20 md:h-24 grid-cols-[1fr_auto_1fr] items-center">
+        <div className="grid h-24 md:h-28 grid-cols-[1fr_auto_1fr] items-center">
           {/* LEFT — desktop nav */}
           <nav className="hidden md:flex items-center gap-6">
             <NavLink href={`/${lang}`} label={nav.home} />

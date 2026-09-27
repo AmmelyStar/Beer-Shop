@@ -1,12 +1,16 @@
+// app/context/CartContext.tsx
+
 "use client";
 
-import React, {
+import {
   createContext,
+  useCallback,
   useContext,
-  useState,
   useEffect,
   useMemo,
-  ReactNode,
+  useRef,
+  useState,
+  type ReactNode,
 } from "react";
 
 type CartLine = {
@@ -26,26 +30,53 @@ type CartState = {
 };
 
 type CartContextType = {
-  // Новый интерфейс
   cart: CartState;
   isLoading: boolean;
-  addToCart: (variantId: string, quantity?: number) => Promise<void>;
+
+  addToCart: (
+    variantId: string,
+    quantity?: number
+  ) => Promise<void>;
+
   fetchCart: () => Promise<void>;
-  removeLine: (lineId: string) => Promise<void>;
-  updateLineQuantity: (lineId: string, quantity: number) => Promise<void>;
+
+  removeLine: (
+    lineId: string
+  ) => Promise<void>;
+
+  updateLineQuantity: (
+    lineId: string,
+    quantity: number
+  ) => Promise<void>;
+
   clearCart: () => Promise<void>;
 
-  // 👉 для иконки в хедере
+  /**
+   * Очищает только локальное состояние и localStorage.
+   * Shopify-корзина при этом не изменяется.
+   */
+  resetLocalCart: () => void;
+
   totalQuantity: number;
 
-  // Старый интерфейс (для совместимости)
+  // Старый интерфейс для совместимости
   items: CartLine[];
   totalPrice: number;
-  removeFromCart: (lineId: string) => Promise<void>;
-  updateQuantity: (lineId: string, quantity: number) => Promise<void>;
+
+  removeFromCart: (
+    lineId: string
+  ) => Promise<void>;
+
+  updateQuantity: (
+    lineId: string,
+    quantity: number
+  ) => Promise<void>;
 };
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+const CartContext =
+  createContext<CartContextType | undefined>(
+    undefined
+  );
 
 const EMPTY_CART: CartState = {
   cartId: "",
@@ -55,136 +86,280 @@ const EMPTY_CART: CartState = {
 
 const STORAGE_KEY = "shopify_cart_id";
 
-type CartApiResponse = CartState;
+type CartApiResponse = CartState | null;
 
-// Вспомогательный вызов API
-async function callApi(body: unknown): Promise<CartApiResponse> {
-  const res = await fetch("/api/cart", {
+async function callApi(
+  body: unknown
+): Promise<CartApiResponse> {
+  const response = await fetch("/api/cart", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(body),
+    cache: "no-store",
   });
 
-  if (!res.ok) {
+  if (!response.ok) {
     let errorBody: unknown = null;
+
     try {
-      errorBody = await res.json();
+      errorBody = await response.json();
     } catch {
-      // ignore
+      // Ответ может быть не JSON
     }
-    console.error("Cart API error", res.status, errorBody);
-    throw new Error("Cart API error");
+
+    console.error(
+      "Cart API error:",
+      response.status,
+      errorBody
+    );
+
+    throw new Error(
+      `Cart API error: ${response.status}`
+    );
   }
 
-  const json = (await res.json()) as CartApiResponse;
-  return json;
+  return (await response.json()) as CartApiResponse;
 }
 
-export function CartProvider({ children }: { children: ReactNode }) {
-  const [cart, setCart] = useState<CartState>(EMPTY_CART);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+function isValidCartState(
+  value: CartApiResponse
+): value is CartState {
+  return Boolean(
+    value &&
+      typeof value.cartId === "string" &&
+      typeof value.checkoutUrl !== "undefined" &&
+      Array.isArray(value.lines)
+  );
+}
 
-  function syncCart(next: CartState) {
-    setCart(next);
+export function CartProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const [cart, setCart] =
+    useState<CartState>(EMPTY_CART);
 
-    if (typeof window === "undefined") return;
+  const [isLoading, setIsLoading] =
+    useState(false);
 
-    if (next.cartId) {
-      window.localStorage.setItem(STORAGE_KEY, next.cartId);
-    } else {
-      window.localStorage.removeItem(STORAGE_KEY);
-    }
-  }
+  const fetchInProgressRef = useRef(false);
 
-  const fetchCart = async () => {
-    if (typeof window === "undefined") return;
+  /**
+   * Синхронизирует React-состояние с localStorage.
+   */
+  const syncCart = useCallback(
+    (nextCart: CartApiResponse) => {
+      const safeCart = isValidCartState(nextCart)
+        ? nextCart
+        : EMPTY_CART;
 
-    try {
-      setIsLoading(true);
-      const storedId = window.localStorage.getItem(STORAGE_KEY);
+      setCart(safeCart);
 
-      if (!storedId || storedId === "undefined" || storedId === "null") {
-        syncCart(EMPTY_CART);
+      if (typeof window === "undefined") {
         return;
       }
 
+      if (safeCart.cartId) {
+        window.localStorage.setItem(
+          STORAGE_KEY,
+          safeCart.cartId
+        );
+      } else {
+        window.localStorage.removeItem(
+          STORAGE_KEY
+        );
+      }
+    },
+    []
+  );
+
+  /**
+   * Сбрасывает корзину только на сайте.
+   * Запрос в Shopify не отправляется.
+   *
+   * Используется перед переходом на checkout.
+   */
+  const resetLocalCart = useCallback(() => {
+    setCart(EMPTY_CART);
+
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(
+        STORAGE_KEY
+      );
+    }
+  }, []);
+
+  /**
+   * Получает актуальную корзину из Shopify.
+   */
+  const fetchCart = useCallback(async () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (fetchInProgressRef.current) {
+      return;
+    }
+
+    const storedId =
+      window.localStorage.getItem(STORAGE_KEY);
+
+    if (
+      !storedId ||
+      storedId === "undefined" ||
+      storedId === "null"
+    ) {
+      syncCart(EMPTY_CART);
+      return;
+    }
+
+    fetchInProgressRef.current = true;
+    setIsLoading(true);
+
+    try {
       const data = await callApi({
         action: "get",
         cartId: storedId,
       });
 
-      syncCart(data);
-    } catch (e) {
-      console.error("fetchCart error:", e);
-      syncCart(EMPTY_CART);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const addToCart = async (variantId: string, quantity: number = 1) => {
-    try {
-      setIsLoading(true);
-
-      const data = await callApi({
-        action: "add",
-        cartId: cart.cartId || undefined,
-        variantId,
-        quantity,
-      });
+      if (
+        !isValidCartState(data) ||
+        !data.cartId
+      ) {
+        resetLocalCart();
+        return;
+      }
 
       syncCart(data);
-    } catch (e) {
-      console.error("addToCart error:", e);
+    } catch (error: unknown) {
+      console.error(
+        "fetchCart error:",
+        error instanceof Error
+          ? error.message
+          : String(error)
+      );
+
+      resetLocalCart();
     } finally {
+      fetchInProgressRef.current = false;
       setIsLoading(false);
     }
-  };
+  }, [resetLocalCart, syncCart]);
 
-  const removeLine = async (lineId: string) => {
-    if (!cart.cartId) return;
+  const addToCart = useCallback(
+    async (
+      variantId: string,
+      quantity = 1
+    ) => {
+      try {
+        setIsLoading(true);
 
-    try {
-      setIsLoading(true);
+        const data = await callApi({
+          action: "add",
+          cartId:
+            cart.cartId || undefined,
+          variantId,
+          quantity,
+        });
 
-      const data = await callApi({
-        action: "remove",
-        cartId: cart.cartId,
-        lineId,
-      });
+        syncCart(data);
+      } catch (error: unknown) {
+        console.error(
+          "addToCart error:",
+          error instanceof Error
+            ? error.message
+            : String(error)
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [cart.cartId, syncCart]
+  );
 
-      syncCart(data);
-    } catch (e) {
-      console.error("removeLine error:", e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const removeLine = useCallback(
+    async (lineId: string) => {
+      if (!cart.cartId) {
+        return;
+      }
 
-  const updateLineQuantity = async (lineId: string, quantity: number) => {
-    if (!cart.cartId) return;
+      try {
+        setIsLoading(true);
 
-    try {
-      setIsLoading(true);
+        const data = await callApi({
+          action: "remove",
+          cartId: cart.cartId,
+          lineId,
+        });
 
-      const data = await callApi({
-        action: "update",
-        cartId: cart.cartId,
-        lineId,
-        quantity,
-      });
+        syncCart(data);
+      } catch (error: unknown) {
+        console.error(
+          "removeLine error:",
+          error instanceof Error
+            ? error.message
+            : String(error)
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [cart.cartId, syncCart]
+  );
 
-      syncCart(data);
-    } catch (e) {
-      console.error("updateLineQuantity error:", e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const updateLineQuantity = useCallback(
+    async (
+      lineId: string,
+      quantity: number
+    ) => {
+      if (!cart.cartId) {
+        return;
+      }
 
-  const clearCart = async () => {
+      if (quantity <= 0) {
+        await removeLine(lineId);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+
+        const data = await callApi({
+          action: "update",
+          cartId: cart.cartId,
+          lineId,
+          quantity,
+        });
+
+        syncCart(data);
+      } catch (error: unknown) {
+        console.error(
+          "updateLineQuantity error:",
+          error instanceof Error
+            ? error.message
+            : String(error)
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [
+      cart.cartId,
+      removeLine,
+      syncCart,
+    ]
+  );
+
+  /**
+   * Удаляет все линии из Shopify-корзины.
+   * Использовать для кнопки «Очистить корзину».
+   */
+  const clearCart = useCallback(async () => {
     if (!cart.cartId) {
-      syncCart(EMPTY_CART);
+      resetLocalCart();
       return;
     }
 
@@ -196,70 +371,182 @@ export function CartProvider({ children }: { children: ReactNode }) {
         cartId: cart.cartId,
       });
 
+      if (
+        !isValidCartState(data) ||
+        data.lines.length === 0
+      ) {
+        resetLocalCart();
+        return;
+      }
+
       syncCart(data);
-    } catch (e) {
-      console.error("clearCart error:", e);
-      // если что-то пошло не так — всё равно сбрасываем локально
-      syncCart(EMPTY_CART);
+    } catch (error: unknown) {
+      console.error(
+        "clearCart error:",
+        error instanceof Error
+          ? error.message
+          : String(error)
+      );
+
+      resetLocalCart();
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [
+    cart.cartId,
+    resetLocalCart,
+    syncCart,
+  ]);
 
-  // Авто-фетч при монтировании
+  /**
+   * Проверяем корзину:
+   * - при первом открытии;
+   * - после возвращения из Shopify;
+   * - после переключения обратно на вкладку сайта.
+   */
   useEffect(() => {
-    void fetchCart();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const refreshCart = () => {
+      void fetchCart();
+    };
 
-  // Удобные поля для старых компонентов
+    const handleVisibilityChange = () => {
+      if (
+        document.visibilityState === "visible"
+      ) {
+        refreshCart();
+      }
+    };
+
+    const timerId = window.setTimeout(
+      refreshCart,
+      0
+    );
+
+    window.addEventListener(
+      "pageshow",
+      refreshCart
+    );
+
+    window.addEventListener(
+      "focus",
+      refreshCart
+    );
+
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange
+    );
+
+    return () => {
+      window.clearTimeout(timerId);
+
+      window.removeEventListener(
+        "pageshow",
+        refreshCart
+      );
+
+      window.removeEventListener(
+        "focus",
+        refreshCart
+      );
+
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange
+      );
+    };
+  }, [fetchCart]);
+
   const items = cart.lines;
 
   const totalPrice = useMemo(
     () =>
       items.reduce(
-        (sum: number, line: CartLine) => sum + line.unitPrice * line.quantity,
+        (sum, line) =>
+          sum +
+          line.unitPrice *
+            line.quantity,
         0
       ),
     [items]
   );
 
-  // 👉 тут считаем суммарное количество для бейджа
   const totalQuantity = useMemo(
     () =>
       items.reduce(
-        (sum: number, line: CartLine) => sum + line.quantity,
+        (sum, line) =>
+          sum + line.quantity,
         0
       ),
     [items]
   );
 
-  const removeFromCart = (lineId: string) => removeLine(lineId);
-  const updateQuantity = (lineId: string, quantity: number) =>
-    updateLineQuantity(lineId, quantity);
+  const removeFromCart = useCallback(
+    (lineId: string) =>
+      removeLine(lineId),
+    [removeLine]
+  );
 
-  const value: CartContextType = {
-    cart,
-    isLoading,
-    addToCart,
-    fetchCart,
-    removeLine,
-    updateLineQuantity,
-    clearCart,
-    items,
-    totalPrice,
-    removeFromCart,
-    updateQuantity,
-    totalQuantity,
-  };
+  const updateQuantity = useCallback(
+    (
+      lineId: string,
+      quantity: number
+    ) =>
+      updateLineQuantity(
+        lineId,
+        quantity
+      ),
+    [updateLineQuantity]
+  );
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+  const value = useMemo<CartContextType>(
+    () => ({
+      cart,
+      isLoading,
+      addToCart,
+      fetchCart,
+      removeLine,
+      updateLineQuantity,
+      clearCart,
+      resetLocalCart,
+      items,
+      totalPrice,
+      removeFromCart,
+      updateQuantity,
+      totalQuantity,
+    }),
+    [
+      cart,
+      isLoading,
+      addToCart,
+      fetchCart,
+      removeLine,
+      updateLineQuantity,
+      clearCart,
+      resetLocalCart,
+      items,
+      totalPrice,
+      removeFromCart,
+      updateQuantity,
+      totalQuantity,
+    ]
+  );
+
+  return (
+    <CartContext.Provider value={value}>
+      {children}
+    </CartContext.Provider>
+  );
 }
 
 export function useCart(): CartContextType {
-  const ctx = useContext(CartContext);
-  if (!ctx) {
-    throw new Error("useCart must be used within a CartProvider");
+  const context = useContext(CartContext);
+
+  if (!context) {
+    throw new Error(
+      "useCart must be used within a CartProvider"
+    );
   }
-  return ctx;
+
+  return context;
 }

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { SVGProps } from "react";
+
 import type { Locale } from "@/app/lib/locale";
 import { getMessages } from "@/app/[lang]/messages";
 
@@ -9,12 +10,21 @@ type FooterProps = {
   lang: Locale;
 };
 
+type FooterLink = {
+  label: string;
+  href: string;
+};
+
 const social = [
   {
     name: "Facebook",
     href: "https://www.facebook.com/profile.php?id=61574467306145&rdid=dyUgwutEpbxUJBR3&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1GwRm9d6vx%2F",
     icon: (props: SVGProps<SVGSVGElement>) => (
-      <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
+      <svg
+        fill="currentColor"
+        viewBox="0 0 24 24"
+        {...props}
+      >
         <path
           fillRule="evenodd"
           d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
@@ -27,7 +37,11 @@ const social = [
     name: "Instagram",
     href: "https://www.instagram.com/tallinnbeersnacks?utm_source=qr&igsh=YXkyM3IyYW5ueW02",
     icon: (props: SVGProps<SVGSVGElement>) => (
-      <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
+      <svg
+        fill="currentColor"
+        viewBox="0 0 24 24"
+        {...props}
+      >
         <path
           fillRule="evenodd"
           d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.350.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"
@@ -38,37 +52,43 @@ const social = [
   },
 ];
 
-export default async function Footer({ lang }: FooterProps) {
+export default async function Footer({
+  lang,
+}: FooterProps) {
   const messages = await getMessages(lang);
   const t = messages.Footer;
 
   const year = new Date().getFullYear();
-  const copyright = t.copyright.replace("{{year}}", String(year));
 
-  const catalogLinks: Array<{ label: string; href: string }> = [
+  const copyright = t.copyright.replace(
+    "{{year}}",
+    String(year)
+  );
+
+  const catalogLinks: FooterLink[] = [
     {
       label: t.catalog.all,
       href: `/${lang}/shop`,
     },
     {
       label: t.catalog["bottle-beer"],
-      href: `/${lang}/shop?category=beer%20in%20bottles`,
+      href: `/${lang}/shop?category=bottle-beer`,
     },
     {
       label: t.catalog["draft-beer"],
-      href: `/${lang}/shop?category=Draft%20Beer`,
+      href: `/${lang}/shop?category=draft-beer`,
     },
     {
       label: t.catalog.cider,
-      href: `/${lang}/shop?category=Cider`,
+      href: `/${lang}/shop?category=cider`,
     },
     {
       label: t.catalog["energy-drinks"],
-      href: `/${lang}/shop?category=energy%20drink`,
+      href: `/${lang}/shop?category=energy-drinks`,
     },
     {
       label: t.catalog["non-alcoholic-beer"],
-      href: `/${lang}/shop?category=non-alcoholic%20beer`,
+      href: `/${lang}/shop?category=non-alcoholic-beer`,
     },
     {
       label: t.catalog.snacks,
@@ -76,60 +96,67 @@ export default async function Footer({ lang }: FooterProps) {
     },
     {
       label: t.catalog["sparkling-wine"],
-      href: `/${lang}/shop?category=sparkling%20wine`,
+      href: `/${lang}/shop?category=sparkling-wine`,
     },
     {
       label: t.catalog["soft-drinks"],
-      href: `/${lang}/shop?category=Soft%20Drinks`,
+      href: `/${lang}/shop?category=soft-drinks`,
     },
   ];
 
-  const columns = [
+  const customerLinks: FooterLink[] = [
+    {
+      label: t.customers.faq,
+      href: `/${lang}/questions`,
+    },
+    {
+      label: t.customers.shippingPayment,
+      href: `/${lang}/delivery`,
+    },
+    {
+      label: t.customers.returns,
+      href: `/${lang}/refunds`,
+    },
+    {
+      label: t.customers.cookiePolicy,
+      href: `/${lang}/cookies-policy`,
+    },
+    {
+      label: t.customers.publicOffer,
+      href: `/${lang}/privacy-policy`,
+    },
+  ];
+
+  const companyLinks: FooterLink[] = [
+    {
+      label: t.company.aboutUs,
+      href: `/${lang}/about`,
+    },
+    {
+      label: t.company.partnership,
+      href: `/${lang}/partnership`,
+    },
+    {
+      label: t.company.contacts,
+      href: `/${lang}/contact`,
+    },
+  ];
+
+  const columns: Array<{
+    title: string;
+    links: FooterLink[];
+  }> = [
     {
       title: t.catalog.title,
       links: catalogLinks,
     },
     {
       title: t.customers.title,
-      links: [
-        {
-          label: t.customers.faq,
-          href: `/${lang}/questions`,
-        },
-        {
-          label: t.customers.shippingPayment,
-          href: `/${lang}/delivery`,
-        },
-        {
-          label: t.customers.returns,
-          href: `/${lang}/refunds`,
-        },
-        {
-          label: t.customers.cookiePolicy,
-          href: `/${lang}/cookies-policy`,
-        },
-        {
-          label: t.customers.publicOffer,
-          href: `/${lang}/privacy-policy`,
-        },
-      ],
+      links: customerLinks,
     },
     {
       title: t.company.title,
-      links: [
-        {
-          label: t.company.aboutUs,
-          href: `/${lang}/about`,
-        },
-        {
-          label: t.company.partnership,
-          href: `/${lang}/partnership`,
-        },
-        {
-          label: t.company.contacts,
-          href: `/${lang}/contact`,
-        },
-      ],
+      links: companyLinks,
     },
   ];
 
@@ -139,7 +166,10 @@ export default async function Footer({ lang }: FooterProps) {
         <div className="border-y border-neutral-600/70 py-12">
           <div className="grid gap-12 md:grid-cols-3 md:gap-16">
             {columns.map((column) => (
-              <nav key={column.title} aria-label={column.title}>
+              <nav
+                key={column.title}
+                aria-label={column.title}
+              >
                 <h3 className="text-base font-medium text-neutral-200">
                   {column.title}
                 </h3>
@@ -147,7 +177,7 @@ export default async function Footer({ lang }: FooterProps) {
                 <ul className="mt-6 space-y-3">
                   {column.links.map((link) => (
                     <li
-                      key={`${column.title}-${link.href}-${link.label}`}
+                      key={`${column.title}-${link.href}`}
                     >
                       <Link
                         href={link.href}
@@ -163,7 +193,9 @@ export default async function Footer({ lang }: FooterProps) {
           </div>
 
           <div className="mt-12 flex flex-col items-center gap-3">
-            <p className="text-sm text-neutral-400">{t.followUs}</p>
+            <p className="text-sm text-neutral-400">
+              {t.followUs}
+            </p>
 
             <div className="flex items-center justify-center gap-6">
               {social.map((item) => (
@@ -172,9 +204,9 @@ export default async function Footer({ lang }: FooterProps) {
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={item.name}
                   className="text-neutral-400 transition-colors hover:text-yellow-500"
                 >
-                  <span className="sr-only">{item.name}</span>
                   <item.icon
                     aria-hidden="true"
                     className="size-6"
@@ -186,7 +218,10 @@ export default async function Footer({ lang }: FooterProps) {
         </div>
 
         <div className="py-8 text-center md:text-left">
-          <p className="text-sm text-neutral-400">{copyright}</p>
+          <p className="text-sm text-neutral-400">
+            {copyright}
+          </p>
+
           <p className="mt-1 text-xs text-neutral-500">
             {t.prodused}
           </p>

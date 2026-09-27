@@ -2,21 +2,330 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useSignIn, useSignUp } from "@clerk/nextjs";
 import {
   useParams,
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import type { Locale } from "@/app/lib/locale";
 
+import type { Locale } from "@/app/lib/locale";
 import { AuthTabs } from "@/app/components/auth/AuthTabs";
 import { AuthAlert } from "@/app/components/auth/AuthAlert";
 import PasswordField from "@/app/components/auth/PasswordField";
 import type { AuthMessages } from "@/app/components/auth/types";
 
+type Mode = "login" | "register";
 type Strength = "weak" | "medium" | "strong";
+type SupportedLocale = "en" | "ru" | "uk" | "et" | "fi";
+
+type LocalizedAuthText = {
+  incorrectCredentials: string;
+  accountNotFound: string;
+  emailAlreadyUsed: string;
+  invalidEmail: string;
+  emailRequired: string;
+  passwordRequired: string;
+  confirmPasswordRequired: string;
+  passwordTooWeak: string;
+  passwordCompromised: string;
+  passwordMatchesEmail: string;
+  tooManyAttempts: string;
+  incorrectCode: string;
+  verificationExpired: string;
+  captchaFailed: string;
+  alreadySignedIn: string;
+  loading: string;
+};
+
+const AUTH_TEXT: Record<
+  SupportedLocale,
+  LocalizedAuthText
+> = {
+  en: {
+    incorrectCredentials:
+      "Incorrect email address or password.",
+    accountNotFound:
+      "No account was found with this email address.",
+    emailAlreadyUsed:
+      "This email address is already in use.",
+    invalidEmail:
+      "Enter a valid email address.",
+    emailRequired:
+      "Enter your email address.",
+    passwordRequired:
+      "Enter your password.",
+    confirmPasswordRequired:
+      "Confirm your password.",
+    passwordTooWeak:
+      "The password does not meet the security requirements.",
+    passwordCompromised:
+      "This password was found in a data breach. Choose another password.",
+    passwordMatchesEmail:
+      "The password must not match your email address.",
+    tooManyAttempts:
+      "Too many attempts. Please wait and try again.",
+    incorrectCode:
+      "The verification code is incorrect.",
+    verificationExpired:
+      "The verification link has expired. Request a new one.",
+    captchaFailed:
+      "Verification failed. Please complete the CAPTCHA and try again.",
+    alreadySignedIn:
+      "You are already signed in.",
+    loading:
+      "Please wait…",
+  },
+
+  ru: {
+    incorrectCredentials:
+      "Неверный адрес электронной почты или пароль.",
+    accountNotFound:
+      "Аккаунт с таким адресом электронной почты не найден.",
+    emailAlreadyUsed:
+      "Этот адрес электронной почты уже используется.",
+    invalidEmail:
+      "Введите корректный адрес электронной почты.",
+    emailRequired:
+      "Введите адрес электронной почты.",
+    passwordRequired:
+      "Введите пароль.",
+    confirmPasswordRequired:
+      "Подтвердите пароль.",
+    passwordTooWeak:
+      "Пароль не соответствует требованиям безопасности.",
+    passwordCompromised:
+      "Этот пароль обнаружен в утечке данных. Выберите другой пароль.",
+    passwordMatchesEmail:
+      "Пароль не должен совпадать с адресом электронной почты.",
+    tooManyAttempts:
+      "Слишком много попыток. Подождите немного и попробуйте снова.",
+    incorrectCode:
+      "Неверный код подтверждения.",
+    verificationExpired:
+      "Срок действия ссылки подтверждения истёк. Запросите новую ссылку.",
+    captchaFailed:
+      "Проверка не пройдена. Пройдите CAPTCHA и попробуйте снова.",
+    alreadySignedIn:
+      "Вы уже вошли в аккаунт.",
+    loading:
+      "Подождите…",
+  },
+
+  uk: {
+    incorrectCredentials:
+      "Неправильна електронна адреса або пароль.",
+    accountNotFound:
+      "Обліковий запис із такою електронною адресою не знайдено.",
+    emailAlreadyUsed:
+      "Ця електронна адреса вже використовується.",
+    invalidEmail:
+      "Введіть правильну адресу електронної пошти.",
+    emailRequired:
+      "Введіть адресу електронної пошти.",
+    passwordRequired:
+      "Введіть пароль.",
+    confirmPasswordRequired:
+      "Підтвердьте пароль.",
+    passwordTooWeak:
+      "Пароль не відповідає вимогам безпеки.",
+    passwordCompromised:
+      "Цей пароль було виявлено у витоку даних. Виберіть інший пароль.",
+    passwordMatchesEmail:
+      "Пароль не повинен збігатися з адресою електронної пошти.",
+    tooManyAttempts:
+      "Забагато спроб. Зачекайте трохи та спробуйте ще раз.",
+    incorrectCode:
+      "Неправильний код підтвердження.",
+    verificationExpired:
+      "Термін дії посилання для підтвердження минув. Запросіть нове.",
+    captchaFailed:
+      "Перевірку не пройдено. Пройдіть CAPTCHA та спробуйте ще раз.",
+    alreadySignedIn:
+      "Ви вже увійшли до облікового запису.",
+    loading:
+      "Зачекайте…",
+  },
+
+  et: {
+    incorrectCredentials:
+      "E-posti aadress või parool on vale.",
+    accountNotFound:
+      "Selle e-posti aadressiga kontot ei leitud.",
+    emailAlreadyUsed:
+      "See e-posti aadress on juba kasutusel.",
+    invalidEmail:
+      "Sisesta korrektne e-posti aadress.",
+    emailRequired:
+      "Sisesta oma e-posti aadress.",
+    passwordRequired:
+      "Sisesta parool.",
+    confirmPasswordRequired:
+      "Kinnita parool.",
+    passwordTooWeak:
+      "Parool ei vasta turvanõuetele.",
+    passwordCompromised:
+      "See parool on leitud andmelekkest. Vali teine parool.",
+    passwordMatchesEmail:
+      "Parool ei tohi olla sama mis sinu e-posti aadress.",
+    tooManyAttempts:
+      "Liiga palju katseid. Oota veidi ja proovi uuesti.",
+    incorrectCode:
+      "Kinnituskood on vale.",
+    verificationExpired:
+      "Kinnituslink on aegunud. Taotle uus link.",
+    captchaFailed:
+      "Kontroll ebaõnnestus. Läbi CAPTCHA ja proovi uuesti.",
+    alreadySignedIn:
+      "Oled juba sisse logitud.",
+    loading:
+      "Palun oota…",
+  },
+
+  fi: {
+    incorrectCredentials:
+      "Sähköpostiosoite tai salasana on virheellinen.",
+    accountNotFound:
+      "Tällä sähköpostiosoitteella ei löytynyt käyttäjätiliä.",
+    emailAlreadyUsed:
+      "Tämä sähköpostiosoite on jo käytössä.",
+    invalidEmail:
+      "Anna kelvollinen sähköpostiosoite.",
+    emailRequired:
+      "Anna sähköpostiosoitteesi.",
+    passwordRequired:
+      "Anna salasanasi.",
+    confirmPasswordRequired:
+      "Vahvista salasana.",
+    passwordTooWeak:
+      "Salasana ei täytä turvallisuusvaatimuksia.",
+    passwordCompromised:
+      "Tämä salasana on löytynyt tietovuodosta. Valitse toinen salasana.",
+    passwordMatchesEmail:
+      "Salasana ei saa olla sama kuin sähköpostiosoitteesi.",
+    tooManyAttempts:
+      "Liian monta yritystä. Odota hetki ja yritä uudelleen.",
+    incorrectCode:
+      "Vahvistuskoodi on virheellinen.",
+    verificationExpired:
+      "Vahvistuslinkki on vanhentunut. Pyydä uusi linkki.",
+    captchaFailed:
+      "Vahvistus epäonnistui. Suorita CAPTCHA ja yritä uudelleen.",
+    alreadySignedIn:
+      "Olet jo kirjautunut sisään.",
+    loading:
+      "Odota…",
+  },
+};
+
+type ClerkErrorShape = {
+  errors?: Array<{
+    code?: string;
+    message?: string;
+    longMessage?: string;
+  }>;
+  message?: string;
+};
+
+function isSupportedLocale(
+  value: string,
+): value is SupportedLocale {
+  return ["en", "ru", "uk", "et", "fi"].includes(
+    value,
+  );
+}
+
+function getAuthText(
+  locale: Locale,
+): LocalizedAuthText {
+  return isSupportedLocale(locale)
+    ? AUTH_TEXT[locale]
+    : AUTH_TEXT.en;
+}
+
+function getClerkErrorCode(
+  error: unknown,
+): string {
+  if (!error || typeof error !== "object") {
+    return "";
+  }
+
+  const clerkError = error as ClerkErrorShape;
+
+  return clerkError.errors?.[0]?.code ?? "";
+}
+
+function getLocalizedErrorMessage(
+  error: unknown,
+  locale: Locale,
+  mode: Mode,
+  fallback: string,
+): string {
+  const code = getClerkErrorCode(error);
+  const text = getAuthText(locale);
+
+  switch (code) {
+    case "form_password_incorrect":
+    case "form_password_or_identifier_incorrect":
+      return text.incorrectCredentials;
+
+    case "form_identifier_not_found":
+      return text.accountNotFound;
+
+    case "form_identifier_exists":
+    case "form_already_exists":
+      return text.emailAlreadyUsed;
+
+    case "form_param_format_invalid":
+    case "form_param_invalid":
+    case "form_identifier_invalid":
+      return text.invalidEmail;
+
+    case "form_password_length_too_short":
+    case "form_password_size_in_bytes_exceeded":
+    case "form_password_validation_failed":
+      return mode === "login"
+        ? text.incorrectCredentials
+        : text.passwordTooWeak;
+
+    case "form_password_pwned":
+    case "form_password_compromised":
+      return text.passwordCompromised;
+
+    case "form_password_matches_identifier":
+      return text.passwordMatchesEmail;
+
+    case "form_code_incorrect":
+      return text.incorrectCode;
+
+    case "verification_expired":
+    case "form_code_expired":
+      return text.verificationExpired;
+
+    case "too_many_requests":
+    case "rate_limit_exceeded":
+    case "session_rate_limit_exceeded":
+      return text.tooManyAttempts;
+
+    case "captcha_invalid":
+    case "captcha_expired":
+    case "captcha_failed":
+      return text.captchaFailed;
+
+    case "session_exists":
+      return text.alreadySignedIn;
+
+    default:
+      return fallback;
+  }
+}
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+    value,
+  );
+}
 
 function getPasswordStrength(
   password: string,
@@ -25,10 +334,10 @@ function getPasswordStrength(
     return null;
   }
 
-  const hasLetter = /[A-Za-zА-Яа-я]/.test(password);
-  const hasDigit = /\d/.test(password);
+  const hasLetter = /\p{L}/u.test(password);
+  const hasDigit = /\p{N}/u.test(password);
   const hasSpecial =
-    /[^A-Za-zА-Яа-я0-9]/.test(password);
+    /[^\p{L}\p{N}]/u.test(password);
 
   if (
     password.length < 6 ||
@@ -68,19 +377,22 @@ function strengthMeta(
   switch (strength) {
     case "weak":
       return {
-        label: messages.passwordStrengthWeak,
+        label:
+          messages.passwordStrengthWeak,
         className: "text-red-500",
       };
 
     case "medium":
       return {
-        label: messages.passwordStrengthMedium,
+        label:
+          messages.passwordStrengthMedium,
         className: "text-yellow-400",
       };
 
     case "strong":
       return {
-        label: messages.passwordStrengthStrong,
+        label:
+          messages.passwordStrengthStrong,
         className: "text-green-500",
       };
 
@@ -90,28 +402,6 @@ function strengthMeta(
         className: "",
       };
   }
-}
-
-type ClerkErrorShape = {
-  errors?: {
-    longMessage?: string;
-    message?: string;
-  }[];
-  message?: string;
-};
-
-function getErrorMessage(
-  error: unknown,
-  fallback: string,
-): string {
-  const clerkError = error as ClerkErrorShape;
-
-  return (
-    clerkError?.errors?.[0]?.longMessage ||
-    clerkError?.errors?.[0]?.message ||
-    clerkError?.message ||
-    fallback
-  );
 }
 
 export default function LoginRegisterForm({
@@ -131,7 +421,11 @@ export default function LoginRegisterForm({
       : langFromParams
   ) as Locale | undefined;
 
-  const effectiveLang = (lang || "en") as Locale;
+  const effectiveLang =
+    (lang || "en") as Locale;
+
+  const localizedText =
+    getAuthText(effectiveLang);
 
   const emailVerified =
     searchParams.get("verified") === "1"
@@ -139,31 +433,43 @@ export default function LoginRegisterForm({
       : null;
 
   const emailVerificationFailed =
-    searchParams.get("verification") === "failed"
+    searchParams.get("verification") ===
+    "failed"
       ? messages.emailVerificationFailed
       : null;
 
-  const [mode, setMode] = useState<
-    "login" | "register"
-  >("login");
+  const [mode, setMode] =
+    useState<Mode>("login");
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
+
   const [
     confirmPassword,
     setConfirmPassword,
   ] = useState("");
-  const [showPassword, setShowPassword] =
-    useState(false);
+
+  const [
+    showPassword,
+    setShowPassword,
+  ] = useState(false);
+
   const [
     passwordStrength,
     setPasswordStrength,
   ] = useState<Strength | null>(null);
+
   const [error, setError] =
     useState<string | null>(null);
+
   const [success, setSuccess] =
     useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+
+  const [loading, setLoading] =
+    useState(false);
 
   const {
     isLoaded: signInLoaded,
@@ -179,7 +485,10 @@ export default function LoginRegisterForm({
   const {
     label: strengthLabel,
     className: strengthClass,
-  } = strengthMeta(passwordStrength, messages);
+  } = strengthMeta(
+    passwordStrength,
+    messages,
+  );
 
   function resetPasswords() {
     setPassword("");
@@ -188,37 +497,40 @@ export default function LoginRegisterForm({
     setShowPassword(false);
   }
 
+  function clearMessages() {
+    if (error) {
+      setError(null);
+    }
+
+    if (success) {
+      setSuccess(null);
+    }
+  }
+
   async function handleRegister() {
-    const strength =
-      getPasswordStrength(password);
-
-    if (strength === "weak") {
-      setError(messages.weakPassword);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError(messages.passwordsDontMatch);
-      return;
-    }
-
     if (!signUpLoaded || !signUp) {
-      return;
+      throw new Error(
+        "Clerk sign-up is not ready",
+      );
     }
+
+    const normalizedEmail = email.trim();
 
     const { startEmailLinkFlow } =
       signUp.createEmailLinkFlow();
 
     await signUp.create({
-      emailAddress: email,
+      emailAddress: normalizedEmail,
       password,
     });
 
     const verificationPromise =
       startEmailLinkFlow({
-        redirectUrl: `${window.location.origin}/${effectiveLang}/verify-email`,
+        redirectUrl:
+          `${window.location.origin}/${effectiveLang}/verify-email`,
       });
 
+    setEmail(normalizedEmail);
     resetPasswords();
     setMode("login");
     setSuccess(messages.accountCreated);
@@ -228,8 +540,10 @@ export default function LoginRegisterForm({
         setSuccess(null);
 
         setError(
-          getErrorMessage(
+          getLocalizedErrorMessage(
             verificationError,
+            effectiveLang,
+            "register",
             messages.somethingWentWrong,
           ),
         );
@@ -243,16 +557,20 @@ export default function LoginRegisterForm({
       !signIn ||
       !setActive
     ) {
-      return;
+      throw new Error(
+        "Clerk sign-in is not ready",
+      );
     }
 
     const result = await signIn.create({
-      identifier: email,
+      identifier: email.trim(),
       password,
     });
 
     if (result.status !== "complete") {
-      setError(messages.signInFlowIncomplete);
+      setError(
+        messages.signInFlowIncomplete,
+      );
       return;
     }
 
@@ -265,13 +583,59 @@ export default function LoginRegisterForm({
   }
 
   async function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>,
+    event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
 
-    setLoading(true);
     setError(null);
     setSuccess(null);
+
+    const normalizedEmail = email.trim();
+
+    if (!normalizedEmail) {
+      setError(
+        localizedText.emailRequired,
+      );
+      return;
+    }
+
+    if (!isValidEmail(normalizedEmail)) {
+      setError(localizedText.invalidEmail);
+      return;
+    }
+
+    if (!password) {
+      setError(
+        localizedText.passwordRequired,
+      );
+      return;
+    }
+
+    if (mode === "register") {
+      if (!confirmPassword) {
+        setError(
+          localizedText.confirmPasswordRequired,
+        );
+        return;
+      }
+
+      const strength =
+        getPasswordStrength(password);
+
+      if (strength === "weak") {
+        setError(messages.weakPassword);
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        setError(
+          messages.passwordsDontMatch,
+        );
+        return;
+      }
+    }
+
+    setLoading(true);
 
     try {
       if (mode === "register") {
@@ -281,8 +645,10 @@ export default function LoginRegisterForm({
       }
     } catch (submitError: unknown) {
       setError(
-        getErrorMessage(
+        getLocalizedErrorMessage(
           submitError,
+          effectiveLang,
+          mode,
           messages.somethingWentWrong,
         ),
       );
@@ -292,7 +658,7 @@ export default function LoginRegisterForm({
   }
 
   function handleModeChange(
-    nextMode: "login" | "register",
+    nextMode: Mode,
   ) {
     setMode(nextMode);
     setError(null);
@@ -304,8 +670,10 @@ export default function LoginRegisterForm({
       searchParams.has("verification")
     ) {
       router.replace(
-        `/${effectiveLang}/login`,
-        { scroll: false },
+        `/${effectiveLang}/account`,
+        {
+          scroll: false,
+        },
       );
     }
   }
@@ -326,6 +694,7 @@ export default function LoginRegisterForm({
       </p>
 
       <form
+        noValidate
         onSubmit={handleSubmit}
         className="mt-6 space-y-6"
       >
@@ -345,9 +714,10 @@ export default function LoginRegisterForm({
               required
               autoComplete="email"
               value={email}
-              onChange={(event) =>
-                setEmail(event.target.value)
-              }
+              onChange={(event) => {
+                setEmail(event.target.value);
+                clearMessages();
+              }}
               className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
             />
           </div>
@@ -360,9 +730,12 @@ export default function LoginRegisterForm({
           value={password}
           onChange={(value) => {
             setPassword(value);
+
             setPasswordStrength(
               getPasswordStrength(value),
             );
+
+            clearMessages();
           }}
           showPassword={showPassword}
           onToggleShow={() =>
@@ -403,9 +776,14 @@ export default function LoginRegisterForm({
           <PasswordField
             id="confirm-password"
             name="confirm-password"
-            label={messages.confirmPassword}
+            label={
+              messages.confirmPassword
+            }
             value={confirmPassword}
-            onChange={setConfirmPassword}
+            onChange={(value) => {
+              setConfirmPassword(value);
+              clearMessages();
+            }}
             showPassword={showPassword}
             onToggleShow={() =>
               setShowPassword(
@@ -424,7 +802,8 @@ export default function LoginRegisterForm({
 
         <AuthAlert
           error={
-            error || emailVerificationFailed
+            error ||
+            emailVerificationFailed
           }
           success={
             success || emailVerified
@@ -438,7 +817,7 @@ export default function LoginRegisterForm({
             className="flex w-full items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading
-              ? "..."
+              ? localizedText.loading
               : mode === "login"
                 ? messages.submitSignIn
                 : messages.submitSignUp}

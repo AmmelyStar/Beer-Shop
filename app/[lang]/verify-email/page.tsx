@@ -1,9 +1,23 @@
+// app/[lang]/verify-email/page.tsx
+
 "use client";
 
 import { useEffect, useRef } from "react";
 import { useClerk } from "@clerk/nextjs";
-import { useParams, useRouter } from "next/navigation";
+import {
+  useParams,
+  useRouter,
+} from "next/navigation";
+
 import type { Locale } from "@/app/lib/locale";
+
+const VERIFYING_TEXT: Record<Locale, string> = {
+  en: "Verifying your email…",
+  ru: "Подтверждаем вашу электронную почту…",
+  uk: "Підтверджуємо вашу електронну пошту…",
+  et: "Kinnitame teie e-posti aadressi…",
+  fi: "Vahvistetaan sähköpostiosoitettasi…",
+};
 
 export default function VerifyEmailPage() {
   const router = useRouter();
@@ -23,7 +37,7 @@ export default function VerifyEmailPage() {
       : langParam
   ) as Locale | undefined;
 
-  const effectiveLang = lang || "en";
+  const effectiveLang: Locale = lang || "en";
 
   useEffect(() => {
     if (!loaded || started.current) {
@@ -32,8 +46,11 @@ export default function VerifyEmailPage() {
 
     started.current = true;
 
+    const successUrl =
+      `${window.location.origin}/${effectiveLang}/account?verified=1`;
+
     void handleEmailLinkVerification({
-      redirectUrl: `${window.location.origin}/${effectiveLang}/account`,
+      redirectUrl: successUrl,
     })
       .then(() => {
         router.replace(
@@ -54,8 +71,13 @@ export default function VerifyEmailPage() {
 
   return (
     <main className="flex min-h-[60vh] items-center justify-center px-6">
-      <p className="text-center text-base text-gray-300">
-        Verifying your email…
+      <p
+        role="status"
+        aria-live="polite"
+        className="text-center text-base text-gray-300"
+      >
+        {VERIFYING_TEXT[effectiveLang] ??
+          VERIFYING_TEXT.en}
       </p>
     </main>
   );
