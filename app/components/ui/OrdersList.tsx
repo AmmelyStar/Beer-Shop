@@ -1,4 +1,4 @@
-// app/components/OrdersList.tsx
+// app/components/ui/OrdersList.tsx
 
 "use client";
 
@@ -57,7 +57,13 @@ export type OrderForUi = {
   datetime: string;
   total: string;
   products: OrderProduct[];
+
   statusUrl?: string | null;
+
+  trackingCompany?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  shipmentStatus?: string | null;
 };
 
 type OrdersListProps = {
@@ -66,21 +72,80 @@ type OrdersListProps = {
   orders: OrderForUi[];
 };
 
+type TrackingTranslations = {
+  title: string;
+  trackingNumber: string;
+  carrier: string;
+  trackOrder: string;
+};
+
+const TRACKING_TRANSLATIONS: Record<
+  Locale,
+  TrackingTranslations
+> = {
+  en: {
+    title: "Shipment tracking",
+    trackingNumber: "Tracking number",
+    carrier: "Carrier",
+    trackOrder: "Track order",
+  },
+
+  ru: {
+    title: "Отслеживание доставки",
+    trackingNumber: "Номер отправления",
+    carrier: "Перевозчик",
+    trackOrder: "Отследить заказ",
+  },
+
+  uk: {
+    title: "Відстеження доставки",
+    trackingNumber: "Номер відправлення",
+    carrier: "Перевізник",
+    trackOrder: "Відстежити замовлення",
+  },
+
+  et: {
+    title: "Saadetise jälgimine",
+    trackingNumber: "Jälgimisnumber",
+    carrier: "Vedaja",
+    trackOrder: "Jälgi tellimust",
+  },
+
+  fi: {
+    title: "Lähetyksen seuranta",
+    trackingNumber: "Seurantanumero",
+    carrier: "Kuljetusyhtiö",
+    trackOrder: "Seuraa tilausta",
+  },
+};
+
 export default function OrdersList({
   messages,
   lang,
   orders,
 }: OrdersListProps) {
-  const [openOrderNumber, setOpenOrderNumber] =
-    useState<string | null>(null);
+  const [
+    openOrderNumber,
+    setOpenOrderNumber,
+  ] = useState<string | null>(null);
 
-  const toggleOrder = (number: string) => {
-    setOpenOrderNumber((current) =>
-      current === number ? null : number,
+  const trackingTexts =
+    TRACKING_TRANSLATIONS[lang] ??
+    TRACKING_TRANSLATIONS.en;
+
+  const toggleOrder = (
+    number: string,
+  ) => {
+    setOpenOrderNumber(
+      (current) =>
+        current === number
+          ? null
+          : number,
     );
   };
 
-  const hasOrders = orders.length > 0;
+  const hasOrders =
+    orders.length > 0;
 
   return (
     <main className="mt-10 space-y-6 lg:col-span-8 lg:mt-0">
@@ -114,7 +179,7 @@ export default function OrdersList({
 
               <Link
                 href={`/${lang}/shop`}
-                className="relative mt-10 flex w-fit items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
+                className="relative mt-10 flex w-fit items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
               >
                 {messages.emptyCta}
               </Link>
@@ -123,43 +188,67 @@ export default function OrdersList({
             <div className="space-y-6">
               {orders.map((order) => {
                 const isOpen =
-                  openOrderNumber === order.number;
+                  openOrderNumber ===
+                  order.number;
+
+                const hasTracking =
+                  Boolean(
+                    order.trackingNumber ||
+                      order.trackingUrl ||
+                      order.trackingCompany,
+                  );
 
                 const safeOrderNumber =
                   order.number.replace(
                     /[^a-zA-Z0-9_-]/g,
                     "",
-                  );
+                  ) || "order";
 
                 const detailsId =
                   `order-${safeOrderNumber}-details`;
 
                 return (
-                  <div key={order.number}>
+                  <article
+                    key={order.number}
+                  >
                     <h3 className="sr-only">
-                      {messages.orderPlacedOnSrOnly}{" "}
-                      <time dateTime={order.datetime}>
+                      {
+                        messages.orderPlacedOnSrOnly
+                      }{" "}
+                      <time
+                        dateTime={
+                          order.datetime
+                        }
+                      >
                         {order.date}
                       </time>
                     </h3>
 
-                    <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-6 text-sm text-gray-200 sm:flex sm:items-center sm:justify-between sm:space-x-6 sm:px-6">
-                      <dl className="flex-auto divide-y divide-gray-200 text-sm text-gray-600 sm:grid sm:grid-cols-3 sm:gap-x-6 sm:divide-y-0 lg:w-1/2 lg:flex-none lg:gap-x-8">
-                        <div className="max-sm:flex max-sm:justify-between max-sm:py-6 max-sm:first:pt-0 max-sm:last:pb-0">
+                    <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-6 text-sm text-gray-200 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:px-6">
+                      <dl className="flex-auto divide-y divide-gray-700 text-sm sm:grid sm:grid-cols-2 sm:gap-x-6 sm:divide-y-0 lg:w-1/2 lg:flex-none lg:gap-x-8">
+                        <div className="flex justify-between py-4 sm:block sm:py-0">
                           <dt className="font-medium text-gray-400">
-                            {messages.datePlaced}
+                            {
+                              messages.datePlaced
+                            }
                           </dt>
 
                           <dd className="text-white sm:mt-1">
-                            <time dateTime={order.datetime}>
+                            <time
+                              dateTime={
+                                order.datetime
+                              }
+                            >
                               {order.date}
                             </time>
                           </dd>
                         </div>
 
-                        <div className="max-sm:flex max-sm:justify-between max-sm:py-6 max-sm:first:pt-0 max-sm:last:pb-0">
+                        <div className="flex justify-between py-4 sm:block sm:py-0">
                           <dt className="font-medium text-gray-400">
-                            {messages.orderNumber}
+                            {
+                              messages.orderNumber
+                            }
                           </dt>
 
                           <dd className="text-white sm:mt-1">
@@ -168,133 +257,243 @@ export default function OrdersList({
                         </div>
                       </dl>
 
-                      <div className="flex items-center gap-6">
-                        <div className="text-right max-sm:flex max-sm:justify-between max-sm:py-6">
-                          <div>
-                            <p className="font-medium text-white">
-                              {messages.totalAmount}
-                            </p>
+                      <div className="mt-5 flex flex-col gap-3 sm:mt-0 sm:flex-row sm:items-center">
+                        <div className="flex justify-between sm:block sm:text-right">
+                          <p className="font-medium text-white">
+                            {
+                              messages.totalAmount
+                            }
+                          </p>
 
-                            <p className="font-medium text-yellow-400 sm:mt-1">
-                              {order.total}
-                            </p>
-                          </div>
+                          <p className="font-medium text-yellow-400 sm:mt-1">
+                            {order.total}
+                          </p>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            toggleOrder(order.number)
-                          }
-                          aria-expanded={isOpen}
-                          aria-controls={detailsId}
-                          className="mt-6 inline-flex shrink-0 items-center justify-center rounded-md border border-white/25 px-4 py-3 text-sm font-medium text-white hover:bg-white/10 sm:ml-8 sm:mt-0 lg:ml-0 lg:w-auto"
-                        >
-                          {isOpen
-                            ? messages.hideDetails
-                            : messages.viewDetails}
-                        </button>
+                        <div className="flex flex-wrap gap-2 sm:ml-4">
+                          {order.trackingUrl && (
+                            <a
+                              href={
+                                order.trackingUrl
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex shrink-0 items-center justify-center rounded-md bg-yellow-400 px-4 py-3 text-sm font-semibold text-black transition-colors hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-neutral-900"
+                            >
+                              {
+                                trackingTexts.trackOrder
+                              }
+                            </a>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              toggleOrder(
+                                order.number,
+                              )
+                            }
+                            aria-expanded={
+                              isOpen
+                            }
+                            aria-controls={
+                              detailsId
+                            }
+                            className="inline-flex shrink-0 items-center justify-center rounded-md border border-white/25 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30"
+                          >
+                            {isOpen
+                              ? messages.hideDetails
+                              : messages.viewDetails}
+                          </button>
+                        </div>
                       </div>
                     </div>
 
                     {isOpen && (
-                      <table
-                        id={detailsId}
-                        className="mt-4 w-full text-gray-400 sm:mt-6"
-                      >
-                        <caption className="sr-only">
-                          {messages.productsSrOnly}
-                        </caption>
+                      <div id={detailsId}>
+                        {hasTracking && (
+                          <section className="mt-4 rounded-xl border border-yellow-400/30 bg-yellow-400/5 p-5 sm:mt-6">
+                            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                              <div>
+                                <h4 className="font-semibold text-white">
+                                  {
+                                    trackingTexts.title
+                                  }
+                                </h4>
 
-                        <thead className="sr-only text-left text-sm text-gray-400 sm:not-sr-only">
-                          <tr>
-                            <th
-                              scope="col"
-                              className="py-3 pr-8 font-normal sm:w-2/5 lg:w-1/3"
-                            >
-                              {messages.productHeader}
-                            </th>
+                                <dl className="mt-4 space-y-3 text-sm">
+                                  {order.trackingNumber && (
+                                    <div>
+                                      <dt className="text-gray-400">
+                                        {
+                                          trackingTexts.trackingNumber
+                                        }
+                                      </dt>
 
-                            <th
-                              scope="col"
-                              className="hidden w-1/5 py-3 pr-8 font-normal sm:table-cell"
-                            >
-                              {messages.priceHeader}
-                            </th>
-
-                            <th
-                              scope="col"
-                              className="hidden py-3 pr-8 font-normal sm:table-cell"
-                            >
-                              {messages.statusHeader}
-                            </th>
-
-                            <th
-                              scope="col"
-                              className="w-0 py-3 text-right font-normal"
-                            >
-                              {messages.infoHeader}
-                            </th>
-                          </tr>
-                        </thead>
-
-                        <tbody className="divide-y divide-gray-500 border-b border-gray-500 text-sm sm:border-t">
-                          {order.products.map((product) => (
-                            <tr key={product.id}>
-                              <td className="py-6 pr-8">
-                                <div className="flex items-center">
-                                  <div className="relative mr-6 size-16 shrink-0 overflow-hidden rounded-lg bg-stone-600">
-                                    <Image
-                                      src={product.imageSrc}
-                                      alt={product.imageAlt}
-                                      fill
-                                      sizes="64px"
-                                      className="object-contain p-2"
-                                    />
-                                  </div>
-
-                                  <div>
-                                    <div className="font-medium text-white">
-                                      {product.name}
+                                      <dd className="mt-1 break-all font-medium text-white">
+                                        {
+                                          order.trackingNumber
+                                        }
+                                      </dd>
                                     </div>
+                                  )}
 
-                                    <div className="mt-1 sm:hidden">
-                                      {product.price}
+                                  {order.trackingCompany && (
+                                    <div>
+                                      <dt className="text-gray-400">
+                                        {
+                                          trackingTexts.carrier
+                                        }
+                                      </dt>
+
+                                      <dd className="mt-1 font-medium text-white">
+                                        {
+                                          order.trackingCompany
+                                        }
+                                      </dd>
                                     </div>
+                                  )}
+                                </dl>
+                              </div>
 
-                                    <div className="mt-1 text-xs text-gray-500 sm:hidden">
-                                      {product.status}
-                                    </div>
-                                  </div>
-                                </div>
-                              </td>
-
-                              <td className="hidden py-6 pr-8 sm:table-cell">
-                                {product.price}
-                              </td>
-
-                              <td className="hidden py-6 pr-8 sm:table-cell">
-                                {product.status}
-                              </td>
-
-                              <td className="whitespace-nowrap py-6 text-right font-medium">
-                                <Link
-                                  href={product.href}
-                                  className="text-yellow-400 transition-colors duration-200 hover:text-white focus:text-white"
+                              {order.trackingUrl && (
+                                <a
+                                  href={
+                                    order.trackingUrl
+                                  }
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex w-full items-center justify-center rounded-md bg-yellow-400 px-5 py-3 text-sm font-semibold text-black transition-colors hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-neutral-900 sm:w-auto"
                                 >
-                                  {messages.viewProduct}
+                                  {
+                                    trackingTexts.trackOrder
+                                  }
+                                </a>
+                              )}
+                            </div>
+                          </section>
+                        )}
 
-                                  <span className="sr-only">
-                                    , {product.name}
-                                  </span>
-                                </Link>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                        <div className="mt-4 overflow-x-auto sm:mt-6">
+                          <table className="w-full min-w-[640px] text-gray-400">
+                            <caption className="sr-only">
+                              {
+                                messages.productsSrOnly
+                              }
+                            </caption>
+
+                            <thead className="text-left text-sm text-gray-400">
+                              <tr>
+                                <th
+                                  scope="col"
+                                  className="py-3 pr-8 font-normal sm:w-2/5 lg:w-1/3"
+                                >
+                                  {
+                                    messages.productHeader
+                                  }
+                                </th>
+
+                                <th
+                                  scope="col"
+                                  className="w-1/5 py-3 pr-8 font-normal"
+                                >
+                                  {
+                                    messages.priceHeader
+                                  }
+                                </th>
+
+                                <th
+                                  scope="col"
+                                  className="py-3 pr-8 font-normal"
+                                >
+                                  {
+                                    messages.statusHeader
+                                  }
+                                </th>
+
+                                <th
+                                  scope="col"
+                                  className="w-0 py-3 text-right font-normal"
+                                >
+                                  {
+                                    messages.infoHeader
+                                  }
+                                </th>
+                              </tr>
+                            </thead>
+
+                            <tbody className="divide-y divide-gray-500 border-y border-gray-500 text-sm">
+                              {order.products.map(
+                                (product) => (
+                                  <tr
+                                    key={
+                                      product.id
+                                    }
+                                  >
+                                    <td className="py-6 pr-8">
+                                      <div className="flex items-center">
+                                        <div className="relative mr-6 size-16 shrink-0 overflow-hidden rounded-lg bg-stone-600">
+                                          <Image
+                                            src={
+                                              product.imageSrc
+                                            }
+                                            alt={
+                                              product.imageAlt
+                                            }
+                                            fill
+                                            sizes="64px"
+                                            className="object-contain p-2"
+                                          />
+                                        </div>
+
+                                        <div className="font-medium text-white">
+                                          {
+                                            product.name
+                                          }
+                                        </div>
+                                      </div>
+                                    </td>
+
+                                    <td className="py-6 pr-8">
+                                      {
+                                        product.price
+                                      }
+                                    </td>
+
+                                    <td className="py-6 pr-8">
+                                      {
+                                        product.status
+                                      }
+                                    </td>
+
+                                    <td className="whitespace-nowrap py-6 text-right font-medium">
+                                      <Link
+                                        href={
+                                          product.href
+                                        }
+                                        className="text-yellow-400 transition-colors duration-200 hover:text-white focus:text-white"
+                                      >
+                                        {
+                                          messages.viewProduct
+                                        }
+
+                                        <span className="sr-only">
+                                          ,{" "}
+                                          {
+                                            product.name
+                                          }
+                                        </span>
+                                      </Link>
+                                    </td>
+                                  </tr>
+                                ),
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     )}
-                  </div>
+                  </article>
                 );
               })}
             </div>

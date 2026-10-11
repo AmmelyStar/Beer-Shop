@@ -1,7 +1,10 @@
 // app/api/account/orders/route.ts
 
 import { NextResponse } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import {
+  auth,
+  currentUser,
+} from "@clerk/nextjs/server";
 
 import { shopifyAdminRestFetch } from "@/app/lib/shopify/admin";
 import { getOrCreateShopifyCustomer } from "@/app/lib/shopify/customerAdmin";
@@ -42,6 +45,18 @@ type ShopifyLineItem = {
   variant_title: string | null;
 };
 
+type ShopifyFulfillment = {
+  id: number;
+  status: string | null;
+  shipment_status: string | null;
+  tracking_company: string | null;
+  tracking_number: string | null;
+  tracking_numbers?: string[];
+  tracking_url: string | null;
+  tracking_urls?: string[];
+  created_at?: string;
+};
+
 type ShopifyOrder = {
   id: number;
   name: string;
@@ -50,8 +65,12 @@ type ShopifyOrder = {
   financial_status: string;
   current_total_price: string;
   currency: string;
-  status_url: string | null;
+
+  // Правильное поле Shopify REST API
+  order_status_url: string | null;
+
   line_items: ShopifyLineItem[];
+  fulfillments: ShopifyFulfillment[];
 };
 
 type CustomerOrdersResponse = {
@@ -79,8 +98,77 @@ type OrderForUi = {
   totalPrice: string;
   currency: string;
   statusUrl: string | null;
+
+  trackingCompany: string | null;
+  trackingNumber: string | null;
+  trackingUrl: string | null;
+  shipmentStatus: string | null;
+
   lineItems: OrderLineItemForUi[];
 };
+
+type TrackingInformation = {
+  trackingCompany: string | null;
+  trackingNumber: string | null;
+  trackingUrl: string | null;
+  shipmentStatus: string | null;
+};
+
+function getTrackingInformation(
+  order: ShopifyOrder,
+): TrackingInformation {
+  const fulfillments = order.fulfillments ?? [];
+
+  /*
+   * У заказа может быть несколько отправлений.
+   * Берём последнее отправление, в котором есть
+   * номер или ссылка отслеживания.
+   */
+  const fulfillment = [...fulfillments]
+    .reverse()
+    .find((item) => {
+      const trackingNumber =
+        item.tracking_number ??
+        item.tracking_numbers?.[0] ??
+        null;
+
+      const trackingUrl =
+        item.tracking_url ??
+        item.tracking_urls?.[0] ??
+        null;
+
+      return Boolean(trackingNumber || trackingUrl);
+    });
+
+  if (!fulfillment) {
+    return {
+      trackingCompany: null,
+      trackingNumber: null,
+      trackingUrl: null,
+      shipmentStatus: null,
+    };
+  }
+
+  return {
+    trackingCompany:
+      fulfillment.tracking_company ?? null,
+
+    trackingNumber:
+      fulfillment.tracking_number ??
+      fulfillment.tracking_numbers?.[0] ??
+      null,
+
+    trackingUrl:
+      fulfillment.tracking_url ??
+      fulfillment.tracking_urls?.[0] ??
+      null,
+
+    shipmentStatus:
+      fulfillment.shipment_status ??
+      fulfillment.status ??
+      null,
+  };
+}
 
 async function getProductsForOrders(
   orders: ShopifyOrder[],
@@ -89,7 +177,9 @@ async function getProductsForOrders(
     new Set(
       orders
         .flatMap((order) =>
-          order.line_items.map((item) => item.product_id),
+          order.line_items.map(
+            (item) => item.product_id,
+          ),
         )
         .filter(
           (productId): productId is number =>
@@ -132,12 +222,15 @@ async function getProductsForOrders(
   const validProducts = productResults.filter(
     (
       product: ShopifyProduct | null,
-    ): product is ShopifyProduct => product !== null,
+    ): product is ShopifyProduct =>
+      product !== null,
   );
 
   return new Map<number, ShopifyProduct>(
     validProducts.map(
-      (product): [number, ShopifyProduct] => [
+      (
+        product,
+      ): [number, ShopifyProduct] => [
         product.id,
         product,
       ],
@@ -149,60 +242,94 @@ function mapOrders(
   orders: ShopifyOrder[],
   products: Map<number, ShopifyProduct>,
 ): OrderForUi[] {
-  return orders.map((order) => ({
-    id: order.id,
-    name: order.name,
-    createdAt: order.processed_at,
-    fulfillmentStatus: order.fulfillment_status,
-    financialStatus: order.financial_status,
-    totalPrice: order.current_total_price,
-    currency: order.currency,
-    statusUrl: order.status_url,
+  return orders.map((order) => {
+    const tracking =
+      getTrackingInformation(order);
 
-    lineItems: order.line_items.map((item) => {
-      const product =
-        item.product_id !== null
-          ? products.get(item.product_id)
-          : undefined;
+    return {
+      id: order.id,
+      name: order.name,
+      createdAt: order.processed_at,
+      fulfillmentStatus:
+        order.fulfillment_status,
+      financialStatus:
+        order.financial_status,
+      totalPrice:
+        order.current_total_price,
+      currency: order.currency,
+      statusUrl:
+        order.order_status_url ?? null,
 
-      const variant = product?.variants.find(
-        (productVariant) =>
-          productVariant.id === item.variant_id,
-      );
+      trackingCompany:
+        tracking.trackingCompany,
 
-      const variantImage =
-        variant?.image_id != null
-          ? product?.images.find(
-              (image) => image.id === variant.image_id,
-            )
-          : undefined;
+      trackingNumber:
+        tracking.trackingNumber,
 
-     const image =
-  variantImage ??
-  product?.image ??
-  product?.images?.[0] ??
-  null;
+      trackingUrl:
+        tracking.trackingUrl,
 
-      return {
-        id: item.id,
-        productId: item.product_id,
-        variantId: item.variant_id,
-        name:
-          item.name ||
-          product?.title ||
-          item.title,
-        quantity: item.quantity,
-        price: item.price,
-        handle: product?.handle ?? null,
-        imageSrc: image?.src ?? null,
-        imageAlt:
-          image?.alt ||
-          product?.title ||
-          item.title ||
-          item.name,
-      };
-    }),
-  }));
+      shipmentStatus:
+        tracking.shipmentStatus,
+
+      lineItems: order.line_items.map(
+        (item) => {
+          const product =
+            item.product_id !== null
+              ? products.get(item.product_id)
+              : undefined;
+
+          const variant =
+            product?.variants.find(
+              (productVariant) =>
+                productVariant.id ===
+                item.variant_id,
+            );
+
+          const variantImage =
+            variant?.image_id != null
+              ? product?.images.find(
+                  (image) =>
+                    image.id ===
+                    variant.image_id,
+                )
+              : undefined;
+
+          const image =
+            variantImage ??
+            product?.image ??
+            product?.images?.[0] ??
+            null;
+
+          return {
+            id: item.id,
+            productId: item.product_id,
+            variantId: item.variant_id,
+
+            name:
+              item.name ||
+              product?.title ||
+              item.title,
+
+            quantity: item.quantity,
+            price: item.price,
+
+            handle:
+              product?.handle ?? null,
+
+            imageSrc:
+              image?.src ?? null,
+
+            imageAlt:
+              image?.alt ||
+              product?.title ||
+              item.title ||
+              item.name,
+          };
+        },
+      ),
+    };
+  });
 }
 
 export async function GET() {
@@ -211,51 +338,85 @@ export async function GET() {
 
     if (!userId) {
       return NextResponse.json(
-        { error: "Not authenticated" },
-        { status: 401 },
+        {
+          error: "Not authenticated",
+        },
+        {
+          status: 401,
+        },
       );
     }
 
     const user = await currentUser();
-    const email = user?.primaryEmailAddress?.emailAddress;
+
+    const email =
+      user?.primaryEmailAddress?.emailAddress;
 
     if (!email) {
       return NextResponse.json(
-        { error: "User email not found" },
-        { status: 400 },
+        {
+          error: "User email not found",
+        },
+        {
+          status: 400,
+        },
       );
     }
 
-   const customerId =
-  await getOrCreateShopifyCustomer();
+    const customerId =
+      await getOrCreateShopifyCustomer();
 
-if (!customerId) {
-  return NextResponse.json(
-    { error: "Shopify customer not found" },
-    { status: 404 },
-  );
-}
+    if (!customerId) {
+      return NextResponse.json(
+        {
+          error: "Shopify customer not found",
+        },
+        {
+          status: 404,
+        },
+      );
+    }
 
     const ordersEndpoint =
       `customers/${customerId}/orders.json` +
       "?status=any" +
       "&limit=20" +
       "&order=processed_at%20desc" +
-      "&fields=id,name,processed_at,fulfillment_status,financial_status,current_total_price,currency,status_url,line_items";
+      "&fields=" +
+      [
+        "id",
+        "name",
+        "processed_at",
+        "fulfillment_status",
+        "financial_status",
+        "current_total_price",
+        "currency",
+        "order_status_url",
+        "line_items",
+        "fulfillments",
+      ].join(",");
 
     const ordersResponse =
       await shopifyAdminRestFetch<CustomerOrdersResponse>(
         ordersEndpoint,
       );
 
-    const orders = ordersResponse.orders ?? [];
-    const products = await getProductsForOrders(orders);
+    const orders =
+      ordersResponse.orders ?? [];
+
+    const products =
+      await getProductsForOrders(orders);
 
     return NextResponse.json(
       {
-        orders: mapOrders(orders, products),
+        orders: mapOrders(
+          orders,
+          products,
+        ),
       },
-      { status: 200 },
+      {
+        status: 200,
+      },
     );
   } catch (error: unknown) {
     console.error(
@@ -269,8 +430,12 @@ if (!customerId) {
     );
 
     return NextResponse.json(
-      { error: "Failed to load orders" },
-      { status: 500 },
+      {
+        error: "Failed to load orders",
+      },
+      {
+        status: 500,
+      },
     );
   }
 }

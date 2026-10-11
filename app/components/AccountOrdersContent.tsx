@@ -2,12 +2,22 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { useClerk, useUser } from "@clerk/nextjs";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useClerk,
+  useUser,
+} from "@clerk/nextjs";
+
 import { useParams } from "next/navigation";
 
 import type { Locale } from "@/app/lib/locale";
+
 import { AccountSidebar } from "@/app/components/ui/AccountSidebar";
+
 import OrdersList, {
   type AccountOrdersMessages,
   type OrderForUi,
@@ -49,6 +59,12 @@ type ApiOrder = {
   totalPrice: string;
   currency: string;
   statusUrl?: string | null;
+
+  trackingCompany?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  shipmentStatus?: string | null;
+
   lineItems: ApiLineItem[];
 };
 
@@ -57,7 +73,10 @@ type ApiResponse = {
   error?: string;
 };
 
-const localeByLanguage: Record<string, string> = {
+const localeByLanguage: Record<
+  Locale,
+  string
+> = {
   en: "en-GB",
   uk: "uk-UA",
   ru: "ru-RU",
@@ -73,20 +92,33 @@ function translateStatus(
     return messages.statusUnknown;
   }
 
-  const normalizedStatus = status.toLowerCase();
+  const normalizedStatus =
+    status.toLowerCase();
 
-  const statusTranslations: Record<string, string> = {
+  const statusTranslations: Record<
+    string,
+    string
+  > = {
     paid: messages.statusPaid,
     pending: messages.statusPending,
-    authorized: messages.statusAuthorized,
-    partially_paid: messages.statusPartiallyPaid,
-    refunded: messages.statusRefunded,
-    partially_refunded: messages.statusPartiallyRefunded,
-    voided: messages.statusVoided,
-    fulfilled: messages.statusFulfilled,
-    unfulfilled: messages.statusUnfulfilled,
-    partial: messages.statusPartiallyFulfilled,
-    partially_fulfilled: messages.statusPartiallyFulfilled,
+    authorized:
+      messages.statusAuthorized,
+    partially_paid:
+      messages.statusPartiallyPaid,
+    refunded:
+      messages.statusRefunded,
+    partially_refunded:
+      messages.statusPartiallyRefunded,
+    voided:
+      messages.statusVoided,
+    fulfilled:
+      messages.statusFulfilled,
+    unfulfilled:
+      messages.statusUnfulfilled,
+    partial:
+      messages.statusPartiallyFulfilled,
+    partially_fulfilled:
+      messages.statusPartiallyFulfilled,
   };
 
   return (
@@ -107,12 +139,15 @@ function formatMoney(
   }
 
   try {
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(numericAmount);
+    return new Intl.NumberFormat(
+      locale,
+      {
+        style: "currency",
+        currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      },
+    ).format(numericAmount);
   } catch {
     return `${amount} ${currency}`;
   }
@@ -128,28 +163,45 @@ function formatOrderDate(
     return value;
   }
 
-  return new Intl.DateTimeFormat(locale, {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(date);
+  return new Intl.DateTimeFormat(
+    locale,
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    },
+  ).format(date);
 }
 
 export default function AccountOrdersContent({
   accountMessages,
   ordersMessages,
 }: AccountOrdersContentProps) {
-  const { user, isLoaded } = useUser();
-  const { signOut } = useClerk();
+  const {
+    user,
+    isLoaded,
+  } = useUser();
+
+  const {
+    signOut,
+  } = useClerk();
+
   const params = useParams();
 
-  const [loadingLogout, setLoadingLogout] =
-    useState(false);
+  const [
+    loadingLogout,
+    setLoadingLogout,
+  ] = useState(false);
 
-  const [orders, setOrders] =
-    useState<OrderForUi[] | null>(null);
+  const [
+    orders,
+    setOrders,
+  ] = useState<OrderForUi[] | null>(
+    null,
+  );
 
-  const langFromParams = params?.lang;
+  const langFromParams =
+    params?.lang;
 
   const lang = (
     Array.isArray(langFromParams)
@@ -157,9 +209,12 @@ export default function AccountOrdersContent({
       : langFromParams
   ) as Locale | undefined;
 
-  const effectiveLang = (lang || "en") as Locale;
+  const effectiveLang: Locale =
+    lang || "en";
+
   const formattingLocale =
-    localeByLanguage[effectiveLang] ?? "en-GB";
+    localeByLanguage[effectiveLang] ??
+    "en-GB";
 
   const baseAccountPath =
     `/${effectiveLang}/account`;
@@ -167,15 +222,20 @@ export default function AccountOrdersContent({
   const navItems = [
     {
       href: baseAccountPath,
-      label: accountMessages.tabProfile,
+      label:
+        accountMessages.tabProfile,
     },
     {
-      href: `${baseAccountPath}/orders`,
-      label: accountMessages.tabOrders,
+      href:
+        `${baseAccountPath}/orders`,
+      label:
+        accountMessages.tabOrders,
     },
     {
-      href: `${baseAccountPath}/reviews`,
-      label: accountMessages.tabReviews,
+      href:
+        `${baseAccountPath}/reviews`,
+      label:
+        accountMessages.tabReviews,
     },
   ];
 
@@ -188,105 +248,151 @@ export default function AccountOrdersContent({
 
     let cancelled = false;
 
-    const loadOrders = async () => {
-      try {
-        const response = await fetch(
-          "/api/account/orders",
-          {
-            cache: "no-store",
-          },
-        );
+    const loadOrders =
+      async () => {
+        try {
+          const response =
+            await fetch(
+              "/api/account/orders",
+              {
+                cache: "no-store",
+              },
+            );
 
-        const data =
-          (await response.json()) as ApiResponse;
+          const data =
+            (await response.json()) as ApiResponse;
 
-        if (!response.ok) {
+          if (!response.ok) {
+            console.warn(
+              "Failed to load orders:",
+              data.error ??
+                response.statusText,
+            );
+
+            if (!cancelled) {
+              setOrders([]);
+            }
+
+            return;
+          }
+
+          const apiOrders =
+            data.orders ?? [];
+
+          const uiOrders: OrderForUi[] =
+            apiOrders.map(
+              (order) => {
+                const rawStatus =
+                  order.fulfillmentStatus ??
+                  order.financialStatus;
+
+                return {
+                  number:
+                    order.name,
+
+                  date:
+                    formatOrderDate(
+                      order.createdAt,
+                      formattingLocale,
+                    ),
+
+                  datetime:
+                    order.createdAt,
+
+                  total:
+                    formatMoney(
+                      order.totalPrice,
+                      order.currency,
+                      formattingLocale,
+                    ),
+
+                  statusUrl:
+                    order.statusUrl ??
+                    null,
+
+                  trackingCompany:
+                    order.trackingCompany ??
+                    null,
+
+                  trackingNumber:
+                    order.trackingNumber ??
+                    null,
+
+                  trackingUrl:
+                    order.trackingUrl ??
+                    null,
+
+                  shipmentStatus:
+                    order.shipmentStatus ??
+                    null,
+
+                  products:
+                    (
+                      order.lineItems ??
+                      []
+                    ).map(
+                      (
+                        lineItem,
+                      ) => ({
+                        id: String(
+                          lineItem.id,
+                        ),
+
+                        name:
+                          lineItem.quantity >
+                          1
+                            ? `${lineItem.name} × ${lineItem.quantity}`
+                            : lineItem.name,
+
+                        href:
+                          lineItem.handle
+                            ? `/${effectiveLang}/product/${lineItem.handle}`
+                            : `/${effectiveLang}/shop`,
+
+                        price:
+                          formatMoney(
+                            lineItem.price,
+                            order.currency,
+                            formattingLocale,
+                          ),
+
+                        status:
+                          translateStatus(
+                            rawStatus,
+                            ordersMessages,
+                          ),
+
+                        imageSrc:
+                          lineItem.imageSrc ??
+                          "/placeholder.png",
+
+                        imageAlt:
+                          lineItem.imageAlt ||
+                          lineItem.name,
+                      }),
+                    ),
+                };
+              },
+            );
+
+          if (!cancelled) {
+            setOrders(uiOrders);
+          }
+        } catch (
+          error: unknown
+        ) {
           console.warn(
-            "Failed to load orders:",
-            data.error ?? response.statusText,
+            "Orders load error:",
+            error instanceof Error
+              ? error.message
+              : String(error),
           );
 
           if (!cancelled) {
             setOrders([]);
           }
-
-          return;
         }
-
-        const apiOrders = data.orders ?? [];
-
-        const uiOrders: OrderForUi[] =
-          apiOrders.map((order) => {
-            const rawStatus =
-              order.fulfillmentStatus ??
-              order.financialStatus;
-
-            return {
-              number: order.name,
-              date: formatOrderDate(
-                order.createdAt,
-                formattingLocale,
-              ),
-              datetime: order.createdAt,
-              total: formatMoney(
-                order.totalPrice,
-                order.currency,
-                formattingLocale,
-              ),
-              statusUrl: order.statusUrl ?? null,
-
-              products: (order.lineItems ?? []).map(
-                (lineItem) => ({
-                  id: String(lineItem.id),
-
-                  name:
-                    lineItem.quantity > 1
-                      ? `${lineItem.name} × ${lineItem.quantity}`
-                      : lineItem.name,
-
-                  href: lineItem.handle
-  ? `/${effectiveLang}/product/${lineItem.handle}`
-  : `/${effectiveLang}/shop`,
-
-                  price: formatMoney(
-                    lineItem.price,
-                    order.currency,
-                    formattingLocale,
-                  ),
-
-                  status: translateStatus(
-                    rawStatus,
-                    ordersMessages,
-                  ),
-
-                  imageSrc:
-                    lineItem.imageSrc ??
-                    "/placeholder.png",
-
-                  imageAlt:
-                    lineItem.imageAlt ||
-                    lineItem.name,
-                }),
-              ),
-            };
-          });
-
-        if (!cancelled) {
-          setOrders(uiOrders);
-        }
-      } catch (error: unknown) {
-        console.warn(
-          "Orders load error:",
-          error instanceof Error
-            ? error.message
-            : String(error),
-        );
-
-        if (!cancelled) {
-          setOrders([]);
-        }
-      }
-    };
+      };
 
     void loadOrders();
 
@@ -300,24 +406,28 @@ export default function AccountOrdersContent({
     ordersMessages,
   ]);
 
-  const handleSignOut = async () => {
-    setLoadingLogout(true);
+  const handleSignOut =
+    async () => {
+      setLoadingLogout(true);
 
-    try {
-      await signOut({
-        redirectUrl: `/${effectiveLang}/account`,
-      });
-    } catch (error: unknown) {
-      console.error(
-        "Sign out error:",
-        error instanceof Error
-          ? error.message
-          : String(error),
-      );
+      try {
+        await signOut({
+          redirectUrl:
+            `/${effectiveLang}/account`,
+        });
+      } catch (
+        error: unknown
+      ) {
+        console.error(
+          "Sign out error:",
+          error instanceof Error
+            ? error.message
+            : String(error),
+        );
 
-      setLoadingLogout(false);
-    }
-  };
+        setLoadingLogout(false);
+      }
+    };
 
   if (!isLoaded) {
     return (
@@ -339,23 +449,39 @@ export default function AccountOrdersContent({
         <AccountSidebar
           user={user}
           navItems={navItems}
-          baseAccountPath={baseAccountPath}
-          effectiveLang={effectiveLang}
-          onSignOut={handleSignOut}
+          baseAccountPath={
+            baseAccountPath
+          }
+          effectiveLang={
+            effectiveLang
+          }
+          onSignOut={
+            handleSignOut
+          }
           signingOutLabel={
             accountMessages.signingOut
           }
-          signOutLabel={accountMessages.signOut}
+          signOutLabel={
+            accountMessages.signOut
+          }
           greetingLabel={
             accountMessages.sidebarGreeting
           }
-          loading={loadingLogout}
+          loading={
+            loadingLogout
+          }
         />
 
         <OrdersList
-          messages={ordersMessages}
-          lang={effectiveLang}
-          orders={orders ?? []}
+          messages={
+            ordersMessages
+          }
+          lang={
+            effectiveLang
+          }
+          orders={
+            orders ?? []
+          }
         />
       </div>
     </section>

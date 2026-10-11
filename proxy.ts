@@ -3,53 +3,84 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { clerkMiddleware } from "@clerk/nextjs/server";
-import Negotiator from "negotiator";
-import { match as matchLocale } from "@formatjs/intl-localematcher";
 
-const locales = ["en", "et", "fi", "uk", "ru"] as const;
-const defaultLocale = "en";
+const locales = [
+  "en",
+  "et",
+  "fi",
+  "uk",
+  "ru",
+] as const;
 
-function getLocale(request: NextRequest) {
-  const accept = request.headers.get("accept-language") ?? "";
-  const languages = new Negotiator({
-    headers: { "accept-language": accept },
-  }).languages();
-  return matchLocale(languages, locales, defaultLocale);
-}
+const defaultLocale = "et";
 
-// ⬇️ ВАЖНО: export const proxy = функция (clerkMiddleware вернёт функцию)
-export const proxy = clerkMiddleware((auth, request: NextRequest) => {
-  const { pathname } = request.nextUrl;
+export const proxy = clerkMiddleware(
+  (
+    auth,
+    request: NextRequest,
+  ) => {
+    // Clerk middleware должен обработать запрос,
+    // поэтому сохраняем параметр auth.
+    void auth;
 
-  // 1. API-роуты — пропускаем БЕЗ языкового редиректа,
-  // но через clerkMiddleware они уже прошли, так что currentUser() будет работать
-  if (pathname.startsWith("/api")) {
-    return NextResponse.next();
-  }
+    const { pathname } =
+      request.nextUrl;
 
-  // 2. Не трогаем Next-статику и файлы с расширением
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon") ||
-    /\.[^/]+$/.test(pathname)
-  ) {
-    return NextResponse.next();
-  }
+    // API-запросы не перенаправляем
+    if (
+      pathname.startsWith("/api")
+    ) {
+      return NextResponse.next();
+    }
 
-  // 3. Уже есть префикс локали?
-  const hasLocale = locales.some(
-    (l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`)
-  );
-  if (hasLocale) return NextResponse.next();
+    // Не перенаправляем Next.js-файлы
+    // и файлы с расширением
+    if (
+      pathname.startsWith("/_next") ||
+      pathname.startsWith(
+        "/favicon",
+      ) ||
+      /\.[^/]+$/.test(pathname)
+    ) {
+      return NextResponse.next();
+    }
 
-  // 4. Добавляем локаль
-  const locale = getLocale(request);
-  const url = request.nextUrl.clone();
-  url.pathname = `/${locale}${pathname}`;
-  return NextResponse.redirect(url);
-});
+    // Проверяем, указан ли язык
+    // в текущем адресе
+    const hasLocale =
+      locales.some(
+        (locale) =>
+          pathname ===
+            `/${locale}` ||
+          pathname.startsWith(
+            `/${locale}/`,
+          ),
+      );
 
-// ⚠️ /api БОЛЬШЕ НЕ ИСКЛЮЧАЕМ → они идут через Clerk
+    // Если язык уже указан,
+    // ничего не меняем
+    if (hasLocale) {
+      return NextResponse.next();
+    }
+
+    // Если языка в адресе нет,
+    // открываем эстонскую версию
+    const url =
+      request.nextUrl.clone();
+
+    url.pathname =
+      pathname === "/"
+        ? `/${defaultLocale}`
+        : `/${defaultLocale}${pathname}`;
+
+    return NextResponse.redirect(
+      url,
+    );
+  },
+);
+
 export const config = {
-  matcher: ["/((?!_next|.*\\..*).*)"],
+  matcher: [
+    "/((?!_next|.*\\..*).*)",
+  ],
 };

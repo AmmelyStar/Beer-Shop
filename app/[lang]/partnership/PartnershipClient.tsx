@@ -1,3 +1,5 @@
+// app/[lang]/partnership/PartnershipClient.tsx
+
 "use client";
 
 import {
@@ -52,6 +54,7 @@ type PartnershipTranslations = {
 type Props = {
   lang: Locale;
   t: PartnershipTranslations;
+  contentHtml?: string | null;
 };
 
 type FormData = {
@@ -83,7 +86,11 @@ const DISPOSABLE_EMAILS = [
   "temp-mail.org",
 ];
 
-function PartnershipInner({ lang, t }: Props) {
+function PartnershipInner({
+  lang,
+  t,
+  contentHtml,
+}: Props) {
   const searchParams = useSearchParams();
   const sent = searchParams.get("sent") === "1";
 
@@ -101,37 +108,32 @@ function PartnershipInner({ lang, t }: Props) {
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-
-    // Поддерживает украинские, русские,
-    // эстонские, финские и другие буквы.
     const nameRegex = /^[\p{L}\s'-]+$/u;
 
-    if (!formData.firstName.trim()) {
+    const firstName = formData.firstName.trim();
+    const lastName = formData.lastName.trim();
+    const email = formData.email.trim();
+    const message = formData.message.trim();
+    const phone = formData.phone.trim();
+
+    if (!firstName) {
       newErrors.firstName =
         t.validation.firstNameRequired;
-    } else if (
-      formData.firstName.trim().length < 2
-    ) {
+    } else if (firstName.length < 2) {
       newErrors.firstName =
         t.validation.firstNameMin;
-    } else if (
-      !nameRegex.test(formData.firstName.trim())
-    ) {
+    } else if (!nameRegex.test(firstName)) {
       newErrors.firstName =
         t.validation.lettersOnly;
     }
 
-    if (!formData.lastName.trim()) {
+    if (!lastName) {
       newErrors.lastName =
         t.validation.lastNameRequired;
-    } else if (
-      formData.lastName.trim().length < 2
-    ) {
+    } else if (lastName.length < 2) {
       newErrors.lastName =
         t.validation.lastNameMin;
-    } else if (
-      !nameRegex.test(formData.lastName.trim())
-    ) {
+    } else if (!nameRegex.test(lastName)) {
       newErrors.lastName =
         t.validation.lettersOnly;
     }
@@ -139,19 +141,15 @@ function PartnershipInner({ lang, t }: Props) {
     const emailRegex =
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!formData.email.trim()) {
+    if (!email) {
       newErrors.email =
         t.validation.emailRequired;
-    } else if (
-      !emailRegex.test(formData.email.trim())
-    ) {
+    } else if (!emailRegex.test(email)) {
       newErrors.email =
         t.validation.emailInvalid;
     } else {
-      const domain = formData.email
-        .trim()
-        .split("@")[1]
-        ?.toLowerCase();
+      const domain =
+        email.split("@")[1]?.toLowerCase();
 
       if (
         domain &&
@@ -162,12 +160,10 @@ function PartnershipInner({ lang, t }: Props) {
       }
     }
 
-    if (!formData.message.trim()) {
+    if (!message) {
       newErrors.message =
         t.validation.messageRequired;
-    } else if (
-      formData.message.trim().length < 10
-    ) {
+    } else if (message.length < 10) {
       newErrors.message =
         t.validation.messageMin;
     } else if (formData.message.length > 500) {
@@ -175,15 +171,15 @@ function PartnershipInner({ lang, t }: Props) {
         t.validation.messageMax;
     }
 
-    if (formData.phone.trim()) {
+    if (phone) {
       const phoneRegex = /^[\d\s+()-]+$/;
 
-      if (!phoneRegex.test(formData.phone)) {
+      if (!phoneRegex.test(phone)) {
         newErrors.phone =
           t.validation.phoneInvalid;
       } else {
         const digitsOnly =
-          formData.phone.replace(/\D/g, "");
+          phone.replace(/\D/g, "");
 
         if (digitsOnly.length < 7) {
           newErrors.phone =
@@ -203,7 +199,7 @@ function PartnershipInner({ lang, t }: Props) {
   const handleChange = (
     event: ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     const { name, value } = event.target;
 
@@ -227,7 +223,7 @@ function PartnershipInner({ lang, t }: Props) {
   };
 
   const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>
+    event: FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
     setSubmitStatus(null);
@@ -239,21 +235,25 @@ function PartnershipInner({ lang, t }: Props) {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        "/api/contact",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            ...formData,
+            lang,
+            source: "partnership",
+          }),
         },
-        body: JSON.stringify({
-          ...formData,
-          lang,
-          source: "partnership",
-        }),
-      });
+      );
 
       if (!response.ok) {
         throw new Error(
-          `Failed to send message: ${response.status}`
+          `Failed to send message: ${response.status}`,
         );
       }
 
@@ -265,7 +265,7 @@ function PartnershipInner({ lang, t }: Props) {
         "Error sending partnership message:",
         error instanceof Error
           ? error.message
-          : String(error)
+          : String(error),
       );
 
       setSubmitStatus("error");
@@ -275,10 +275,10 @@ function PartnershipInner({ lang, t }: Props) {
   };
 
   const inputClassName = (
-    hasError: boolean
+    hasError: boolean,
   ) =>
     [
-      "w-full border-b bg-transparent pb-1",
+      "w-full border-b bg-transparent pb-2",
       "text-white outline-none",
       "transition-colors",
       hasError
@@ -298,17 +298,43 @@ function PartnershipInner({ lang, t }: Props) {
         />
       </div>
 
-      <div className="pt-12 sm:pt-24 lg:mx-auto lg:grid lg:max-w-7xl lg:grid-cols-2">
+      <div className="pt-12 sm:pt-20 lg:mx-auto lg:grid lg:max-w-7xl lg:grid-cols-2">
         <div className="px-6">
           <div className="mx-auto max-w-xl lg:mx-0 lg:max-w-lg">
             <h1 className="text-pretty text-4xl font-semibold tracking-tight text-white sm:text-5xl">
               {t.title}
             </h1>
 
-            <p className="mt-4 text-base/8 text-gray-400">
-              {t.subtitle}
-            </p>
+        {contentHtml ? (
+  <div
+    className="
+      mt-7 max-w-lg
+      border-l-2 border-yellow-400
+      py-1 pl-5
 
+      text-base leading-7
+      text-neutral-300
+
+      [&_p]:m-0
+      [&_p+p]:mt-4
+
+      [&_strong]:font-semibold
+      [&_strong]:text-white
+
+      [&_a]:text-yellow-400
+      [&_a]:underline
+      [&_a]:underline-offset-4
+      [&_a:hover]:text-yellow-300
+    "
+    dangerouslySetInnerHTML={{
+      __html: contentHtml,
+    }}
+  />
+) : (
+  <p className="mt-7 max-w-lg border-l-2 border-yellow-400 py-1 pl-5 text-base leading-7 text-neutral-300">
+    {t.subtitle}
+  </p>
+)}
             {sent ? (
               <div
                 className="mt-8 rounded-md border border-green-500/50 bg-green-500/10 p-4"
@@ -322,7 +348,7 @@ function PartnershipInner({ lang, t }: Props) {
 
             <form
               onSubmit={handleSubmit}
-              className="mt-16"
+              className="mt-12"
               noValidate
             >
               <div className="grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2">
@@ -342,16 +368,18 @@ function PartnershipInner({ lang, t }: Props) {
                       autoComplete="given-name"
                       value={formData.firstName}
                       onChange={handleChange}
-                      aria-invalid={
-                        Boolean(errors.firstName)
-                      }
+                      aria-invalid={Boolean(
+                        errors.firstName,
+                      )}
                       aria-describedby={
                         errors.firstName
                           ? "firstName-error"
                           : undefined
                       }
                       className={inputClassName(
-                        Boolean(errors.firstName)
+                        Boolean(
+                          errors.firstName,
+                        ),
                       )}
                     />
 
@@ -382,16 +410,18 @@ function PartnershipInner({ lang, t }: Props) {
                       autoComplete="family-name"
                       value={formData.lastName}
                       onChange={handleChange}
-                      aria-invalid={
-                        Boolean(errors.lastName)
-                      }
+                      aria-invalid={Boolean(
+                        errors.lastName,
+                      )}
                       aria-describedby={
                         errors.lastName
                           ? "lastName-error"
                           : undefined
                       }
                       className={inputClassName(
-                        Boolean(errors.lastName)
+                        Boolean(
+                          errors.lastName,
+                        ),
                       )}
                     />
 
@@ -422,16 +452,16 @@ function PartnershipInner({ lang, t }: Props) {
                       autoComplete="email"
                       value={formData.email}
                       onChange={handleChange}
-                      aria-invalid={
-                        Boolean(errors.email)
-                      }
+                      aria-invalid={Boolean(
+                        errors.email,
+                      )}
                       aria-describedby={
                         errors.email
                           ? "email-error"
                           : undefined
                       }
                       className={inputClassName(
-                        Boolean(errors.email)
+                        Boolean(errors.email),
                       )}
                     />
 
@@ -462,7 +492,9 @@ function PartnershipInner({ lang, t }: Props) {
                       autoComplete="organization"
                       value={formData.company}
                       onChange={handleChange}
-                      className={inputClassName(false)}
+                      className={inputClassName(
+                        false,
+                      )}
                     />
                   </div>
                 </div>
@@ -492,16 +524,16 @@ function PartnershipInner({ lang, t }: Props) {
                       autoComplete="tel"
                       value={formData.phone}
                       onChange={handleChange}
-                      aria-invalid={
-                        Boolean(errors.phone)
-                      }
+                      aria-invalid={Boolean(
+                        errors.phone,
+                      )}
                       aria-describedby={
                         errors.phone
                           ? "phone-description phone-error"
                           : "phone-description"
                       }
                       className={inputClassName(
-                        Boolean(errors.phone)
+                        Boolean(errors.phone),
                       )}
                     />
 
@@ -541,16 +573,16 @@ function PartnershipInner({ lang, t }: Props) {
                       maxLength={500}
                       value={formData.message}
                       onChange={handleChange}
-                      aria-invalid={
-                        Boolean(errors.message)
-                      }
+                      aria-invalid={Boolean(
+                        errors.message,
+                      )}
                       aria-describedby={
                         errors.message
                           ? "message-description message-error"
                           : "message-description"
                       }
                       className={[
-                        "mt-2 w-full rounded-md border",
+                        "w-full rounded-md border",
                         "bg-black/20 px-3 py-2",
                         "text-sm text-white outline-none",
                         "transition-colors",
@@ -574,18 +606,19 @@ function PartnershipInner({ lang, t }: Props) {
                       )}
 
                       <span className="text-xs text-gray-500">
-                        {formData.message.length}/500
+                        {formData.message.length}
+                        /500
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-10 flex justify-end">
+              <div className="mt-10">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-8 py-2 text-base font-semibold text-gray-900 transition-colors duration-300 hover:border-yellow-600 hover:bg-yellow-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto lg:w-full"
+                  className="inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-8 py-2.5 text-base font-semibold text-gray-900 transition-colors duration-300 hover:border-yellow-600 hover:bg-yellow-500 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isSubmitting
                     ? t.form.submitting
@@ -623,7 +656,7 @@ function PartnershipInner({ lang, t }: Props) {
 }
 
 export default function PartnershipClient(
-  props: Props
+  props: Props,
 ) {
   return (
     <Suspense fallback={null}>

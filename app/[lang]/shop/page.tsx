@@ -1,14 +1,24 @@
 // app/[lang]/shop/page.tsx
-import { fetchAllProductsFlattened } from "../../data/repo";
+
+import {
+  fetchAllProductsFlattened,
+} from "../../data/repo";
+
 import ShopContent from "@/app/components/ShopContent";
 import Breadcrumbs from "@/app/components/ui/Breadcrumbs";
+
 import type { Locale } from "../../lib/locale";
 import { getMessages } from "../messages";
-import { getReviewSummaryByHandle } from "@/app/lib/reviews/getReviewSummaryByHandle";
+
 import {
+  getReviewSummaryByHandle,
+} from "@/app/lib/reviews/getReviewSummaryByHandle";
+
+import {
+  CATEGORY_KEYS,
+  CATEGORY_TO_COLLECTION_HANDLE,
   isCategoryKey,
   type CategoryKey,
-  CATEGORY_TO_COLLECTION_HANDLE,
 } from "@/app/lib/shop/categories";
 
 type SortKey =
@@ -28,118 +38,306 @@ const SORT_KEYS: readonly SortKey[] = [
   "title_desc",
 ] as const;
 
-function isSortKey(x: unknown): x is SortKey {
-  return typeof x === "string" && (SORT_KEYS as readonly string[]).includes(x);
+function isSortKey(
+  value: unknown,
+): value is SortKey {
+  return (
+    typeof value === "string" &&
+    (
+      SORT_KEYS as readonly string[]
+    ).includes(value)
+  );
 }
 
-function getPriceNumber(p: unknown): number {
-  if (!p || typeof p !== "object") return Number.POSITIVE_INFINITY;
-
-  const obj = p as Record<string, unknown>;
-
-  const v1 = obj.priceAmount;
-  if (typeof v1 === "number") return v1;
-  if (typeof v1 === "string") {
-    const n = Number(v1);
-    return Number.isNaN(n) ? Number.POSITIVE_INFINITY : n;
+function getPriceNumber(
+  product: unknown,
+): number {
+  if (
+    !product ||
+    typeof product !== "object"
+  ) {
+    return Number.POSITIVE_INFINITY;
   }
 
-  const price = obj.price;
-  if (price && typeof price === "object") {
-    const amount = (price as Record<string, unknown>).amount;
-    if (typeof amount === "number") return amount;
-    if (typeof amount === "string") {
-      const n = Number(amount);
-      return Number.isNaN(n) ? Number.POSITIVE_INFINITY : n;
+  const object =
+    product as Record<string, unknown>;
+
+  const priceAmount =
+    object.priceAmount;
+
+  if (
+    typeof priceAmount === "number"
+  ) {
+    return priceAmount;
+  }
+
+  if (
+    typeof priceAmount === "string"
+  ) {
+    const number =
+      Number(priceAmount);
+
+    return Number.isNaN(number)
+      ? Number.POSITIVE_INFINITY
+      : number;
+  }
+
+  const price = object.price;
+
+  if (
+    price &&
+    typeof price === "object"
+  ) {
+    const amount = (
+      price as Record<string, unknown>
+    ).amount;
+
+    if (
+      typeof amount === "number"
+    ) {
+      return amount;
+    }
+
+    if (
+      typeof amount === "string"
+    ) {
+      const number = Number(amount);
+
+      return Number.isNaN(number)
+        ? Number.POSITIVE_INFINITY
+        : number;
     }
   }
 
   return Number.POSITIVE_INFINITY;
 }
 
-function getCreatedAtMs(p: unknown): number {
-  if (!p || typeof p !== "object") return 0;
-  const obj = p as Record<string, unknown>;
-  const raw =
-    obj.createdAt ?? obj.created_at ?? obj.publishedAt ?? obj.published_at;
-  if (!raw) return 0;
-  const t = Date.parse(String(raw));
-  return Number.isNaN(t) ? 0 : t;
-}
-
-function getCollectionHandlesLower(p: unknown): string[] {
-  if (!p || typeof p !== "object") return [];
-  const obj = p as Record<string, unknown>;
-
-  const fromHandles = obj.collectionHandles;
-  if (Array.isArray(fromHandles)) {
-    return fromHandles.map((x) => String(x).toLowerCase()).filter(Boolean);
+function getCreatedAtMs(
+  product: unknown,
+): number {
+  if (
+    !product ||
+    typeof product !== "object"
+  ) {
+    return 0;
   }
 
-  const fromCollections = obj.collections;
-  if (Array.isArray(fromCollections)) {
-    return fromCollections
-      .map((c) => {
-        if (typeof c === "string") return c;
-        if (c && typeof c === "object") {
-          const co = c as Record<string, unknown>;
-          return String(co.handle ?? co.title ?? co.name ?? "");
+  const object =
+    product as Record<string, unknown>;
+
+  const raw =
+    object.createdAt ??
+    object.created_at ??
+    object.publishedAt ??
+    object.published_at ??
+    object.updatedAt ??
+    object.updated_at;
+
+  if (!raw) {
+    return 0;
+  }
+
+  const time = Date.parse(
+    String(raw),
+  );
+
+  return Number.isNaN(time)
+    ? 0
+    : time;
+}
+
+function getCollectionHandlesLower(
+  product: unknown,
+): string[] {
+  if (
+    !product ||
+    typeof product !== "object"
+  ) {
+    return [];
+  }
+
+  const object =
+    product as Record<string, unknown>;
+
+  const collectionHandles =
+    object.collectionHandles;
+
+  if (
+    Array.isArray(collectionHandles)
+  ) {
+    return collectionHandles
+      .map((value) =>
+        String(value)
+          .toLowerCase()
+          .trim(),
+      )
+      .filter(Boolean);
+  }
+
+  const collections =
+    object.collections;
+
+  if (Array.isArray(collections)) {
+    return collections
+      .map((collection) => {
+        if (
+          typeof collection === "string"
+        ) {
+          return collection;
         }
+
+        if (
+          collection &&
+          typeof collection === "object"
+        ) {
+          const collectionObject =
+            collection as Record<
+              string,
+              unknown
+            >;
+
+          return String(
+            collectionObject.handle ??
+              collectionObject.title ??
+              collectionObject.name ??
+              "",
+          );
+        }
+
         return "";
       })
-      .map((s) => s.toLowerCase())
+      .map((value) =>
+        value
+          .toLowerCase()
+          .trim(),
+      )
       .filter(Boolean);
   }
 
   return [];
 }
 
-function getTagsLower(p: unknown): string[] {
-  if (!p || typeof p !== "object") return [];
-  const obj = p as Record<string, unknown>;
-  const tags = obj.tags;
-  if (!Array.isArray(tags)) return [];
-  return tags.map((x) => String(x).toLowerCase().trim()).filter(Boolean);
-}
-
-function getProductTypeLower(p: unknown): string {
-  if (!p || typeof p !== "object") return "";
-  const obj = p as Record<string, unknown>;
-  const pt = obj.productType ?? obj.product_type ?? obj.type;
-  return pt ? String(pt).toLowerCase().trim() : "";
-}
-
-function matchesCategory(p: unknown, category: CategoryKey): boolean {
-  if (category === "all") return true;
-
-  const handles = getCollectionHandlesLower(p);
-  const tags = getTagsLower(p);
-  const pt = getProductTypeLower(p);
-
-  const targetHandle = CATEGORY_TO_COLLECTION_HANDLE[category].toLowerCase();
-
-  // Для bottle-beer и draft-beer только строгое совпадение.
-  // Это убирает ситуацию, когда draft-beer попадает в bottle-beer.
-  if (category === "bottle-beer") {
-    return tags.includes("bottle-beer") || handles.includes("bottle-beer");
+function getTagsLower(
+  product: unknown,
+): string[] {
+  if (
+    !product ||
+    typeof product !== "object"
+  ) {
+    return [];
   }
 
-  if (category === "draft-beer") {
-    return tags.includes("draft-beer") || handles.includes("draft-beer");
+  const object =
+    product as Record<string, unknown>;
+
+  const tags = object.tags;
+
+  if (!Array.isArray(tags)) {
+    return [];
   }
 
-  // Сначала пробуем строгое совпадение для остальных категорий
-  if (tags.includes(targetHandle) || handles.includes(targetHandle)) {
+  return tags
+    .map((value) =>
+      String(value)
+        .toLowerCase()
+        .trim(),
+    )
+    .filter(Boolean);
+}
+
+function getProductTypeLower(
+  product: unknown,
+): string {
+  if (
+    !product ||
+    typeof product !== "object"
+  ) {
+    return "";
+  }
+
+  const object =
+    product as Record<string, unknown>;
+
+  const productType =
+    object.productType ??
+    object.product_type ??
+    object.type;
+
+  return productType
+    ? String(productType)
+        .toLowerCase()
+        .trim()
+    : "";
+}
+
+function matchesCategory(
+  product: unknown,
+  category: CategoryKey,
+): boolean {
+  if (category === "all") {
     return true;
   }
 
-  const aliases: Record<CategoryKey, string[]> = {
+  const handles =
+    getCollectionHandlesLower(product);
+
+  const tags =
+    getTagsLower(product);
+
+  const productType =
+    getProductTypeLower(product);
+
+  const targetHandle =
+    CATEGORY_TO_COLLECTION_HANDLE[
+      category
+    ].toLowerCase();
+
+  /*
+   * Для бутылочного и разливного
+   * пива используем строгое
+   * совпадение.
+   */
+  if (category === "bottle-beer") {
+    return (
+      tags.includes("bottle-beer") ||
+      handles.includes("bottle-beer")
+    );
+  }
+
+  if (category === "draft-beer") {
+    return (
+      tags.includes("draft-beer") ||
+      handles.includes("draft-beer")
+    );
+  }
+
+  if (
+    tags.includes(targetHandle) ||
+    handles.includes(targetHandle)
+  ) {
+    return true;
+  }
+
+  const aliases: Record<
+    CategoryKey,
+    string[]
+  > = {
     all: ["all"],
 
-    "bottle-beer": ["bottle-beer"],
-    "draft-beer": ["draft-beer"],
+    "bottle-beer": [
+      "bottle-beer",
+    ],
 
-    cider: ["cider", "siider", "sidr", "сидр"],
+    "draft-beer": [
+      "draft-beer",
+    ],
+
+    cider: [
+      "cider",
+      "siider",
+      "sidr",
+      "сидр",
+    ],
 
     "energy-drinks": [
       "energy-drinks",
@@ -164,7 +362,15 @@ function matchesCategory(p: unknown, category: CategoryKey): boolean {
       "безалког",
     ],
 
-    snacks: ["snacks", "snack", "chips", "crisps", "nuts", "закус", "снеки"],
+    snacks: [
+      "snacks",
+      "snack",
+      "chips",
+      "crisps",
+      "nuts",
+      "закус",
+      "снеки",
+    ],
 
     "sparkling-wine": [
       "sparkling-wine",
@@ -193,43 +399,91 @@ function matchesCategory(p: unknown, category: CategoryKey): boolean {
     ],
   };
 
-  const hay = [...tags, ...handles, pt].filter(Boolean);
-  const needles = [targetHandle, ...aliases[category]].map((s) =>
-    s.toLowerCase()
+  const values = [
+    ...tags,
+    ...handles,
+    productType,
+  ].filter(Boolean);
+
+  const searchValues = [
+    targetHandle,
+    ...aliases[category],
+  ].map((value) =>
+    value.toLowerCase(),
   );
 
-  return hay.some((h) => needles.some((n) => h.includes(n)));
+  return values.some((value) =>
+    searchValues.some(
+      (searchValue) =>
+        value.includes(searchValue),
+    ),
+  );
 }
 
-function sortProducts<T extends { title?: string }>(
+function sortProducts<
+  T extends {
+    title?: string;
+  },
+>(
   list: T[],
-  sort: SortKey
+  sort: SortKey,
 ): T[] {
-  const arr = [...list];
+  const products = [...list];
 
   switch (sort) {
     case "price_asc":
-      arr.sort((a, b) => getPriceNumber(a) - getPriceNumber(b));
-      return arr;
+      products.sort(
+        (first, second) =>
+          getPriceNumber(first) -
+          getPriceNumber(second),
+      );
+      return products;
+
     case "price_desc":
-      arr.sort((a, b) => getPriceNumber(b) - getPriceNumber(a));
-      return arr;
+      products.sort(
+        (first, second) =>
+          getPriceNumber(second) -
+          getPriceNumber(first),
+      );
+      return products;
+
     case "title_asc":
-      arr.sort((a, b) =>
-        String(a.title ?? "").localeCompare(String(b.title ?? ""))
+      products.sort(
+        (first, second) =>
+          String(
+            first.title ?? "",
+          ).localeCompare(
+            String(
+              second.title ?? "",
+            ),
+          ),
       );
-      return arr;
+      return products;
+
     case "title_desc":
-      arr.sort((a, b) =>
-        String(b.title ?? "").localeCompare(String(a.title ?? ""))
+      products.sort(
+        (first, second) =>
+          String(
+            second.title ?? "",
+          ).localeCompare(
+            String(
+              first.title ?? "",
+            ),
+          ),
       );
-      return arr;
+      return products;
+
     case "new":
-      arr.sort((a, b) => getCreatedAtMs(b) - getCreatedAtMs(a));
-      return arr;
+      products.sort(
+        (first, second) =>
+          getCreatedAtMs(second) -
+          getCreatedAtMs(first),
+      );
+      return products;
+
     case "best":
     default:
-      return arr;
+      return products;
   }
 }
 
@@ -237,46 +491,128 @@ export default async function Page({
   params,
   searchParams,
 }: {
-  params: Promise<{ lang: Locale }>;
-  searchParams?: Promise<{ category?: string; sort?: string }>;
+  params: Promise<{
+    lang: Locale;
+  }>;
+
+  searchParams?: Promise<{
+    category?: string;
+    sort?: string;
+  }>;
 }) {
   const { lang } = await params;
-  const sp = searchParams ? await searchParams : {};
 
-  const t = await getMessages(lang);
-  const allProducts = await fetchAllProductsFlattened(lang);
+  const search = searchParams
+    ? await searchParams
+    : {};
 
+  const translations =
+    await getMessages(lang);
+
+  /*
+   * Получаем все товары один раз.
+   * На их основании определяем,
+   * какие вкладки должны отображаться.
+   */
+  const allProducts =
+    await fetchAllProductsFlattened(
+      lang,
+    );
+
+  const availableCategories =
+    CATEGORY_KEYS.filter(
+      (category) =>
+        category === "all" ||
+        allProducts.some((product) =>
+          matchesCategory(
+            product,
+            category,
+          ),
+        ),
+    );
+
+  const requestedCategory:
+    CategoryKey =
+    search.category &&
+    isCategoryKey(search.category)
+      ? search.category
+      : "all";
+
+  /*
+   * Если категория стала пустой,
+   * показываем "Все товары".
+   */
   const category: CategoryKey =
-    sp.category && isCategoryKey(sp.category) ? sp.category : "all";
+    availableCategories.includes(
+      requestedCategory,
+    )
+      ? requestedCategory
+      : "all";
 
-  const sort: SortKey = sp.sort && isSortKey(sp.sort) ? sp.sort : "best";
+  const sort: SortKey =
+    search.sort &&
+    isSortKey(search.sort)
+      ? search.sort
+      : "best";
 
-  const filtered = allProducts.filter((p) => matchesCategory(p, category));
-  const finalProducts = sortProducts(filtered, sort);
+  const filteredProducts =
+    allProducts.filter((product) =>
+      matchesCategory(
+        product,
+        category,
+      ),
+    );
+
+  const finalProducts =
+    sortProducts(
+      filteredProducts,
+      sort,
+    );
 
   const handles = finalProducts
-    .map((p) => p.handle)
-    .filter((handle): handle is string => Boolean(handle));
+    .map((product) =>
+      product.handle,
+    )
+    .filter(
+      (
+        handle,
+      ): handle is string =>
+        Boolean(handle),
+    );
 
-  const reviewSummaries = await getReviewSummaryByHandle(handles);
+  const reviewSummaries =
+    await getReviewSummaryByHandle(
+      handles,
+    );
 
   return (
     <main className="mx-auto max-w-7xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
       <Breadcrumbs
         lang={lang}
         labels={{
-          home: t.common.home,
-          shop: t.common.shop,
-          categories: t.AllProducts.categories,
+          home:
+            translations.common.home,
+          shop:
+            translations.common.shop,
+          categories:
+            translations.AllProducts
+              .categories,
         }}
       />
 
       <ShopContent
         products={finalProducts}
-        translations={t.AllProducts}
+        translations={
+          translations.AllProducts
+        }
         lang={lang}
-        reviewSummaries={reviewSummaries}
+        reviewSummaries={
+          reviewSummaries
+        }
         activeCategory={category}
+        availableCategories={
+          availableCategories
+        }
       />
     </main>
   );
