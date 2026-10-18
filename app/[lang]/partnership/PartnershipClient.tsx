@@ -1,5 +1,3 @@
-// app/[lang]/partnership/PartnershipClient.tsx
-
 "use client";
 
 import {
@@ -55,6 +53,9 @@ type Props = {
   lang: Locale;
   t: PartnershipTranslations;
   contentHtml?: string | null;
+
+  // Компактная версия для главной страницы
+  compact?: boolean;
 };
 
 type FormData = {
@@ -66,7 +67,9 @@ type FormData = {
   message: string;
 };
 
-type FormErrors = Partial<Record<keyof FormData, string>>;
+type FormErrors = Partial<
+  Record<keyof FormData, string>
+>;
 
 const EMPTY_FORM: FormData = {
   firstName: "",
@@ -90,6 +93,7 @@ function PartnershipInner({
   lang,
   t,
   contentHtml,
+  compact = false,
 }: Props) {
   const searchParams = useSearchParams();
   const sent = searchParams.get("sent") === "1";
@@ -166,7 +170,7 @@ function PartnershipInner({
     } else if (message.length < 10) {
       newErrors.message =
         t.validation.messageMin;
-    } else if (formData.message.length > 500) {
+    } else if (message.length > 500) {
       newErrors.message =
         t.validation.messageMax;
     }
@@ -235,21 +239,19 @@ function PartnershipInner({
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(
-        "/api/contact",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            ...formData,
-            lang,
-            source: "partnership",
-          }),
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          ...formData,
+          lang,
+          source: compact
+            ? "home-partnership"
+            : "partnership",
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(
@@ -286,58 +288,74 @@ function PartnershipInner({
         : "border-gray-400/50 focus:border-yellow-400",
     ].join(" ");
 
+  const outerClassName = compact
+    ? "mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20"
+    : "relative mx-auto mb-24 mt-2 max-w-7xl overflow-hidden";
+
+  const wrapperClassName = compact
+    ? "overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025] shadow-2xl shadow-black/20 lg:grid lg:grid-cols-[1.1fr_0.9fr]"
+    : "overflow-hidden lg:grid lg:grid-cols-2";
+
+  const contentClassName = compact
+    ? "px-6 py-10 sm:px-8 lg:px-10 lg:py-12"
+    : "px-6 py-12 sm:py-20";
+
+  const imageClassName = compact
+    ? "relative order-first h-64 sm:h-80 lg:order-none lg:h-auto lg:min-h-[680px]"
+    : "relative order-first h-64 sm:h-80 lg:order-none lg:h-auto lg:min-h-[850px]";
+
   return (
-    <div className="relative mx-auto mb-24 mt-2 max-w-7xl overflow-hidden">
-      <div className="lg:absolute lg:inset-0 lg:left-1/2 lg:pl-4">
-        <Image
-          width={640}
-          height={850}
-          alt={t.imageAlt ?? t.title}
-          src="/category/fresh-light-beer-mug.jpg"
-          className="h-64 w-full bg-gray-800 object-cover sm:h-80 lg:absolute lg:h-full"
-        />
-      </div>
-
-      <div className="pt-12 sm:pt-20 lg:mx-auto lg:grid lg:max-w-7xl lg:grid-cols-2">
-        <div className="px-6">
+    <section
+      id={compact ? "partnership" : undefined}
+      className={outerClassName}
+    >
+      <div className={wrapperClassName}>
+        <div className={contentClassName}>
           <div className="mx-auto max-w-xl lg:mx-0 lg:max-w-lg">
-            <h1 className="text-pretty text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-              {t.title}
-            </h1>
+            {compact ? (
+              <h2 className="text-pretty text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                {t.title}
+              </h2>
+            ) : (
+              <h1 className="text-pretty text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+                {t.title}
+              </h1>
+            )}
 
-        {contentHtml ? (
-  <div
-    className="
-      mt-7 max-w-lg
-      border-l-2 border-yellow-400
-      py-1 pl-5
+            {contentHtml ? (
+              <div
+                className={[
+                  "max-w-lg border-l-2 border-yellow-400 py-1 pl-5",
+                  "text-neutral-300",
+                  compact
+                    ? "mt-5 text-sm leading-6 sm:text-base sm:leading-7"
+                    : "mt-7 text-base leading-7",
+                  "[&_p]:m-0 [&_p+p]:mt-4",
+                  "[&_strong]:font-semibold [&_strong]:text-white",
+                  "[&_a]:text-yellow-400 [&_a]:underline",
+                  "[&_a]:underline-offset-4",
+                  "[&_a:hover]:text-yellow-300",
+                ].join(" ")}
+                dangerouslySetInnerHTML={{
+                  __html: contentHtml,
+                }}
+              />
+            ) : (
+              <p
+                className={[
+                  "max-w-lg border-l-2 border-yellow-400 py-1 pl-5 text-neutral-300",
+                  compact
+                    ? "mt-5 text-sm leading-6 sm:text-base sm:leading-7"
+                    : "mt-7 text-base leading-7",
+                ].join(" ")}
+              >
+                {t.subtitle}
+              </p>
+            )}
 
-      text-base leading-7
-      text-neutral-300
-
-      [&_p]:m-0
-      [&_p+p]:mt-4
-
-      [&_strong]:font-semibold
-      [&_strong]:text-white
-
-      [&_a]:text-yellow-400
-      [&_a]:underline
-      [&_a]:underline-offset-4
-      [&_a:hover]:text-yellow-300
-    "
-    dangerouslySetInnerHTML={{
-      __html: contentHtml,
-    }}
-  />
-) : (
-  <p className="mt-7 max-w-lg border-l-2 border-yellow-400 py-1 pl-5 text-base leading-7 text-neutral-300">
-    {t.subtitle}
-  </p>
-)}
             {sent ? (
               <div
-                className="mt-8 rounded-md border border-green-500/50 bg-green-500/10 p-4"
+                className="mt-6 rounded-md border border-green-500/50 bg-green-500/10 p-4"
                 role="status"
               >
                 <p className="text-sm text-green-400">
@@ -348,19 +366,24 @@ function PartnershipInner({
 
             <form
               onSubmit={handleSubmit}
-              className="mt-12"
+              className={compact ? "mt-8" : "mt-12"}
               noValidate
             >
-              <div className="grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2">
+              <div
+                className={[
+                  "grid grid-cols-1 gap-x-8 sm:grid-cols-2",
+                  compact ? "gap-y-6" : "gap-y-8",
+                ].join(" ")}
+              >
                 <div>
                   <label
                     htmlFor="firstName"
-                    className="text-base tracking-wide text-gray-400"
+                    className="text-sm tracking-wide text-gray-400"
                   >
                     {t.form.firstname}
                   </label>
 
-                  <div className="mt-2.5">
+                  <div className="mt-2">
                     <input
                       id="firstName"
                       name="firstName"
@@ -377,9 +400,7 @@ function PartnershipInner({
                           : undefined
                       }
                       className={inputClassName(
-                        Boolean(
-                          errors.firstName,
-                        ),
+                        Boolean(errors.firstName),
                       )}
                     />
 
@@ -397,12 +418,12 @@ function PartnershipInner({
                 <div>
                   <label
                     htmlFor="lastName"
-                    className="text-base tracking-wide text-gray-400"
+                    className="text-sm tracking-wide text-gray-400"
                   >
                     {t.form.lastname}
                   </label>
 
-                  <div className="mt-2.5">
+                  <div className="mt-2">
                     <input
                       id="lastName"
                       name="lastName"
@@ -419,9 +440,7 @@ function PartnershipInner({
                           : undefined
                       }
                       className={inputClassName(
-                        Boolean(
-                          errors.lastName,
-                        ),
+                        Boolean(errors.lastName),
                       )}
                     />
 
@@ -439,12 +458,12 @@ function PartnershipInner({
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="email"
-                    className="text-base tracking-wide text-gray-400"
+                    className="text-sm tracking-wide text-gray-400"
                   >
                     {t.form.emailLabel}
                   </label>
 
-                  <div className="mt-2.5">
+                  <div className="mt-2">
                     <input
                       id="email"
                       name="email"
@@ -479,12 +498,12 @@ function PartnershipInner({
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="company"
-                    className="text-base tracking-wide text-gray-400"
+                    className="text-sm tracking-wide text-gray-400"
                   >
                     {t.form.company}
                   </label>
 
-                  <div className="mt-2.5">
+                  <div className="mt-2">
                     <input
                       id="company"
                       name="company"
@@ -492,31 +511,29 @@ function PartnershipInner({
                       autoComplete="organization"
                       value={formData.company}
                       onChange={handleChange}
-                      className={inputClassName(
-                        false,
-                      )}
+                      className={inputClassName(false)}
                     />
                   </div>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <div className="flex justify-between gap-4 text-sm/6">
+                  <div className="flex justify-between gap-4">
                     <label
                       htmlFor="phone"
-                      className="text-base tracking-wide text-gray-400"
+                      className="text-sm tracking-wide text-gray-400"
                     >
                       {t.form.phone}
                     </label>
 
                     <span
                       id="phone-description"
-                      className="text-gray-500"
+                      className="text-xs text-gray-500"
                     >
                       {t.form.optional}
                     </span>
                   </div>
 
-                  <div className="mt-2.5">
+                  <div className="mt-2">
                     <input
                       id="phone"
                       name="phone"
@@ -549,27 +566,27 @@ function PartnershipInner({
                 </div>
 
                 <div className="sm:col-span-2">
-                  <div className="flex justify-between gap-4 text-sm/6">
+                  <div className="flex justify-between gap-4">
                     <label
                       htmlFor="message"
-                      className="text-base tracking-wide text-gray-400"
+                      className="text-sm tracking-wide text-gray-400"
                     >
                       {t.form.message}
                     </label>
 
                     <span
                       id="message-description"
-                      className="text-gray-500"
+                      className="text-xs text-gray-500"
                     >
                       {t.form.messageLimit}
                     </span>
                   </div>
 
-                  <div className="mt-2.5">
+                  <div className="mt-2">
                     <textarea
                       id="message"
                       name="message"
-                      rows={6}
+                      rows={compact ? 4 : 6}
                       maxLength={500}
                       value={formData.message}
                       onChange={handleChange}
@@ -606,19 +623,18 @@ function PartnershipInner({
                       )}
 
                       <span className="text-xs text-gray-500">
-                        {formData.message.length}
-                        /500
+                        {formData.message.length}/500
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-10">
+              <div className={compact ? "mt-7" : "mt-10"}>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-8 py-2.5 text-base font-semibold text-gray-900 transition-colors duration-300 hover:border-yellow-600 hover:bg-yellow-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex w-full items-center justify-center rounded-md border border-yellow-500 bg-yellow-500 px-8 py-3 text-sm font-semibold text-black transition-colors duration-300 hover:border-yellow-400 hover:bg-yellow-400 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isSubmitting
                     ? t.form.submitting
@@ -628,7 +644,7 @@ function PartnershipInner({
 
               {submitStatus === "success" ? (
                 <div
-                  className="mt-8 rounded-md border border-green-500/50 bg-green-500/10 p-4"
+                  className="mt-6 rounded-md border border-green-500/50 bg-green-500/10 p-4"
                   role="status"
                 >
                   <p className="text-sm text-green-400">
@@ -639,7 +655,7 @@ function PartnershipInner({
 
               {submitStatus === "error" ? (
                 <div
-                  className="mt-8 rounded-md border border-red-500/50 bg-red-500/10 p-4"
+                  className="mt-6 rounded-md border border-red-500/50 bg-red-500/10 p-4"
                   role="alert"
                 >
                   <p className="text-sm text-red-400">
@@ -650,8 +666,24 @@ function PartnershipInner({
             </form>
           </div>
         </div>
+
+        <div className={imageClassName}>
+          <Image
+            fill
+            sizes={
+              compact
+                ? "(max-width: 1024px) 100vw, 40vw"
+                : "(max-width: 1024px) 100vw, 50vw"
+            }
+            alt={t.imageAlt ?? t.title}
+            src="/category/fresh-light-beer-mug.jpg"
+            className="object-cover"
+          />
+
+          <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
 

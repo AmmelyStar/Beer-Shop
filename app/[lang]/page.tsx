@@ -1,15 +1,22 @@
 import Hero from "@/app/components/Hero";
+import ShopCategory from "@/app/components/ShopCategory";
+import TrendingProducts from "@/app/components/TrendingProducts";
+import BannerSection from "@/app/components/BannerSection";
+import BrandSection from "@/app/components/BrandSection";
+import FAQ from "@/app/components/ui/FAQ";
+import TextBlockCenter from "@/app/components/ui/TextBlockCenter";
+
+import PartnershipClient from "./partnership/PartnershipClient";
+
 import { getMessages } from "./messages";
 import type { Locale } from "../lib/locale";
-import ShopCategory from "../components/ShopCategory";
-import TrendingProducts from "../components/TrendingProducts";
-import BannerSection from "../components/BannerSection";
-import TextBlockCenter from "../components/ui/TextBlockCenter";
-import BrandSection from "../components/BrandSection";
+
 import {
   fetchAllProductsFlattened,
   fetchTrendingProductsFlattened,
 } from "../data/repo";
+
+import { getFaq } from "@/app/lib/shopify/getFaq";
 
 export default async function Home({
   params,
@@ -19,15 +26,20 @@ export default async function Home({
   const { lang } = await params;
   const t = await getMessages(lang);
 
-  const allProducts = await fetchAllProductsFlattened(lang);
+  const [allProducts, faqItems] = await Promise.all([
+    fetchAllProductsFlattened(lang),
+    getFaq(lang),
+  ]);
 
-  let trendingProducts = await fetchTrendingProductsFlattened(lang, 4);
+  let trendingProducts =
+    await fetchTrendingProductsFlattened(lang, 4);
 
   if (!trendingProducts.length) {
     trendingProducts = allProducts
       .filter(
         (product) =>
-          "trending" in product && Boolean(product.trending)
+          "trending" in product &&
+          Boolean(product.trending),
       )
       .slice(0, 4);
   }
@@ -66,6 +78,16 @@ export default async function Home({
         alcohol={t.TrendingProducts.alcohol}
       />
 
+      
+
+      <TextBlockCenter
+        title={t.LogoSection.title}
+        subtitle={t.LogoSection.subtitle}
+      />
+
+      <BrandSection messages={t} />
+
+
       <BannerSection
         imageSrc="/category/golden-beer-bubbles-drop-wet-glass-generated-by-ai.jpg"
         imageAlt={t.BannerSection.title}
@@ -75,12 +97,19 @@ export default async function Home({
         ctaHref={shopHref}
       />
 
-      <TextBlockCenter
-        title={t.LogoSection.title}
-        subtitle={t.LogoSection.subtitle}
+      
+
+      <FAQ
+        title={t.Questions.title}
+        faqs={faqItems}
+        emptyText={t.Questions.empty}
       />
 
-      <BrandSection messages={t} />
+      <PartnershipClient
+        lang={lang}
+        t={t.Partnership}
+        compact
+      />
     </main>
   );
 }

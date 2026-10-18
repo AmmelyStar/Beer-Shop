@@ -1,5 +1,3 @@
-// app/components/ui/OrdersList.tsx
-
 "use client";
 
 import { useState } from "react";
@@ -89,28 +87,24 @@ const TRACKING_TRANSLATIONS: Record<
     carrier: "Carrier",
     trackOrder: "Track order",
   },
-
   ru: {
     title: "Отслеживание доставки",
     trackingNumber: "Номер отправления",
     carrier: "Перевозчик",
     trackOrder: "Отследить заказ",
   },
-
   uk: {
     title: "Відстеження доставки",
     trackingNumber: "Номер відправлення",
     carrier: "Перевізник",
     trackOrder: "Відстежити замовлення",
   },
-
   et: {
     title: "Saadetise jälgimine",
     trackingNumber: "Jälgimisnumber",
     carrier: "Vedaja",
     trackOrder: "Jälgi tellimust",
   },
-
   fi: {
     title: "Lähetyksen seuranta",
     trackingNumber: "Seurantanumero",
@@ -124,28 +118,20 @@ export default function OrdersList({
   lang,
   orders,
 }: OrdersListProps) {
-  const [
-    openOrderNumber,
-    setOpenOrderNumber,
-  ] = useState<string | null>(null);
+  const [openOrderNumber, setOpenOrderNumber] =
+    useState<string | null>(null);
 
   const trackingTexts =
     TRACKING_TRANSLATIONS[lang] ??
     TRACKING_TRANSLATIONS.en;
 
-  const toggleOrder = (
-    number: string,
-  ) => {
-    setOpenOrderNumber(
-      (current) =>
-        current === number
-          ? null
-          : number,
+  const toggleOrder = (number: string) => {
+    setOpenOrderNumber((current) =>
+      current === number ? null : number,
     );
   };
 
-  const hasOrders =
-    orders.length > 0;
+  const hasOrders = orders.length > 0;
 
   return (
     <main className="mt-10 space-y-6 lg:col-span-8 lg:mt-0">
@@ -188,15 +174,13 @@ export default function OrdersList({
             <div className="space-y-6">
               {orders.map((order) => {
                 const isOpen =
-                  openOrderNumber ===
-                  order.number;
+                  openOrderNumber === order.number;
 
-                const hasTracking =
-                  Boolean(
-                    order.trackingNumber ||
-                      order.trackingUrl ||
-                      order.trackingCompany,
-                  );
+                const hasTracking = Boolean(
+                  order.trackingNumber ||
+                    order.trackingUrl ||
+                    order.trackingCompany,
+                );
 
                 const safeOrderNumber =
                   order.number.replace(
@@ -208,98 +192,72 @@ export default function OrdersList({
                   `order-${safeOrderNumber}-details`;
 
                 return (
-                  <article
-                    key={order.number}
-                  >
+                  <article key={order.number}>
                     <h3 className="sr-only">
-                      {
-                        messages.orderPlacedOnSrOnly
-                      }{" "}
-                      <time
-                        dateTime={
-                          order.datetime
-                        }
-                      >
+                      {messages.orderPlacedOnSrOnly}{" "}
+                      <time dateTime={order.datetime}>
                         {order.date}
                       </time>
                     </h3>
 
-                    <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-6 text-sm text-gray-200 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:px-6">
-                      <dl className="flex-auto divide-y divide-gray-700 text-sm sm:grid sm:grid-cols-2 sm:gap-x-6 sm:divide-y-0 lg:w-1/2 lg:flex-none lg:gap-x-8">
-                        <div className="flex justify-between py-4 sm:block sm:py-0">
-                          <dt className="font-medium text-gray-400">
-                            {
-                              messages.datePlaced
-                            }
-                          </dt>
+                    <div className="rounded-xl border border-white/10 bg-white/5 px-5 py-6 text-sm text-gray-200 sm:px-6">
+                      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-[minmax(130px,1fr)_minmax(140px,1fr)_100px_161px] lg:items-start lg:gap-6">
+                        <dl className="contents">
+                          <div>
+                            <dt className="font-medium text-gray-400">
+                              {messages.datePlaced}
+                            </dt>
 
-                          <dd className="text-white sm:mt-1">
-                            <time
-                              dateTime={
-                                order.datetime
-                              }
-                            >
-                              {order.date}
-                            </time>
-                          </dd>
-                        </div>
+                            <dd className="mt-1 text-white">
+                              <time
+                                dateTime={order.datetime}
+                              >
+                                {order.date}
+                              </time>
+                            </dd>
+                          </div>
 
-                        <div className="flex justify-between py-4 sm:block sm:py-0">
-                          <dt className="font-medium text-gray-400">
-                            {
-                              messages.orderNumber
-                            }
-                          </dt>
+                          <div>
+                            <dt className="font-medium text-gray-400">
+                              {messages.orderNumber}
+                            </dt>
 
-                          <dd className="text-white sm:mt-1">
-                            {order.number}
-                          </dd>
-                        </div>
-                      </dl>
+                            <dd className="mt-1 text-white">
+                              {order.number}
+                            </dd>
+                          </div>
 
-                      <div className="mt-5 flex flex-col gap-3 sm:mt-0 sm:flex-row sm:items-center">
-                        <div className="flex justify-between sm:block sm:text-right">
-                          <p className="font-medium text-white">
-                            {
-                              messages.totalAmount
-                            }
-                          </p>
+                          <div className="sm:text-right lg:text-right">
+                            <dt className="font-medium text-white">
+                              {messages.totalAmount}
+                            </dt>
 
-                          <p className="font-medium text-yellow-400 sm:mt-1">
-                            {order.total}
-                          </p>
-                        </div>
+                            <dd className="mt-1 font-medium text-yellow-400">
+                              {order.total}
+                            </dd>
+                          </div>
+                        </dl>
 
-                        <div className="flex flex-wrap gap-2 sm:ml-4">
-                          {order.trackingUrl && (
+                        <div className="flex w-full flex-col gap-2">
+                          {order.trackingUrl ? (
                             <a
-                              href={
-                                order.trackingUrl
-                              }
+                              href={order.trackingUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex shrink-0 items-center justify-center rounded-md bg-yellow-400 px-4 py-3 text-sm font-semibold text-black transition-colors hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-neutral-900"
+                              className="inline-flex min-h-12 w-full items-center justify-center rounded-md bg-yellow-400 px-4 py-3 text-center text-sm font-semibold text-black transition-colors hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-neutral-900"
                             >
-                              {
-                                trackingTexts.trackOrder
-                              }
+                              {trackingTexts.trackOrder}
                             </a>
-                          )}
+                          ) : null}
 
                           <button
                             type="button"
                             onClick={() =>
-                              toggleOrder(
-                                order.number,
-                              )
+                              toggleOrder(order.number)
                             }
-                            aria-expanded={
-                              isOpen
-                            }
-                            aria-controls={
-                              detailsId
-                            }
-                            className="inline-flex shrink-0 items-center justify-center rounded-md border border-white/25 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30"
+                            aria-expanded={isOpen}
+                            aria-controls={detailsId}
+                            className="inline-flex min-h-12 w-full items-center justify-center rounded-md border border-white/25 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30"
                           >
                             {isOpen
                               ? messages.hideDetails
@@ -309,20 +267,18 @@ export default function OrdersList({
                       </div>
                     </div>
 
-                    {isOpen && (
+                    {isOpen ? (
                       <div id={detailsId}>
-                        {hasTracking && (
+                        {hasTracking ? (
                           <section className="mt-4 rounded-xl border border-yellow-400/30 bg-yellow-400/5 p-5 sm:mt-6">
                             <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                               <div>
                                 <h4 className="font-semibold text-white">
-                                  {
-                                    trackingTexts.title
-                                  }
+                                  {trackingTexts.title}
                                 </h4>
 
                                 <dl className="mt-4 space-y-3 text-sm">
-                                  {order.trackingNumber && (
+                                  {order.trackingNumber ? (
                                     <div>
                                       <dt className="text-gray-400">
                                         {
@@ -336,14 +292,12 @@ export default function OrdersList({
                                         }
                                       </dd>
                                     </div>
-                                  )}
+                                  ) : null}
 
-                                  {order.trackingCompany && (
+                                  {order.trackingCompany ? (
                                     <div>
                                       <dt className="text-gray-400">
-                                        {
-                                          trackingTexts.carrier
-                                        }
+                                        {trackingTexts.carrier}
                                       </dt>
 
                                       <dd className="mt-1 font-medium text-white">
@@ -352,34 +306,28 @@ export default function OrdersList({
                                         }
                                       </dd>
                                     </div>
-                                  )}
+                                  ) : null}
                                 </dl>
                               </div>
 
-                              {order.trackingUrl && (
+                              {order.trackingUrl ? (
                                 <a
-                                  href={
-                                    order.trackingUrl
-                                  }
+                                  href={order.trackingUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="inline-flex w-full items-center justify-center rounded-md bg-yellow-400 px-5 py-3 text-sm font-semibold text-black transition-colors hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-neutral-900 sm:w-auto"
                                 >
-                                  {
-                                    trackingTexts.trackOrder
-                                  }
+                                  {trackingTexts.trackOrder}
                                 </a>
-                              )}
+                              ) : null}
                             </div>
                           </section>
-                        )}
+                        ) : null}
 
                         <div className="mt-4 overflow-x-auto sm:mt-6">
                           <table className="w-full min-w-[640px] text-gray-400">
                             <caption className="sr-only">
-                              {
-                                messages.productsSrOnly
-                              }
+                              {messages.productsSrOnly}
                             </caption>
 
                             <thead className="text-left text-sm text-gray-400">
@@ -388,36 +336,28 @@ export default function OrdersList({
                                   scope="col"
                                   className="py-3 pr-8 font-normal sm:w-2/5 lg:w-1/3"
                                 >
-                                  {
-                                    messages.productHeader
-                                  }
+                                  {messages.productHeader}
                                 </th>
 
                                 <th
                                   scope="col"
                                   className="w-1/5 py-3 pr-8 font-normal"
                                 >
-                                  {
-                                    messages.priceHeader
-                                  }
+                                  {messages.priceHeader}
                                 </th>
 
                                 <th
                                   scope="col"
                                   className="py-3 pr-8 font-normal"
                                 >
-                                  {
-                                    messages.statusHeader
-                                  }
+                                  {messages.statusHeader}
                                 </th>
 
                                 <th
                                   scope="col"
                                   className="w-0 py-3 text-right font-normal"
                                 >
-                                  {
-                                    messages.infoHeader
-                                  }
+                                  {messages.infoHeader}
                                 </th>
                               </tr>
                             </thead>
@@ -425,11 +365,7 @@ export default function OrdersList({
                             <tbody className="divide-y divide-gray-500 border-y border-gray-500 text-sm">
                               {order.products.map(
                                 (product) => (
-                                  <tr
-                                    key={
-                                      product.id
-                                    }
-                                  >
+                                  <tr key={product.id}>
                                     <td className="py-6 pr-8">
                                       <div className="flex items-center">
                                         <div className="relative mr-6 size-16 shrink-0 overflow-hidden rounded-lg bg-stone-600">
@@ -447,41 +383,28 @@ export default function OrdersList({
                                         </div>
 
                                         <div className="font-medium text-white">
-                                          {
-                                            product.name
-                                          }
+                                          {product.name}
                                         </div>
                                       </div>
                                     </td>
 
                                     <td className="py-6 pr-8">
-                                      {
-                                        product.price
-                                      }
+                                      {product.price}
                                     </td>
 
                                     <td className="py-6 pr-8">
-                                      {
-                                        product.status
-                                      }
+                                      {product.status}
                                     </td>
 
                                     <td className="whitespace-nowrap py-6 text-right font-medium">
                                       <Link
-                                        href={
-                                          product.href
-                                        }
+                                        href={product.href}
                                         className="text-yellow-400 transition-colors duration-200 hover:text-white focus:text-white"
                                       >
-                                        {
-                                          messages.viewProduct
-                                        }
+                                        {messages.viewProduct}
 
                                         <span className="sr-only">
-                                          ,{" "}
-                                          {
-                                            product.name
-                                          }
+                                          , {product.name}
                                         </span>
                                       </Link>
                                     </td>
@@ -492,7 +415,7 @@ export default function OrdersList({
                           </table>
                         </div>
                       </div>
-                    )}
+                    ) : null}
                   </article>
                 );
               })}
