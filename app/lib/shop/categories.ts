@@ -8,6 +8,7 @@ export type CategoryKey =
   | "energy-drinks"
   | "non-alcoholic-beer"
   | "snacks"
+  | "sweets"
   | "sparkling-wine"
   | "soft-drinks";
 
@@ -19,12 +20,18 @@ export const CATEGORY_KEYS: readonly CategoryKey[] = [
   "energy-drinks",
   "non-alcoholic-beer",
   "snacks",
+  "sweets",
   "sparkling-wine",
   "soft-drinks",
 ] as const;
 
-export function isCategoryKey(x: unknown): x is CategoryKey {
-  return typeof x === "string" && (CATEGORY_KEYS as readonly string[]).includes(x);
+export function isCategoryKey(
+  x: unknown,
+): x is CategoryKey {
+  return (
+    typeof x === "string" &&
+    (CATEGORY_KEYS as readonly string[]).includes(x)
+  );
 }
 
 export const CATEGORY_TO_COLLECTION_HANDLE: Record<
@@ -33,10 +40,11 @@ export const CATEGORY_TO_COLLECTION_HANDLE: Record<
 > = {
   "bottle-beer": "bottle-beer",
   "draft-beer": "draft-beer",
-  "cider": "cider",
+  cider: "cider",
   "energy-drinks": "energy-drinks",
   "non-alcoholic-beer": "non-alcoholic-beer",
-  "snacks": "snacks",
+  snacks: "snacks",
+  sweets: "sweets",
   "sparkling-wine": "sparkling-wine",
   "soft-drinks": "soft-drinks",
 };

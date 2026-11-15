@@ -1,8 +1,6 @@
 // app/[lang]/shop/page.tsx
 
-import {
-  fetchAllProductsFlattened,
-} from "../../data/repo";
+import { fetchAllProductsFlattened } from "../../data/repo";
 
 import ShopContent from "@/app/components/ShopContent";
 import Breadcrumbs from "@/app/components/ui/Breadcrumbs";
@@ -10,9 +8,7 @@ import Breadcrumbs from "@/app/components/ui/Breadcrumbs";
 import type { Locale } from "../../lib/locale";
 import { getMessages } from "../messages";
 
-import {
-  getReviewSummaryByHandle,
-} from "@/app/lib/reviews/getReviewSummaryByHandle";
+import { getReviewSummaryByHandle } from "@/app/lib/reviews/getReviewSummaryByHandle";
 
 import {
   CATEGORY_KEYS,
@@ -38,44 +34,27 @@ const SORT_KEYS: readonly SortKey[] = [
   "title_desc",
 ] as const;
 
-function isSortKey(
-  value: unknown,
-): value is SortKey {
+function isSortKey(value: unknown): value is SortKey {
   return (
     typeof value === "string" &&
-    (
-      SORT_KEYS as readonly string[]
-    ).includes(value)
+    (SORT_KEYS as readonly string[]).includes(value)
   );
 }
 
-function getPriceNumber(
-  product: unknown,
-): number {
-  if (
-    !product ||
-    typeof product !== "object"
-  ) {
+function getPriceNumber(product: unknown): number {
+  if (!product || typeof product !== "object") {
     return Number.POSITIVE_INFINITY;
   }
 
-  const object =
-    product as Record<string, unknown>;
+  const object = product as Record<string, unknown>;
+  const priceAmount = object.priceAmount;
 
-  const priceAmount =
-    object.priceAmount;
-
-  if (
-    typeof priceAmount === "number"
-  ) {
+  if (typeof priceAmount === "number") {
     return priceAmount;
   }
 
-  if (
-    typeof priceAmount === "string"
-  ) {
-    const number =
-      Number(priceAmount);
+  if (typeof priceAmount === "string") {
+    const number = Number(priceAmount);
 
     return Number.isNaN(number)
       ? Number.POSITIVE_INFINITY
@@ -84,23 +63,14 @@ function getPriceNumber(
 
   const price = object.price;
 
-  if (
-    price &&
-    typeof price === "object"
-  ) {
-    const amount = (
-      price as Record<string, unknown>
-    ).amount;
+  if (price && typeof price === "object") {
+    const amount = (price as Record<string, unknown>).amount;
 
-    if (
-      typeof amount === "number"
-    ) {
+    if (typeof amount === "number") {
       return amount;
     }
 
-    if (
-      typeof amount === "string"
-    ) {
+    if (typeof amount === "string") {
       const number = Number(amount);
 
       return Number.isNaN(number)
@@ -112,18 +82,12 @@ function getPriceNumber(
   return Number.POSITIVE_INFINITY;
 }
 
-function getCreatedAtMs(
-  product: unknown,
-): number {
-  if (
-    !product ||
-    typeof product !== "object"
-  ) {
+function getCreatedAtMs(product: unknown): number {
+  if (!product || typeof product !== "object") {
     return 0;
   }
 
-  const object =
-    product as Record<string, unknown>;
+  const object = product as Record<string, unknown>;
 
   const raw =
     object.createdAt ??
@@ -137,64 +101,39 @@ function getCreatedAtMs(
     return 0;
   }
 
-  const time = Date.parse(
-    String(raw),
-  );
+  const time = Date.parse(String(raw));
 
-  return Number.isNaN(time)
-    ? 0
-    : time;
+  return Number.isNaN(time) ? 0 : time;
 }
 
-function getCollectionHandlesLower(
-  product: unknown,
-): string[] {
-  if (
-    !product ||
-    typeof product !== "object"
-  ) {
+function getCollectionHandlesLower(product: unknown): string[] {
+  if (!product || typeof product !== "object") {
     return [];
   }
 
-  const object =
-    product as Record<string, unknown>;
+  const object = product as Record<string, unknown>;
+  const collectionHandles = object.collectionHandles;
 
-  const collectionHandles =
-    object.collectionHandles;
-
-  if (
-    Array.isArray(collectionHandles)
-  ) {
+  if (Array.isArray(collectionHandles)) {
     return collectionHandles
-      .map((value) =>
-        String(value)
-          .toLowerCase()
-          .trim(),
-      )
+      .map((value) => String(value).toLowerCase().trim())
       .filter(Boolean);
   }
 
-  const collections =
-    object.collections;
+  const collections = object.collections;
 
   if (Array.isArray(collections)) {
     return collections
       .map((collection) => {
-        if (
-          typeof collection === "string"
-        ) {
+        if (typeof collection === "string") {
           return collection;
         }
 
-        if (
-          collection &&
-          typeof collection === "object"
-        ) {
-          const collectionObject =
-            collection as Record<
-              string,
-              unknown
-            >;
+        if (collection && typeof collection === "object") {
+          const collectionObject = collection as Record<
+            string,
+            unknown
+          >;
 
           return String(
             collectionObject.handle ??
@@ -206,30 +145,19 @@ function getCollectionHandlesLower(
 
         return "";
       })
-      .map((value) =>
-        value
-          .toLowerCase()
-          .trim(),
-      )
+      .map((value) => value.toLowerCase().trim())
       .filter(Boolean);
   }
 
   return [];
 }
 
-function getTagsLower(
-  product: unknown,
-): string[] {
-  if (
-    !product ||
-    typeof product !== "object"
-  ) {
+function getTagsLower(product: unknown): string[] {
+  if (!product || typeof product !== "object") {
     return [];
   }
 
-  const object =
-    product as Record<string, unknown>;
-
+  const object = product as Record<string, unknown>;
   const tags = object.tags;
 
   if (!Array.isArray(tags)) {
@@ -237,26 +165,16 @@ function getTagsLower(
   }
 
   return tags
-    .map((value) =>
-      String(value)
-        .toLowerCase()
-        .trim(),
-    )
+    .map((value) => String(value).toLowerCase().trim())
     .filter(Boolean);
 }
 
-function getProductTypeLower(
-  product: unknown,
-): string {
-  if (
-    !product ||
-    typeof product !== "object"
-  ) {
+function getProductTypeLower(product: unknown): string {
+  if (!product || typeof product !== "object") {
     return "";
   }
 
-  const object =
-    product as Record<string, unknown>;
+  const object = product as Record<string, unknown>;
 
   const productType =
     object.productType ??
@@ -264,9 +182,7 @@ function getProductTypeLower(
     object.type;
 
   return productType
-    ? String(productType)
-        .toLowerCase()
-        .trim()
+    ? String(productType).toLowerCase().trim()
     : "";
 }
 
@@ -278,25 +194,13 @@ function matchesCategory(
     return true;
   }
 
-  const handles =
-    getCollectionHandlesLower(product);
-
-  const tags =
-    getTagsLower(product);
-
-  const productType =
-    getProductTypeLower(product);
+  const handles = getCollectionHandlesLower(product);
+  const tags = getTagsLower(product);
+  const productType = getProductTypeLower(product);
 
   const targetHandle =
-    CATEGORY_TO_COLLECTION_HANDLE[
-      category
-    ].toLowerCase();
+    CATEGORY_TO_COLLECTION_HANDLE[category].toLowerCase();
 
-  /*
-   * Для бутылочного и разливного
-   * пива используем строгое
-   * совпадение.
-   */
   if (category === "bottle-beer") {
     return (
       tags.includes("bottle-beer") ||
@@ -318,19 +222,12 @@ function matchesCategory(
     return true;
   }
 
-  const aliases: Record<
-    CategoryKey,
-    string[]
-  > = {
+  const aliases: Record<CategoryKey, string[]> = {
     all: ["all"],
 
-    "bottle-beer": [
-      "bottle-beer",
-    ],
+    "bottle-beer": ["bottle-beer"],
 
-    "draft-beer": [
-      "draft-beer",
-    ],
+    "draft-beer": ["draft-beer"],
 
     cider: [
       "cider",
@@ -372,6 +269,23 @@ function matchesCategory(
       "снеки",
     ],
 
+    sweets: [
+      "sweets",
+      "sweet",
+      "candy",
+      "candies",
+      "chocolate",
+      "chocolates",
+      "confectionery",
+      "maiustused",
+      "makeiset",
+      "сладости",
+      "конфеты",
+      "шоколад",
+      "солодощі",
+      "цукерки",
+    ],
+
     "sparkling-wine": [
       "sparkling-wine",
       "sparkling wine",
@@ -408,14 +322,11 @@ function matchesCategory(
   const searchValues = [
     targetHandle,
     ...aliases[category],
-  ].map((value) =>
-    value.toLowerCase(),
-  );
+  ].map((value) => value.toLowerCase());
 
   return values.some((value) =>
-    searchValues.some(
-      (searchValue) =>
-        value.includes(searchValue),
+    searchValues.some((searchValue) =>
+      value.includes(searchValue),
     ),
   );
 }
@@ -448,28 +359,18 @@ function sortProducts<
       return products;
 
     case "title_asc":
-      products.sort(
-        (first, second) =>
-          String(
-            first.title ?? "",
-          ).localeCompare(
-            String(
-              second.title ?? "",
-            ),
-          ),
+      products.sort((first, second) =>
+        String(first.title ?? "").localeCompare(
+          String(second.title ?? ""),
+        ),
       );
       return products;
 
     case "title_desc":
-      products.sort(
-        (first, second) =>
-          String(
-            second.title ?? "",
-          ).localeCompare(
-            String(
-              first.title ?? "",
-            ),
-          ),
+      products.sort((first, second) =>
+        String(second.title ?? "").localeCompare(
+          String(first.title ?? ""),
+        ),
       );
       return products;
 
@@ -506,42 +407,26 @@ export default async function Page({
     ? await searchParams
     : {};
 
-  const translations =
-    await getMessages(lang);
+  const translations = await getMessages(lang);
 
-  /*
-   * Получаем все товары один раз.
-   * На их основании определяем,
-   * какие вкладки должны отображаться.
-   */
   const allProducts =
-    await fetchAllProductsFlattened(
-      lang,
-    );
+    await fetchAllProductsFlattened(lang);
 
   const availableCategories =
     CATEGORY_KEYS.filter(
       (category) =>
         category === "all" ||
         allProducts.some((product) =>
-          matchesCategory(
-            product,
-            category,
-          ),
+          matchesCategory(product, category),
         ),
     );
 
-  const requestedCategory:
-    CategoryKey =
+  const requestedCategory: CategoryKey =
     search.category &&
     isCategoryKey(search.category)
       ? search.category
       : "all";
 
-  /*
-   * Если категория стала пустой,
-   * показываем "Все товары".
-   */
   const category: CategoryKey =
     availableCategories.includes(
       requestedCategory,
@@ -557,46 +442,33 @@ export default async function Page({
 
   const filteredProducts =
     allProducts.filter((product) =>
-      matchesCategory(
-        product,
-        category,
-      ),
+      matchesCategory(product, category),
     );
 
-  const finalProducts =
-    sortProducts(
-      filteredProducts,
-      sort,
-    );
+  const finalProducts = sortProducts(
+    filteredProducts,
+    sort,
+  );
 
   const handles = finalProducts
-    .map((product) =>
-      product.handle,
-    )
+    .map((product) => product.handle)
     .filter(
-      (
-        handle,
-      ): handle is string =>
+      (handle): handle is string =>
         Boolean(handle),
     );
 
   const reviewSummaries =
-    await getReviewSummaryByHandle(
-      handles,
-    );
+    await getReviewSummaryByHandle(handles);
 
   return (
     <main className="mx-auto max-w-7xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
       <Breadcrumbs
         lang={lang}
         labels={{
-          home:
-            translations.common.home,
-          shop:
-            translations.common.shop,
+          home: translations.common.home,
+          shop: translations.common.shop,
           categories:
-            translations.AllProducts
-              .categories,
+            translations.AllProducts.categories,
         }}
       />
 
