@@ -29,9 +29,27 @@ type CartState = {
   lines: CartLine[];
 };
 
+export type DeliveryQuoteStatus =
+  | "none"
+  | "pending"
+  | "paid";
+
+type DeliveryQuoteStatusResponse = {
+  status: DeliveryQuoteStatus;
+  requestNumber: string | null;
+};
+
 type CartContextType = {
   cart: CartState;
   isLoading: boolean;
+
+  deliveryQuoteStatus:
+    DeliveryQuoteStatus;
+
+  deliveryQuoteRequestNumber:
+    string | null;
+
+  isCartLocked: boolean;
 
   addToCart: (
     variantId: string,
@@ -51,15 +69,17 @@ type CartContextType = {
 
   clearCart: () => Promise<void>;
 
-  /**
-   * Очищает только локальное состояние и localStorage.
-   * Shopify-корзина при этом не изменяется.
-   */
   resetLocalCart: () => void;
+
+  refreshDeliveryQuoteStatus:
+    () => Promise<void>;
+
+  markDeliveryQuotePending: (
+    requestNumber: string
+  ) => void;
 
   totalQuantity: number;
 
-  // Старый интерфейс для совместимости
   items: CartLine[];
   totalPrice: number;
 
@@ -88,7 +108,7 @@ const STORAGE_KEY = "shopify_cart_id";
 
 type CartApiResponse = CartState | null;
 
-async function callApi(
+async function callCartApi(
   body: unknown
 ): Promise<CartApiResponse> {
   const response = await fetch("/api/cart", {
@@ -123,13 +143,65 @@ async function callApi(
   return (await response.json()) as CartApiResponse;
 }
 
+async function getDeliveryQuoteStatus(
+  cartId: string
+): Promise<DeliveryQuoteStatusResponse> {
+  const response = await fetch(
+    `/api/delivery-quote?cartId=${encodeURIComponent(
+      cartId
+    )}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    let errorBody: unknown = null;
+
+    try {
+      errorBody = await response.json();
+    } catch {
+      // Ответ может быть не JSON
+    }
+
+    console.error(
+      "Delivery quote status error:",
+      response.status,
+      errorBody
+    );
+
+    throw new Error(
+      `Delivery quote status error: ${response.status}`
+    );
+  }
+
+  const data =
+    (await response.json()) as Partial<DeliveryQuoteStatusResponse>;
+
+  const status: DeliveryQuoteStatus =
+    data.status === "pending" ||
+    data.status === "paid"
+      ? data.status
+      : "none";
+
+  return {
+    status,
+    requestNumber:
+      typeof data.requestNumber === "string"
+        ? data.requestNumber
+        : null,
+  };
+}
+
 function isValidCartState(
   value: CartApiResponse
 ): value is CartState {
   return Boolean(
     value &&
       typeof value.cartId === "string" &&
-      typeof value.checkoutUrl !== "undefined" &&
+      typeof value.checkoutUrl !==
+        "undefined" &&
       Array.isArray(value.lines)
   );
 }
@@ -145,14 +217,27 @@ export function CartProvider({
   const [isLoading, setIsLoading] =
     useState(false);
 
+  const [
+    deliveryQuoteStatus,
+    setDeliveryQuoteStatus,
+  ] =
+    useState<DeliveryQuoteStatus>("none");
+
+  const [
+    deliveryQuoteRequestNumber,
+    setDeliveryQuoteRequestNumber,
+  ] = useState<string | null>(null);
+
   const fetchInProgressRef = useRef(false);
 
-  /**
-   * Синхронизирует React-состояние с localStorage.
-   */
+  const isCartLocked =
+    deliveryQuoteStatus === "pending";
+
   const syncCart = useCallback(
     (nextCart: CartApiResponse) => {
-      const safeCart = isValidCartState(nextCart)
+      const safeCart = isValidCartState(
+        nextCart
+      )
         ? nextCart
         : EMPTY_CART;
 
@@ -176,14 +261,14 @@ export function CartProvider({
     []
   );
 
-  /**
-   * Сбрасывает корзину только на сайте.
-   * Запрос в Shopify не отправляется.
-   *
-   * Используется перед переходом на checkout.
+  /*
+   * Очищает только состояние сайта
+   * и сохранённый cartId.
    */
   const resetLocalCart = useCallback(() => {
     setCart(EMPTY_CART);
+    setDeliveryQuoteStatus("none");
+    setDeliveryQuoteRequestNumber(null);
 
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(
@@ -192,9 +277,72 @@ export function CartProvider({
     }
   }, []);
 
-  /**
-   * Получает актуальную корзину из Shopify.
+  /*
+   * Проверяет, существует ли для корзины
+   * запрос индивидуальной доставки.
+   *
+   * Если Draft Order уже оплачен,
+   * очищает исходную Shopify-корзину.
    */
+  const checkQuoteForCart = useCallback(
+    async (cartId: string) => {
+      try {
+        const quote =
+          await getDeliveryQuoteStatus(
+            cartId
+          );
+
+        if (quote.status === "paid") {
+          /*
+           * Счёт оплачен — удаляем товары
+           * из исходной Shopify-корзины.
+           */
+          try {
+            await callCartApi({
+              action: "clear",
+              cartId,
+            });
+          } catch (error: unknown) {
+            /*
+             * Если Shopify уже удалил корзину,
+             * локальный cartId всё равно
+             * необходимо убрать.
+             */
+            console.warn(
+              "Paid cart clearing warning:",
+              error instanceof Error
+                ? error.message
+                : String(error)
+            );
+          }
+
+          resetLocalCart();
+          return;
+        }
+
+        setDeliveryQuoteStatus(
+          quote.status
+        );
+
+        setDeliveryQuoteRequestNumber(
+          quote.requestNumber
+        );
+      } catch (error: unknown) {
+        /*
+         * Ошибка проверки Draft Order
+         * не должна удалять корзину.
+         */
+        console.error(
+          "checkQuoteForCart error:",
+          error instanceof Error
+            ? error.message
+            : String(error)
+        );
+      }
+    },
+    [resetLocalCart]
+  );
+
   const fetchCart = useCallback(async () => {
     if (typeof window === "undefined") {
       return;
@@ -205,7 +353,9 @@ export function CartProvider({
     }
 
     const storedId =
-      window.localStorage.getItem(STORAGE_KEY);
+      window.localStorage.getItem(
+        STORAGE_KEY
+      );
 
     if (
       !storedId ||
@@ -213,6 +363,8 @@ export function CartProvider({
       storedId === "null"
     ) {
       syncCart(EMPTY_CART);
+      setDeliveryQuoteStatus("none");
+      setDeliveryQuoteRequestNumber(null);
       return;
     }
 
@@ -220,11 +372,15 @@ export function CartProvider({
     setIsLoading(true);
 
     try {
-      const data = await callApi({
+      const data = await callCartApi({
         action: "get",
         cartId: storedId,
       });
 
+      /*
+       * После обычной успешной оплаты
+       * Shopify удаляет завершённую корзину.
+       */
       if (
         !isValidCartState(data) ||
         !data.cartId
@@ -234,6 +390,10 @@ export function CartProvider({
       }
 
       syncCart(data);
+
+      await checkQuoteForCart(
+        data.cartId
+      );
     } catch (error: unknown) {
       console.error(
         "fetchCart error:",
@@ -242,22 +402,73 @@ export function CartProvider({
           : String(error)
       );
 
+      /*
+       * Старый cartId больше не существует.
+       */
       resetLocalCart();
     } finally {
       fetchInProgressRef.current = false;
       setIsLoading(false);
     }
-  }, [resetLocalCart, syncCart]);
+  }, [
+    checkQuoteForCart,
+    resetLocalCart,
+    syncCart,
+  ]);
+
+  const refreshDeliveryQuoteStatus =
+    useCallback(async () => {
+      if (!cart.cartId) {
+        setDeliveryQuoteStatus("none");
+        setDeliveryQuoteRequestNumber(
+          null
+        );
+        return;
+      }
+
+      await checkQuoteForCart(
+        cart.cartId
+      );
+    }, [
+      cart.cartId,
+      checkQuoteForCart,
+    ]);
+
+  const markDeliveryQuotePending =
+    useCallback(
+      (requestNumber: string) => {
+        setDeliveryQuoteStatus(
+          "pending"
+        );
+
+        setDeliveryQuoteRequestNumber(
+          requestNumber || null
+        );
+      },
+      []
+    );
 
   const addToCart = useCallback(
     async (
       variantId: string,
       quantity = 1
     ) => {
+      /*
+       * После отправки запроса содержимое
+       * корзины менять нельзя: Draft Order
+       * уже содержит зафиксированный список.
+       */
+      if (isCartLocked) {
+        console.warn(
+          "Cart is locked while the delivery quote is pending"
+        );
+        return;
+      }
+
       try {
         setIsLoading(true);
 
-        const data = await callApi({
+        const data = await callCartApi({
           action: "add",
           cartId:
             cart.cartId || undefined,
@@ -277,19 +488,26 @@ export function CartProvider({
         setIsLoading(false);
       }
     },
-    [cart.cartId, syncCart]
+    [
+      cart.cartId,
+      isCartLocked,
+      syncCart,
+    ]
   );
 
   const removeLine = useCallback(
     async (lineId: string) => {
-      if (!cart.cartId) {
+      if (
+        !cart.cartId ||
+        isCartLocked
+      ) {
         return;
       }
 
       try {
         setIsLoading(true);
 
-        const data = await callApi({
+        const data = await callCartApi({
           action: "remove",
           cartId: cart.cartId,
           lineId,
@@ -307,57 +525,74 @@ export function CartProvider({
         setIsLoading(false);
       }
     },
-    [cart.cartId, syncCart]
-  );
-
-  const updateLineQuantity = useCallback(
-    async (
-      lineId: string,
-      quantity: number
-    ) => {
-      if (!cart.cartId) {
-        return;
-      }
-
-      if (quantity <= 0) {
-        await removeLine(lineId);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-
-        const data = await callApi({
-          action: "update",
-          cartId: cart.cartId,
-          lineId,
-          quantity,
-        });
-
-        syncCart(data);
-      } catch (error: unknown) {
-        console.error(
-          "updateLineQuantity error:",
-          error instanceof Error
-            ? error.message
-            : String(error)
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    },
     [
       cart.cartId,
-      removeLine,
+      isCartLocked,
       syncCart,
     ]
   );
 
-  /**
-   * Удаляет все линии из Shopify-корзины.
-   * Использовать для кнопки «Очистить корзину».
-   */
+  const updateLineQuantity =
+    useCallback(
+      async (
+        lineId: string,
+        quantity: number
+      ) => {
+        if (
+          !cart.cartId ||
+          isCartLocked
+        ) {
+          return;
+        }
+
+        if (quantity <= 0) {
+          await removeLine(lineId);
+          return;
+        }
+
+        try {
+          setIsLoading(true);
+
+          const data =
+            await callCartApi({
+              action: "update",
+              cartId: cart.cartId,
+              lineId,
+              quantity,
+            });
+
+          syncCart(data);
+        } catch (error: unknown) {
+          console.error(
+            "updateLineQuantity error:",
+            error instanceof Error
+              ? error.message
+              : String(error)
+          );
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      [
+        cart.cartId,
+        isCartLocked,
+        removeLine,
+        syncCart,
+      ]
+    );
+
   const clearCart = useCallback(async () => {
+    /*
+     * Запрос уже отправлен — сохраняем
+     * корзину до оплаты счёта.
+     */
+    if (isCartLocked) {
+      console.warn(
+        "A pending delivery request cannot be cleared"
+      );
+      return;
+    }
+
     if (!cart.cartId) {
       resetLocalCart();
       return;
@@ -366,7 +601,7 @@ export function CartProvider({
     try {
       setIsLoading(true);
 
-      const data = await callApi({
+      const data = await callCartApi({
         action: "clear",
         cartId: cart.cartId,
       });
@@ -394,15 +629,16 @@ export function CartProvider({
     }
   }, [
     cart.cartId,
+    isCartLocked,
     resetLocalCart,
     syncCart,
   ]);
 
-  /**
+  /*
    * Проверяем корзину:
    * - при первом открытии;
    * - после возвращения из Shopify;
-   * - после переключения обратно на вкладку сайта.
+   * - при возвращении на вкладку сайта.
    */
   useEffect(() => {
     const refreshCart = () => {
@@ -411,7 +647,8 @@ export function CartProvider({
 
     const handleVisibilityChange = () => {
       if (
-        document.visibilityState === "visible"
+        document.visibilityState ===
+        "visible"
       ) {
         refreshCart();
       }
@@ -503,12 +740,17 @@ export function CartProvider({
     () => ({
       cart,
       isLoading,
+      deliveryQuoteStatus,
+      deliveryQuoteRequestNumber,
+      isCartLocked,
       addToCart,
       fetchCart,
       removeLine,
       updateLineQuantity,
       clearCart,
       resetLocalCart,
+      refreshDeliveryQuoteStatus,
+      markDeliveryQuotePending,
       items,
       totalPrice,
       removeFromCart,
@@ -518,12 +760,17 @@ export function CartProvider({
     [
       cart,
       isLoading,
+      deliveryQuoteStatus,
+      deliveryQuoteRequestNumber,
+      isCartLocked,
       addToCart,
       fetchCart,
       removeLine,
       updateLineQuantity,
       clearCart,
       resetLocalCart,
+      refreshDeliveryQuoteStatus,
+      markDeliveryQuotePending,
       items,
       totalPrice,
       removeFromCart,
@@ -540,7 +787,9 @@ export function CartProvider({
 }
 
 export function useCart(): CartContextType {
-  const context = useContext(CartContext);
+  const context = useContext(
+    CartContext
+  );
 
   if (!context) {
     throw new Error(
